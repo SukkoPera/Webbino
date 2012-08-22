@@ -1,0 +1,6 @@
+EEPROMAnythingClass	KEYWORD1
+EEPROMAnything	KEYWORD1
+read	KEYWORD2
+write	KEYWORD2
+readAnything	KEYWORD2
+writeAnything	KEYWORD2

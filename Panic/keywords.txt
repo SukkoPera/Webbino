@@ -1,0 +1,4 @@
+Panic	KEYWORD1
+assert	KEYWORD2
+panic_assert	KEYWORD2
+panic_assert_not_reached	KEYWORD2
