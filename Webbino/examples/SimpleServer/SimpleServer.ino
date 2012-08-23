@@ -17,7 +17,7 @@
  *   along with SmartStrip.  If not, see <http://www.gnu.org/licenses/>.   *
  ***************************************************************************/
 
-#define USE_ENC28J60
+#include <Webbino.h>
 
 /* See http://provideyourown.com/2011/advanced-arduino-including-multiple-libraries/
  * to understand why this is unfortunately necessary.
@@ -30,8 +30,6 @@
 #endif
 
 #include <avr/pgmspace.h>
-#include <Webbino.h>
-#include "html.h"
 
 // Instantiate the WebServer
 WebServer webserver;
@@ -40,6 +38,8 @@ WebServer webserver;
 /******************************************************************************
  * DEFINITION OF PAGES                                                        *
  ******************************************************************************/
+
+#include "html.h"
 
 static Page indexPage PROGMEM = {index_html_name, index_html, NULL};
 
