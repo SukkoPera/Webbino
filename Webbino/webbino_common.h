@@ -17,8 +17,8 @@
  *   along with SmartStrip.  If not, see <http://www.gnu.org/licenses/>.   *
  ***************************************************************************/
 
-#ifndef COMMON_H_
-#define COMMON_H_
+#ifndef WEBBINOCOMMON_H_
+#define WEBBINOCOMMON_H_
 
 #define USE_ENC28J60
 
