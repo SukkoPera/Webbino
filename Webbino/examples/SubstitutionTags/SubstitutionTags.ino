@@ -17,7 +17,7 @@
  *   along with SmartStrip.  If not, see <http://www.gnu.org/licenses/>.   *
  ***************************************************************************/
 
- #define USE_ENC28J60
+#include <Webbino.h>
 
 /* See http://provideyourown.com/2011/advanced-arduino-including-multiple-libraries/
  * to understand why this is unfortunately necessary.
@@ -30,8 +30,6 @@
 #endif
 
 #include <avr/pgmspace.h>
-#include <Webbino.h>
-#include "html.h"
 
 // Instantiate the WebServer
 WebServer webserver;
@@ -40,6 +38,8 @@ WebServer webserver;
 /******************************************************************************
  * DEFINITION OF PAGES                                                        *
  ******************************************************************************/
+
+#include "html.h"
 
 static Page indexPage PROGMEM = {index_html_name, index_html, NULL};
 
@@ -81,68 +81,19 @@ static char *evaluate_gw () {
 	return ip2str (webserver.getGateway ());
 }
 
-// static char int2hex (int i) {
-	// if (i < 10)
-		// return i + '0';
-	// else
-		// return i - 10 + 'A';
-// }
-
-const char COLON_STR[] PROGMEM = ":";
+const char COLON_STRING[] PROGMEM = ":";
 	
 static char *evaluate_mac_addr () {
-#if 0
-	byte tmp;
-
-	tmp = EEPROM.read (EEPROM_MAC_B1_ADDR);
-	replaceBuffer[0] = int2hex (tmp / 16);
-	replaceBuffer[1] = int2hex (tmp % 16);
-
-	replaceBuffer[2] = ':';
-
-	tmp = EEPROM.read (EEPROM_MAC_B2_ADDR);
-	replaceBuffer[3] = int2hex (tmp / 16);
-	replaceBuffer[4] = int2hex (tmp % 16);
-
-	replaceBuffer[5] = ':';
-
-	tmp = EEPROM.read (EEPROM_MAC_B3_ADDR);
-	replaceBuffer[6] = int2hex (tmp / 16);
-	replaceBuffer[7] = int2hex (tmp % 16);
-
-	replaceBuffer[8] = ':';
-
-	tmp = EEPROM.read (EEPROM_MAC_B4_ADDR);
-	replaceBuffer[9] = int2hex (tmp / 16);
-	replaceBuffer[10] = int2hex (tmp % 16);
-
-	replaceBuffer[11] = ':';
-
-	tmp = EEPROM.read (EEPROM_MAC_B5_ADDR);
-	replaceBuffer[12] = int2hex (tmp / 16);
-	replaceBuffer[13] = int2hex (tmp % 16);
-
-	replaceBuffer[14] = ':';
-
-	tmp = EEPROM.read (EEPROM_MAC_B6_ADDR);
-	replaceBuffer[15] = int2hex (tmp / 16);
-	replaceBuffer[16] = int2hex (tmp % 16);
-
-	replaceBuffer[17] = '\0';
-#endif
-
 	const byte *buf = webserver.getIP ();
+
+	replaceBuffer[0] = '\0';
 	
-	itoa (buf[0], replaceBuffer, HEX);
-	strcat_P (replaceBuffer, COLON_STR);
-	itoa (buf[1], replaceBuffer + strlen (replaceBuffer), HEX);
-	strcat_P (replaceBuffer, COLON_STR);
-	itoa (buf[2], replaceBuffer + strlen (replaceBuffer), HEX);
-	strcat_P (replaceBuffer, COLON_STR);
-	itoa (buf[3], replaceBuffer + strlen (replaceBuffer), HEX);
-	strcat_P (replaceBuffer, COLON_STR);
-	itoa (buf[4], replaceBuffer + strlen (replaceBuffer), HEX);
-	strcat_P (replaceBuffer, COLON_STR);
+	for (byte i = 0; i < 5; i++) {
+		if (buf[i] < 16)
+			strcat_P (replaceBuffer, PSTR ("0"));
+		itoa (buf[i], replaceBuffer + strlen (replaceBuffer), HEX);
+		strcat_P (replaceBuffer, COLON_STRING);
+	}
 	itoa (buf[5], replaceBuffer + strlen (replaceBuffer), HEX);
 
 	return replaceBuffer;
@@ -167,9 +118,6 @@ static char *evaluate_webbino_version () {
 	return replaceBuffer;
 }
 
-// Wahahahah! Prolly the most advanced function of its kind!
-// FIXME: Save some bytes removing temp vars.
-// FIXME: Check that string does not overflow buffer (which is likely!)
 static char *evaluate_uptime () {
 	unsigned long uptime = millis () / 1000;
 	byte d, h, m, s;
@@ -189,20 +137,19 @@ static char *evaluate_uptime () {
 		strcat_P (replaceBuffer, d == 1 ? PSTR (" day, ") : PSTR (" days, "));
 	}
 
-	if (h > 0) {
-		itoa (h, replaceBuffer + strlen (replaceBuffer), DEC);
-		strcat_P (replaceBuffer, h == 1 ? PSTR (" hour, ") : PSTR (" hours, "));
-	}
-
-	if (m > 0) {
-		itoa (m, replaceBuffer + strlen (replaceBuffer), DEC);
-		strcat_P (replaceBuffer, m == 1 ? PSTR (" minute, ") : PSTR (" minutes, "));
-	}
-
-	// We always have seconds Maybe we could avoid them if h > 1 or so.
+	// Shorter format: "2 days, 4:12:22", saves 70 bytes and doesn't overflow :D
+	if (h < 10)
+		strcat_P (replaceBuffer, PSTR ("0"));
+	itoa (h, replaceBuffer + strlen (replaceBuffer), DEC);
+	strcat_P (replaceBuffer, PSTR (":"));
+	if (m < 10)
+		strcat_P (replaceBuffer, PSTR ("0"));
+	itoa (m, replaceBuffer + strlen (replaceBuffer), DEC);
+	strcat_P (replaceBuffer, PSTR (":"));
+	if (s < 10)
+		strcat_P (replaceBuffer, PSTR ("0"));
 	itoa (s, replaceBuffer + strlen (replaceBuffer), DEC);
-	strcat_P (replaceBuffer, s == 1 ? PSTR (" second") : PSTR (" seconds"));
-	
+
 	return replaceBuffer;
 }
 
