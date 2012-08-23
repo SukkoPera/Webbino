@@ -20,7 +20,7 @@
 #ifndef _WEBSERVER28J60_H_
 #define _WEBSERVER28J60_H_
 
-#include "common.h"
+#include "webbino_common.h"
 
 #ifdef USE_ENC28J60
 

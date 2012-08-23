@@ -77,7 +77,7 @@ void WebServerBase::sendPage (HTTPRequestParser& request, WebClientBase& client)
 			PGM_P content = page -> getContent ();
 			char c, tag[MAX_TAG_LEN];
 			bool inTag;
-			int tagLen;
+			int tagLen = 0;
 
 			inTag = false;
 			while ((c = pgm_read_byte (content++))) {

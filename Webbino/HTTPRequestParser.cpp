@@ -17,7 +17,7 @@
  *   along with SmartStrip.  If not, see <http://www.gnu.org/licenses/>.   *
  ***************************************************************************/
 
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <string.h>
 
 #include "HTTPRequestParser.h"
@@ -78,7 +78,7 @@ char *HTTPRequestParser::get_get_parameter (const char param[]) {
 	found = false;
 	for (start = strchr (url, '?'); !found && start; start = strchr (start + 1, '&')) {
 		char *end = strchr (start, '=');
-		if (end && (end - start - 1) == strlen (param) && strncmp (start + 1, param, end - start - 1) == 0) {
+		if (end && (end - start - 1) == (int) strlen (param) && strncmp (start + 1, param, end - start - 1) == 0) {
 			// Found!
 			char *x = strchr (end + 1, '&');
 			if (x)
@@ -108,7 +108,7 @@ char *HTTPRequestParser::get_get_parameter (__FlashStringHelper *param) {
 	found = false;
 	for (start = strchr (url, '?'); !found && start; start = strchr (start + 1, '&')) {
 		char *end = strchr (start, '=');
-		if (end && (end - start - 1) == strlen_P (reinterpret_cast<PGM_P> (param)) && strncmp_P (start + 1, reinterpret_cast<PGM_P> (param), end - start - 1) == 0) {
+		if (end && (end - start - 1) == (int) 	strlen_P (reinterpret_cast<PGM_P> (param)) && strncmp_P (start + 1, reinterpret_cast<PGM_P> (param), end - start - 1) == 0) {
 			// Found!
 			char *x = strchr (end + 1, '&');
 			if (x)

@@ -20,7 +20,7 @@
 #ifndef _WEBSERVER_H_
 #define _WEBSERVER_H_
 
-#include "common.h"
+#include "webbino_common.h"
 #include "HTTPRequestParser.h"
 
 class WebClientBase;

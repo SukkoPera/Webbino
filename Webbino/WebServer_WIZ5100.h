@@ -20,6 +20,8 @@
 #ifndef _WEBSERVER5100_H_
 #define _WEBSERVER5100_H_
 
+#include "webbino_common.h"
+
 #ifndef USE_ENC28J60
 
 #include <SPI.h>
