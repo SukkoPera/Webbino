@@ -84,7 +84,7 @@ static char *evaluate_gw () {
 const char COLON_STRING[] PROGMEM = ":";
 	
 static char *evaluate_mac_addr () {
-	const byte *buf = webserver.getIP ();
+	const byte *buf = webserver.getMAC ();
 
 	replaceBuffer[0] = '\0';
 	
