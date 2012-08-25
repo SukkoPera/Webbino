@@ -42,8 +42,11 @@ size_t WebClientENC28J60::write (uint8_t c) {
 
 /****************************************************************************/
 
+
 bool WebServerENC28J60::initChip (byte *mac) {
+#ifdef WEBBINO_VERBOSE
 	Serial.println (F("Using EtherCard library"));
+#endif
 
 	return ether.begin (sizeof (Ethernet::buffer), mac, 10);
 }
@@ -74,10 +77,12 @@ bool WebServerENC28J60::processPacket () {
 		// Got a packet
 		HTTPRequestParser request = HTTPRequestParser ((char *) Ethernet::buffer + pos);
 
+#ifdef WEBBINO_VERBOSE
 		Serial.print (F("Request for \""));
 		Serial.print (request.url);
 		Serial.println (F("\""));
 		//Serial.println ((char *) Ethernet::buffer + pos);
+#endif
 
 		// Send the requested page
 		WebClientENC28J60 webClient;

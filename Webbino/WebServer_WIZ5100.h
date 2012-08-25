@@ -31,131 +31,41 @@
 
 
 class WebClientWIZ5100: public WebClientBase {
+private:
 	EthernetClient& internalClient;
 
 public:
-	WebClientWIZ5100 (EthernetClient& client): internalClient (client) {
-	}
+	WebClientWIZ5100 (EthernetClient& client);
 
-	size_t write (uint8_t c) {
-		return internalClient.write (c);
-	}
+	size_t write (uint8_t c);
 };
-	
 
-const char info[] PROGMEM = "Using Arduino Ethernet library";
 
 class WebServerWIZ5100: public WebServerBase {
-	IPAddress realIp;
-	IPAddress netmask;
-	IPAddress gateway;
+private:
+	static byte retBuffer[6];
+
+	byte macAddress[6];
 	EthernetServer server;
-	byte ethernetBuffer[ETHERNET_BUFSIZE];
+	byte ethernetBuffer[MAX_URL_LEN + 16];			// MAX_URL_LEN + X is enough, since we only store the "GET <url> HTTP/1.x" request line
 	unsigned int ethernetBufferSize;
 	
 public:
-	WebServerWIZ5100 (): server (SERVER_PORT) {
-	}
+	WebServerWIZ5100 ();
 
-	bool begin (byte *mac) {
-		// start the Ethernet connection and the server:
-		Serial.println (reinterpret_cast<const __FlashStringHelper *> (info));
-
-		Ethernet.begin (mac);
-		server.begin ();
-// 		Serial.print (F("Server is at "));
-// 		Serial.println (Ethernet.localIP ());
-
-		realIp = Ethernet.localIP ();
-		
-		return true;
-	}
+	bool begin (byte *mac);
 	
-	bool begin (byte *mac, byte *ip, byte *gw, byte *mask) {
-		// start the Ethernet connection and the server:
-		Serial.println (reinterpret_cast<const __FlashStringHelper *> (info));
+	bool begin (byte *mac, byte *ip, byte *gw, byte *mask);
 
-		realIp = IPAddress (ip[0], ip[1], ip[2], ip[3]);
-		netmask = IPAddress (mask[0], mask[1], mask[2], mask[3]);
-		gateway = IPAddress (gw[0], gw[1], gw[2], gw[3]);
-		Ethernet.begin (mac, realIp, gateway, netmask);
-		server.begin ();
-// 		Serial.print (F("Server is at "));
-// 		Serial.println (Ethernet.localIP ());
+	bool processPacket ();
 
-		return true;
-	}
+	byte *getMAC ();
+	
+	byte *getIP ();
 
-	bool processPacket () {
-		EthernetClient client = server.available ();
-		if (client) {
-// 			Serial.println (F("New client"));
+	byte *getNetmask ();
 
-			// An http request ends with a blank line
-			boolean currentLineIsBlank = true;
-			ethernetBufferSize = 0;
-			while (client.connected ()) {
-				if (client.available ()) {
-					char c = client.read ();
-
-					/* OK, I don't like this, but in order to maintain the same
-					 * program logic as for the ENC28J60, it is necessary.*/
-					if (ethernetBufferSize < ETHERNET_BUFSIZE)
-						ethernetBuffer[ethernetBufferSize++] = c;
-					else
-						Serial.println (F("Ethernet buffer overflow"));
-					
-					// If you've gotten to the end of the line (received a newline
-					// character) and the line is blank, the http request has ended,
-					if (c == '\n' && currentLineIsBlank) {
-						HTTPRequestParser request = HTTPRequestParser ((char *) ethernetBuffer);
-
-						Serial.print (F("Request for \""));
-						Serial.print (request.url);
-						Serial.println (F("\""));
-						//Serial.println ((char *) Ethernet::buffer + pos);
-
-						// Send the requested page
-						WebClientWIZ5100 webClient (client);
-						sendPage (request, webClient);
-						break;
-					}
-
-					if (c == '\n') {
-						// you're starting a new line
-						currentLineIsBlank = true;
-					} else if (c != '\r') {
-						// you've gotten a character on the current line
-						currentLineIsBlank = false;
-					}
-				}
-			}
-
-			// give the web browser time to receive the data
-			delay (500);
-			// close the connection:
-			client.stop ();
-// 			Serial.println (F("Client disonnected"));
-		}
-	}
-
-	byte *getIP () {
-// 		realIp = Ethernet.localIP ();
-		static uint32_t tmp = static_cast<uint32_t> (realIp);
-		return reinterpret_cast<byte *> (&tmp);
-	}
-
-	byte *getNetmask () {
-// 		realIp = Ethernet.localIP ();
-		static uint32_t tmp = static_cast<uint32_t> (netmask);
-		return reinterpret_cast<byte *> (&tmp);
-	}
-
-	byte *getGateway () {
-// 		realIp = Ethernet.localIP ();
-		static uint32_t tmp = static_cast<uint32_t> (gateway);
-		return reinterpret_cast<byte *> (&tmp);
-	}
+	byte *getGateway ();
 };
 
 
