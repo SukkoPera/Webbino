@@ -19,7 +19,7 @@
 
 //#include <stdlib.h>
 #include <string.h>
-
+#include "webbino_debug.h"
 #include "HTTPRequestParser.h"
 
 
@@ -46,7 +46,7 @@ void HTTPRequestParser::extract_url () {
 		Serial.println (F("\""));
 #endif
 	} else {
-		Serial.println (F("Cannot extract URL"));
+		DPRINTLN (F("Cannot extract URL"));
 	}
 }
 
