@@ -19,6 +19,30 @@ Webbino is a webserver for Arduino with the following features:
   an SD card (and, consequently, of the SD access libraries).
 - Tags like "#SOMETHING#" in HTML pages can be replaced at page request time,
   allowing the delivery of dynamic contents.
+  
+The ENC28J60 Ethernet Controller is supported it through the EtherCard library,
+so you will need it to compile the sketch. Get it at
+https://github.com/jcw/ethercard/.
+
+To switch between the target chipsets, and to enable/disable server features,
+have a look at the webbino_common.h file: the USE_ENC28J60 define will enable
+support for the ENC28J60 Ethernet Controller. Comment it to enable support for
+the W5100 chip (i.e.: official Ethernet Shield). Please be aware of the
+following:
+- When ENC28J60 support is enabled, a lot of RAM is used for the packet buffer,
+  as EtherCard currently needs it to be allocated in the main RAM. It is
+  currently set at 800 bytes, which include TCP/IP headers, leaving about 750
+  bytes for data to be sent to the client. Since the library also forces all
+  communications to be single-packet, about 750 bytes is the maximum size of
+  any data that is exchanged between server and client.
+- When W5100 support is enabled, more RAM will be free, since the packets are
+  stored on a small RAM inside the chip itself. Although, the binary size will
+  increase quite a bit: about 5000 bytes. I'm not sure why this happens, as the
+  W5100 chip should require much less code than the ENC28J60 to operate.
+- Any file that must be available on the webserver can be converted to a C
+  header file throught a Python script that is available in the "tools"
+  directory. You can then include the generated file in the sketch as shown in
+  the examples.
 
 Panic
 =====
