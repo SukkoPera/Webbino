@@ -47,7 +47,7 @@ char *WebServerBase::findSubstitutionTag (char *tag) {
 			break;
 	}
 
-	return (sub ? (sub -> getFunction ()) () : NULL);
+	return (sub ? (sub -> getFunction ()) (sub -> getData ()) : NULL);
 }
 
 char *WebServerBase::findSubstitutionTagGetParameter (HTTPRequestParser& request, const char *tag) {

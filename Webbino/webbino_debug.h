@@ -20,7 +20,7 @@
 #ifndef _DEBUG_H_
 #define _DEBUG_H_
 
-#include "common.h"
+#include "webbino_common.h"
 
 #ifndef NDEBUG
 	#define DPRINT(...) Serial.print(__VA_ARGS__)

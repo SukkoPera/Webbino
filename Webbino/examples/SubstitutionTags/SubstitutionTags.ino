@@ -69,21 +69,21 @@ static char *ip2str (const byte *buf) {
 	return replaceBuffer;
 }
 
-static char *evaluate_ip () {
+static char *evaluate_ip (void *data) {
  	return ip2str (webserver.getIP ());
 }
 
-static char *evaluate_netmask () {
+static char *evaluate_netmask (void *data) {
 	return ip2str (webserver.getNetmask ());
 }
 
-static char *evaluate_gw () {
+static char *evaluate_gw (void *data) {
 	return ip2str (webserver.getGateway ());
 }
 
 const char COLON_STRING[] PROGMEM = ":";
 	
-static char *evaluate_mac_addr () {
+static char *evaluate_mac_addr (void *data) {
 	const byte *buf = webserver.getMAC ();
 
 	replaceBuffer[0] = '\0';
@@ -103,7 +103,7 @@ static char *evaluate_mac_addr () {
 const char CHECKED_STRING[] PROGMEM = "checked";
 const char SELECTED_STRING[] PROGMEM = "selected=\"true\"";
 
-static char *evaluate_ip_src () {
+static char *evaluate_ip_src (void *data) {
 	if (webserver.usingDHCP)
 		strlcpy_P (replaceBuffer, PSTR ("DHCP"), REP_BUFFER_LEN);
 	else
@@ -112,13 +112,13 @@ static char *evaluate_ip_src () {
 	return replaceBuffer;	
 }
 
-static char *evaluate_webbino_version () {
+static char *evaluate_webbino_version (void *data) {
 	strlcpy (replaceBuffer, WEBBINO_VERSION, REP_BUFFER_LEN);
 	
 	return replaceBuffer;
 }
 
-static char *evaluate_uptime () {
+static char *evaluate_uptime (void *data) {
 	unsigned long uptime = millis () / 1000;
 	byte d, h, m, s;
 
@@ -153,7 +153,7 @@ static char *evaluate_uptime () {
 	return replaceBuffer;
 }
 
-static char *evaluate_free_ram () {
+static char *evaluate_free_ram (void *data) {
 	extern int __heap_start, *__brkval;
 	int v;
 
@@ -173,14 +173,14 @@ static const char subWebbinoVerStr[] PROGMEM = "WEBBINO_VER";
 static const char subUptimeStr[] PROGMEM = "UPTIME";
 static const char subFreeRAMStr[] PROGMEM = "FREERAM";
 
-static var_substitution subMacAddrVarSub PROGMEM = {subMacAddrStr, evaluate_mac_addr};
-static var_substitution subIPAddressVarSub PROGMEM = {subIPAddressStr, evaluate_ip};
-static var_substitution subNetmaskVarSub PROGMEM = {subNetmaskStr, evaluate_netmask};
-static var_substitution subGatewayVarSub PROGMEM = {subGatewayStr, evaluate_gw};
-static var_substitution subNetConfSrcVarSub PROGMEM = {subNetConfSrcStr, evaluate_ip_src};
-static var_substitution subWebbinoVerVarSub PROGMEM = {subWebbinoVerStr, evaluate_webbino_version};
-static var_substitution subUptimeVarSub PROGMEM = {subUptimeStr, evaluate_uptime};
-static var_substitution subFreeRAMVarSub PROGMEM = {subFreeRAMStr, evaluate_free_ram};
+static var_substitution subMacAddrVarSub PROGMEM = {subMacAddrStr, evaluate_mac_addr, NULL};
+static var_substitution subIPAddressVarSub PROGMEM = {subIPAddressStr, evaluate_ip, NULL};
+static var_substitution subNetmaskVarSub PROGMEM = {subNetmaskStr, evaluate_netmask, NULL};
+static var_substitution subGatewayVarSub PROGMEM = {subGatewayStr, evaluate_gw, NULL};
+static var_substitution subNetConfSrcVarSub PROGMEM = {subNetConfSrcStr, evaluate_ip_src, NULL};
+static var_substitution subWebbinoVerVarSub PROGMEM = {subWebbinoVerStr, evaluate_webbino_version, NULL};
+static var_substitution subUptimeVarSub PROGMEM = {subUptimeStr, evaluate_uptime, NULL};
+static var_substitution subFreeRAMVarSub PROGMEM = {subFreeRAMStr, evaluate_free_ram, NULL};
 	
 static var_substitution *substitutions[] PROGMEM = {
 	&subMacAddrVarSub,
