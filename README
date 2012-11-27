@@ -63,7 +63,8 @@ a single library to be able to read and write both individual bytes and
 arbitrary objects. It also supports a mechanism that transparently redirects
 all read/writes to a different EEPROM offset, in order to save write cycles.
 
-SmartStrip is free software: you can redistribute it and/or modify
+
+Sukkino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
