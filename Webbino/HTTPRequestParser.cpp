@@ -100,7 +100,7 @@ char *HTTPRequestParser::get_get_parameter (const char param[]) {
 	return buffer;
 }
 
-char *HTTPRequestParser::get_get_parameter (__FlashStringHelper *param) {
+char *HTTPRequestParser::get_get_parameter (const __FlashStringHelper *param) {
 	char *start;
 	bool found;
 

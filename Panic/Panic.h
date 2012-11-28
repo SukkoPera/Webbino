@@ -75,7 +75,7 @@ public:
 	/* We only support panic reasons stored in PROGMEM, so use the F() macro.
 	 * C'mon, don't waste precious SRAM!
 	 */
-	void panic (__FlashStringHelper *reason);
+	void panic (const __FlashStringHelper *reason);
 	
 #ifndef NDEBUG
 	void assert_fail (const char *message, const char *file, const int line, const char *function);

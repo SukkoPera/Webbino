@@ -40,7 +40,7 @@ void Panic::infiniteBlink () {
 	}
 }
 
-void Panic::panic (__FlashStringHelper *reason) {
+void Panic::panic (const __FlashStringHelper *reason) {
 	panic_print (F("PANIC: "));
 	if (reason) {
 		panic_print (reason);

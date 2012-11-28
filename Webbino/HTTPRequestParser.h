@@ -48,7 +48,7 @@ public:
 
 	char *get_get_parameter (const char param[]);
 
-	char *get_get_parameter (__FlashStringHelper *param);
+	char *get_get_parameter (const __FlashStringHelper *param);
 };	
 
 #endif
