@@ -81,7 +81,7 @@ struct var_substitution {
 
 
 class WebServerBase {
-	Page **pages;
+	const Page * const *pages;
 
 #ifdef ENABLE_TAGS
 	var_substitution **substitutions;
@@ -101,7 +101,7 @@ public:
 
 	void sendPage (HTTPRequestParser& request, WebClientBase& client);
 
-	void setPages (Page *_pages[]);
+	void setPages (const Page * const _pages[]);
 
 #ifdef ENABLE_TAGS
 	void setSubstitutions (var_substitution *_substitutions[]);

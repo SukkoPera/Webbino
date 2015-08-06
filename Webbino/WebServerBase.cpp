@@ -168,7 +168,7 @@ void WebServerBase::sendPage (HTTPRequestParser& request, WebClientBase& client)
 
 #endif
 
-void WebServerBase::setPages (Page *_pages[]) {
+void WebServerBase::setPages (const Page * const _pages[]) {
 	pages = _pages;
 }
 

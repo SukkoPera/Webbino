@@ -34,8 +34,9 @@ void WebClientENC28J60::sendReply () {
 }
 
 size_t WebClientENC28J60::write (uint8_t c) {
-	char tmp[2] = {c, '\0'};
-	bfill.emit_p (PSTR ("$S"), tmp);
+	//uint8_t tmp[2] = {c, '\0'};
+	//bfill.emit_p (PSTR ("$S"), tmp);
+	bfill.emit_raw ((const char *) &c, 1);
 
 	return 1;
 }
@@ -64,7 +65,7 @@ bool WebServerENC28J60::begin (byte *mac, byte *ip, byte *gw, byte *mask) {
 	bool ret;
 	
 	if ((ret = WebServerBase::begin (mac, ip, gw, mask)) && (ret = initChip (mac)))
-		ret = ether.staticSetup (ip, gw);		// Netmask not supported?!
+		ret = ether.staticSetup (ip, gw, gw /* DNS, FIXME */, mask);
 
 	return ret;
 }
@@ -101,7 +102,7 @@ byte *WebServerENC28J60::getIP () {
 }
 
 byte *WebServerENC28J60::getNetmask () {
-	return EtherCard::mymask;
+	return EtherCard::netmask;
 }
 
 byte *WebServerENC28J60::getGateway () {
