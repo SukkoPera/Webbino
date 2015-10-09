@@ -55,7 +55,7 @@ Assertions can be totally disabled by defining the NDEBUG symbol at compile
 time.
 
 Thermometer
-==============
+===========
 Thermometer allows interfacing with different temperature sensors with a uniform
 interface, so that you can switch among different sensors without changing the
 code. Currently DHT11 and DS18B20 are supported.
