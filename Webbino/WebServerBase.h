@@ -84,7 +84,7 @@ class WebServerBase {
 	const Page * const *pages;
 
 #ifdef ENABLE_TAGS
-	var_substitution **substitutions;
+	const var_substitution * const *substitutions;
 #endif
 
 	Page *get_page (const char *name);
@@ -104,7 +104,7 @@ public:
 	void setPages (const Page * const _pages[]);
 
 #ifdef ENABLE_TAGS
-	void setSubstitutions (var_substitution *_substitutions[]);
+	void setSubstitutions (const var_substitution * const _substitutions[]);
 #endif
 
 	virtual bool begin (byte *mac) = 0;

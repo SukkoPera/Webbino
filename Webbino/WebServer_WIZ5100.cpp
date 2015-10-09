@@ -37,7 +37,7 @@ const char info[] PROGMEM = "Using Arduino Ethernet library";
 
 byte WebServerWIZ5100::retBuffer[6];
 
-WebServerWIZ5100::	WebServerWIZ5100 (): server (SERVER_PORT) {
+WebServerWIZ5100::WebServerWIZ5100 (): server (SERVER_PORT) {
 }
 
 bool WebServerWIZ5100::begin (byte *mac) {

@@ -20,9 +20,9 @@
 #ifndef WEBBINOCOMMON_H_
 #define WEBBINOCOMMON_H_
 
-// #define WEBBINO_VERBOSE
+//#define WEBBINO_VERBOSE
 
-#define USE_ENC28J60
+//#define USE_ENC28J60
 
 #define ENABLE_TAGS
 

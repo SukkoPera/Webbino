@@ -173,7 +173,7 @@ void WebServerBase::setPages (const Page * const _pages[]) {
 }
 
 #ifdef ENABLE_TAGS
-void WebServerBase::setSubstitutions (var_substitution *_substitutions[]) {
+void WebServerBase::setSubstitutions (const var_substitution * const _substitutions[]) {
 	substitutions = _substitutions;
 }
 #endif
