@@ -54,14 +54,11 @@ blink a led connected to an Arduino pin whenever an assertion fails.
 Assertions can be totally disabled by defining the NDEBUG symbol at compile
 time.
 
-EEPROMAnything
+Thermometer
 ==============
-EEPROMAnything is just the merger of the functions available on the Arduino
-Playground at http://www.arduino.cc/playground/Code/EEPROMWriteAnything with
-the functions of the official EEPROM library, so that you only need to include
-a single library to be able to read and write both individual bytes and
-arbitrary objects. It also supports a mechanism that transparently redirects
-all read/writes to a different EEPROM offset, in order to save write cycles.
+Thermometer allows interfacing with different temperature sensors with a uniform
+interface, so that you can switch among different sensors without changing the
+code. Currently DHT11 and DS18B20 are supported.
 
 
 Sukkino is free software: you can redistribute it and/or modify
