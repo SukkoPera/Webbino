@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of SmartStrip.                                      *
  *                                                                         *
- *   Copyright (C) 2012 by SukkoPera                                       *
+ *   Copyright (C) 2012-2015 by SukkoPera                                  *
  *                                                                         *
  *   SmartStrip is free software: you can redistribute it and/or modify    *
  *   it under the terms of the GNU General Public License as published by  *
@@ -41,9 +41,9 @@ WebServer webserver;
 
 #include "html.h"
 
-static Page indexPage PROGMEM = {index_html_name, index_html, NULL};
+static const Page indexPage PROGMEM = {index_html_name, index_html, NULL};
 
-static Page *pages[] PROGMEM = {
+static const Page * const pages[] PROGMEM = {
 	&indexPage,
  	NULL
 };
@@ -173,16 +173,16 @@ static const char subWebbinoVerStr[] PROGMEM = "WEBBINO_VER";
 static const char subUptimeStr[] PROGMEM = "UPTIME";
 static const char subFreeRAMStr[] PROGMEM = "FREERAM";
 
-static var_substitution subMacAddrVarSub PROGMEM = {subMacAddrStr, evaluate_mac_addr, NULL};
-static var_substitution subIPAddressVarSub PROGMEM = {subIPAddressStr, evaluate_ip, NULL};
-static var_substitution subNetmaskVarSub PROGMEM = {subNetmaskStr, evaluate_netmask, NULL};
-static var_substitution subGatewayVarSub PROGMEM = {subGatewayStr, evaluate_gw, NULL};
-static var_substitution subNetConfSrcVarSub PROGMEM = {subNetConfSrcStr, evaluate_ip_src, NULL};
-static var_substitution subWebbinoVerVarSub PROGMEM = {subWebbinoVerStr, evaluate_webbino_version, NULL};
-static var_substitution subUptimeVarSub PROGMEM = {subUptimeStr, evaluate_uptime, NULL};
-static var_substitution subFreeRAMVarSub PROGMEM = {subFreeRAMStr, evaluate_free_ram, NULL};
+static const var_substitution subMacAddrVarSub PROGMEM = {subMacAddrStr, evaluate_mac_addr, NULL};
+static const var_substitution subIPAddressVarSub PROGMEM = {subIPAddressStr, evaluate_ip, NULL};
+static const var_substitution subNetmaskVarSub PROGMEM = {subNetmaskStr, evaluate_netmask, NULL};
+static const var_substitution subGatewayVarSub PROGMEM = {subGatewayStr, evaluate_gw, NULL};
+static const var_substitution subNetConfSrcVarSub PROGMEM = {subNetConfSrcStr, evaluate_ip_src, NULL};
+static const var_substitution subWebbinoVerVarSub PROGMEM = {subWebbinoVerStr, evaluate_webbino_version, NULL};
+static const var_substitution subUptimeVarSub PROGMEM = {subUptimeStr, evaluate_uptime, NULL};
+static const var_substitution subFreeRAMVarSub PROGMEM = {subFreeRAMStr, evaluate_free_ram, NULL};
 	
-static var_substitution *substitutions[] PROGMEM = {
+static const var_substitution * const substitutions[] PROGMEM = {
 	&subMacAddrVarSub,
 	&subIPAddressVarSub,
 	&subNetmaskVarSub,
