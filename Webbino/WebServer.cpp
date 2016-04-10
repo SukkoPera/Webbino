@@ -117,7 +117,7 @@ void WebServer::sendPage (WebClient* client) {
 							client -> print (tag);
 							client -> print (F("#"));
 
-							DPRINT (F("Tag not found"));
+							DPRINTLN (F("Tag not found"));
 						}
 					} else if (tagLen < MAX_TAG_LEN - 1) {
 						tag[tagLen++] = c;
