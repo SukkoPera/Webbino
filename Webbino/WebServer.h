@@ -108,9 +108,9 @@ public:
 	void setSubstitutions (const var_substitution * const _substitutions[]);
 #endif
 
-	bool begin (NetworkInterface& netint);
+	boolean begin (NetworkInterface& netint);
 
-	bool loop ();
+	boolean loop ();
 };
 
 #endif

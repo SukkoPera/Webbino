@@ -47,13 +47,13 @@ class NetworkInterfaceENC28J60: public NetworkInterface {
 public:
 	static const unsigned int ETHERNET_BUFSIZE = 800;
 
-	bool begin (byte *mac);
+	boolean begin (byte *mac);
 
-	bool begin (byte *mac, byte *ip, byte *gw, byte *mask);
+	boolean begin (byte *mac, byte *ip, byte *gw, byte *mask);
 
 	WebClient* processPacket () override;
 
-	bool usingDHCP () override;
+	boolean usingDHCP () override;
 
 	byte *getMAC () override;
 
@@ -64,9 +64,9 @@ public:
 	byte *getGateway () override;
 
 private:
-	bool dhcp;
+	boolean dhcp;
 
-	bool initChip (byte *mac);
+	boolean initChip (byte *mac);
 
 	WebClientENC28J60 client;
 };

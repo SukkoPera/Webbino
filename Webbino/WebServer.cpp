@@ -27,7 +27,7 @@
 #define OK_HEADER "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nPragma: no-cache\r\n\r\n"
 
 
-bool WebServer::begin (NetworkInterface& _netint) {
+boolean WebServer::begin (NetworkInterface& _netint) {
 	this -> netint = &_netint;
 
 	return true;
@@ -83,7 +83,7 @@ void WebServer::sendPage (WebClient* client) {
 			// Read the page, perform tag substitutions and send it over
 			PGM_P content = page -> getContent ();
 			char c, tag[MAX_TAG_LEN];
-			bool inTag;
+			boolean inTag;
 			int tagLen = 0;
 
 			inTag = false;
@@ -191,7 +191,7 @@ void WebServer::setSubstitutions (const var_substitution * const _substitutions[
 }
 #endif
 
-bool WebServer::loop () {
+boolean WebServer::loop () {
 	WebClient *c = netint -> processPacket ();
 	if (c != NULL) {
 		// Got a client with a request, process it

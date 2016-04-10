@@ -72,7 +72,7 @@ char *HTTPRequestParser::get_basename () {
 
 char *HTTPRequestParser::get_get_parameter (const char param[]) {
 	char *start;
-	bool found;
+	boolean found;
 
 	buffer[0] = '\0';
 	found = false;
@@ -102,7 +102,7 @@ char *HTTPRequestParser::get_get_parameter (const char param[]) {
 
 char *HTTPRequestParser::get_get_parameter (const __FlashStringHelper *param) {
 	char *start;
-	bool found;
+	boolean found;
 
 	buffer[0] = '\0';
 	found = false;

@@ -46,14 +46,14 @@ size_t WebClientENC28J60::write (uint8_t c) {
 /****************************************************************************/
 
 
-bool NetworkInterfaceENC28J60::initChip (byte *mac) {
+boolean NetworkInterfaceENC28J60::initChip (byte *mac) {
 	DPRINTLN (F("Using EtherCard library"));
 
 	return ether.begin (sizeof (Ethernet::buffer), mac, 10);
 }
 
-bool NetworkInterfaceENC28J60::begin (byte *mac) {
-	bool ret;
+boolean NetworkInterfaceENC28J60::begin (byte *mac) {
+	boolean ret;
 
 	if ((ret = initChip (mac))) {
 		ret = ether.dhcpSetup ();
@@ -63,8 +63,8 @@ bool NetworkInterfaceENC28J60::begin (byte *mac) {
 	return ret;
 }
 
-bool NetworkInterfaceENC28J60::begin (byte *mac, byte *ip, byte *gw, byte *mask) {
-	bool ret;
+boolean NetworkInterfaceENC28J60::begin (byte *mac, byte *ip, byte *gw, byte *mask) {
+	boolean ret;
 
 	if ((ret = initChip (mac))) {
 		ret = ether.staticSetup (ip, gw, gw /* DNS, FIXME */, mask);
@@ -90,7 +90,7 @@ WebClient *NetworkInterfaceENC28J60::processPacket () {
 	return ret;
 }
 
-bool NetworkInterfaceENC28J60::usingDHCP () {
+boolean NetworkInterfaceENC28J60::usingDHCP () {
 	return dhcp;
 }
 

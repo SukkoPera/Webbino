@@ -41,8 +41,8 @@ byte NetworkInterfaceWIZ5100::retBuffer[6];
 NetworkInterfaceWIZ5100::NetworkInterfaceWIZ5100 (): server (SERVER_PORT) {
 }
 
-bool NetworkInterfaceWIZ5100::begin (byte *mac) {
-	bool ret;
+boolean NetworkInterfaceWIZ5100::begin (byte *mac) {
+	boolean ret;
 
 	DPRINTLN (F("Using Arduino Ethernet library"));
 
@@ -58,7 +58,7 @@ bool NetworkInterfaceWIZ5100::begin (byte *mac) {
 	return ret;
 }
 
-bool NetworkInterfaceWIZ5100::begin (byte *mac, byte *ip, byte *gw, byte *mask) {
+boolean NetworkInterfaceWIZ5100::begin (byte *mac, byte *ip, byte *gw, byte *mask) {
 	DPRINTLN (F("Using Arduino Ethernet library"));
 
 	memcpy (macAddress, mac, 6);
@@ -78,9 +78,9 @@ WebClient* NetworkInterfaceWIZ5100::processPacket () {
 		DPRINTLN (F("New client"));
 
 		// An http request ends with a blank line
-		bool currentLineIsBlank = true;
+		boolean currentLineIsBlank = true;
 		ethernetBufferSize = 0;
-		bool copy = true;
+		boolean copy = true;
 		while (client.connected ()) {
 			if (client.available ()) {
 				char c = client.read ();
@@ -132,7 +132,7 @@ WebClient* NetworkInterfaceWIZ5100::processPacket () {
 		return ret;
 }
 
-bool NetworkInterfaceWIZ5100::usingDHCP () {
+boolean NetworkInterfaceWIZ5100::usingDHCP () {
 	return dhcp;
 }
 

@@ -28,7 +28,7 @@ class NetworkInterface {
 public:
 	virtual WebClient* processPacket () = 0;
 
-	virtual bool usingDHCP () = 0;
+	virtual boolean usingDHCP () = 0;
 
 	virtual byte* getMAC () = 0;
 

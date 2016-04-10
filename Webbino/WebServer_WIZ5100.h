@@ -44,7 +44,7 @@ class NetworkInterfaceWIZ5100: public NetworkInterface {
 private:
 	static byte retBuffer[6];
 
-	bool dhcp;
+	boolean dhcp;
 	byte macAddress[6];
 	EthernetServer server;
 	byte ethernetBuffer[MAX_URL_LEN + 16];			// MAX_URL_LEN + X is enough, since we only store the "GET <url> HTTP/1.x" request line
@@ -55,13 +55,13 @@ private:
 public:
 	NetworkInterfaceWIZ5100 ();
 
-	bool begin (byte *mac);
+	boolean begin (byte *mac);
 
-	bool begin (byte *mac, byte *ip, byte *gw, byte *mask);
+	boolean begin (byte *mac, byte *ip, byte *gw, byte *mask);
 
 	WebClient* processPacket () override;
 
-	bool usingDHCP () override;
+	boolean usingDHCP () override;
 
 	byte *getMAC () override;
 

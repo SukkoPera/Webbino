@@ -65,7 +65,7 @@ byte NetworkInterfaceESP8266::retBuffer[6];
 NetworkInterfaceESP8266::NetworkInterfaceESP8266 (): server (80) {
 }
 
-bool NetworkInterfaceESP8266::begin (Stream& _serial, const char *_ssid, const char *_password) {
+boolean NetworkInterfaceESP8266::begin (Stream& _serial, const char *_ssid, const char *_password) {
 	WiFi.init (&_serial);
 
 	// Check for the presence of ESP
@@ -102,9 +102,9 @@ WebClient* NetworkInterfaceESP8266::processPacket () {
 		DPRINTLN (F("New client"));
 
 		// An http request ends with a blank line
-		bool currentLineIsBlank = true;
+		boolean currentLineIsBlank = true;
 		ethernetBufferSize = 0;
-		bool copy = true;
+		boolean copy = true;
 		while (client.connected ()) {
 			if (client.available ()) {
 				char c = client.read ();
@@ -153,7 +153,7 @@ WebClient* NetworkInterfaceESP8266::processPacket () {
 	return ret;
 }
 
-bool NetworkInterfaceESP8266::usingDHCP () {
+boolean NetworkInterfaceESP8266::usingDHCP () {
 	// FIXME
 	return true;
 }

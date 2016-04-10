@@ -61,11 +61,11 @@ private:
 public:
 	NetworkInterfaceESP8266 ();
 
-	bool begin (Stream& _serial, const char *_ssid, const char *_password);
+	boolean begin (Stream& _serial, const char *_ssid, const char *_password);
 
 	WebClient* processPacket () override;
 
-	bool usingDHCP () override;
+	boolean usingDHCP () override;
 
 	byte *getMAC () override;
 
