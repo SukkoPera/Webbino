@@ -27,28 +27,25 @@
 
 #define MAX_URL_LEN 128
 
-//#define VERBOSE_REQUEST_PARSER
+//~ #define VERBOSE_REQUEST_PARSER
 
 
 class HTTPRequestParser {
 private:
-	char *request;
 	char buffer[BUF_LEN];
-	
-	void extract_url ();
-	
+
 public:
+	HTTPRequestParser ();
+
 	char url[MAX_URL_LEN];
-	
-	HTTPRequestParser (char *req);
-	
-	// ~HTTPRequestParser ();
-	
+
+	void parse (char *request);
+
 	char *get_basename ();
 
 	char *get_get_parameter (const char param[]);
 
 	char *get_get_parameter (const __FlashStringHelper *param);
-};	
+};
 
 #endif

@@ -21,6 +21,7 @@
 #define _WEBSERVER_H_
 
 #include "webbino_common.h"
+#include "NetworkInterface.h"
 #include "HTTPRequestParser.h"
 
 class WebClientBase;
@@ -67,7 +68,7 @@ struct var_substitution {
 	PGM_P getName () {
 		return reinterpret_cast<PGM_P> (pgm_read_word (&(this -> name)));
 	}
-	
+
 	var_evaluate_func getFunction () {
 		return reinterpret_cast<var_evaluate_func> (pgm_read_word (&(this -> function)));
 	}
@@ -80,46 +81,36 @@ struct var_substitution {
 #endif
 
 
-class WebServerBase {
+class WebServer {
+private:
+	NetworkInterface* netint;
+
 	const Page * const *pages;
 
 #ifdef ENABLE_TAGS
 	const var_substitution * const *substitutions;
 #endif
 
+	void sendPage (WebClientBase *client);
+
 	Page *get_page (const char *name);
 
 #ifdef ENABLE_TAGS
 	char *findSubstitutionTag (char *tag);
-	
+
 	char *findSubstitutionTagGetParameter (HTTPRequestParser& request, const char *tag);
 #endif
 
 public:
-	bool usingDHCP;
-
-
-	void sendPage (HTTPRequestParser& request, WebClientBase& client);
-
 	void setPages (const Page * const _pages[]);
 
 #ifdef ENABLE_TAGS
 	void setSubstitutions (const var_substitution * const _substitutions[]);
 #endif
 
-	virtual bool begin (byte *mac) = 0;
+	bool begin (NetworkInterface& netint);
 
-	virtual bool begin (byte *mac, byte *ip, byte *gw, byte *mask) = 0;
-	
-	virtual bool processPacket () = 0;
-	
-	virtual byte *getMAC () = 0;
-	
-	virtual byte *getIP () = 0;
-
-	virtual byte *getNetmask () = 0;
-
-	virtual byte *getGateway () = 0;
+	bool loop ();
 };
 
 #endif

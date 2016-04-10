@@ -21,10 +21,15 @@
 #define _WEBCLIENT_H_
 
 #include <Arduino.h>
+#include <HTTPRequestParser.h>
 
 
 class WebClientBase: public Print {
 public:
+	HTTPRequestParser request;
+
+	WebClientBase ();
+
 	virtual void initReply ();
 
 	virtual size_t write (uint8_t c) = 0;

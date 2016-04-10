@@ -22,7 +22,7 @@
 
 #include "webbino_common.h"
 
-#ifndef USE_ENC28J60
+#ifdef USE_WIZ5100
 
 #include <SPI.h>
 #include <Ethernet.h>
@@ -49,18 +49,18 @@ private:
 	EthernetServer server;
 	byte ethernetBuffer[MAX_URL_LEN + 16];			// MAX_URL_LEN + X is enough, since we only store the "GET <url> HTTP/1.x" request line
 	unsigned int ethernetBufferSize;
-	
+
 public:
 	WebServerWIZ5100 ();
 
 	bool begin (byte *mac);
-	
+
 	bool begin (byte *mac, byte *ip, byte *gw, byte *mask);
 
 	bool processPacket ();
 
 	byte *getMAC ();
-	
+
 	byte *getIP ();
 
 	byte *getNetmask ();

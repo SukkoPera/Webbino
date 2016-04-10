@@ -21,8 +21,10 @@
 
 #ifdef USE_ENC28J60
 
+#include "webbino_debug.h"
+
 // Ethernet packet buffer
-byte Ethernet::buffer[ETHERNET_BUFSIZE];
+byte Ethernet::buffer[NetworkInterfaceENC28J60::ETHERNET_BUFSIZE];
 
 
 void WebClientENC28J60::initReply () {
@@ -44,68 +46,67 @@ size_t WebClientENC28J60::write (uint8_t c) {
 /****************************************************************************/
 
 
-bool WebServerENC28J60::initChip (byte *mac) {
-#ifdef WEBBINO_VERBOSE
-	Serial.println (F("Using EtherCard library"));
-#endif
+bool NetworkInterfaceENC28J60::initChip (byte *mac) {
+	DPRINTLN (F("Using EtherCard library"));
 
 	return ether.begin (sizeof (Ethernet::buffer), mac, 10);
 }
 
-bool WebServerENC28J60::begin (byte *mac) {
+bool NetworkInterfaceENC28J60::begin (byte *mac) {
 	bool ret;
 
-	if ((ret = WebServerBase::begin (mac)) && (ret = initChip (mac)))
+	if ((ret = initChip (mac))) {
 		ret = ether.dhcpSetup ();
+		dhcp = true;
+	}
 
 	return ret;
 }
 
-bool WebServerENC28J60::begin (byte *mac, byte *ip, byte *gw, byte *mask) {
+bool NetworkInterfaceENC28J60::begin (byte *mac, byte *ip, byte *gw, byte *mask) {
 	bool ret;
-	
-	if ((ret = WebServerBase::begin (mac, ip, gw, mask)) && (ret = initChip (mac)))
+
+	if ((ret = initChip (mac))) {
 		ret = ether.staticSetup (ip, gw, gw /* DNS, FIXME */, mask);
+		dhcp = false;
+	}
 
 	return ret;
 }
 
-bool WebServerENC28J60::processPacket () {
+WebClientBase *NetworkInterfaceENC28J60::processPacket () {
+	WebClientBase* ret = NULL;
+
 	word len = ether.packetReceive ();
 	word pos = ether.packetLoop (len);
 
 	if (pos) {
 		// Got a packet
-		HTTPRequestParser request = HTTPRequestParser ((char *) Ethernet::buffer + pos);
-
-#ifdef WEBBINO_VERBOSE
-		Serial.print (F("Request for \""));
-		Serial.print (request.url);
-		Serial.println (F("\""));
-		//Serial.println ((char *) Ethernet::buffer + pos);
-#endif
-
-		// Send the requested page
-		WebClientENC28J60 webClient;
-		sendPage (request, webClient);
+		client.request.parse ((char *) Ethernet::buffer + pos);
+		//DPRINTLN ((char *) Ethernet::buffer + pos);
+		ret = &client;
 	}
-	
-	return pos;
+
+	return ret;
 }
 
-byte *WebServerENC28J60::getMAC () {
+bool NetworkInterfaceENC28J60::usingDHCP () {
+	return dhcp;
+}
+
+byte *NetworkInterfaceENC28J60::getMAC () {
 	return EtherCard::mymac;
 }
 
-byte *WebServerENC28J60::getIP () {
+byte *NetworkInterfaceENC28J60::getIP () {
 	return EtherCard::myip;
 }
 
-byte *WebServerENC28J60::getNetmask () {
+byte *NetworkInterfaceENC28J60::getNetmask () {
 	return EtherCard::netmask;
 }
 
-byte *WebServerENC28J60::getGateway () {
+byte *NetworkInterfaceENC28J60::getGateway () {
 	return EtherCard::gwip;
 }
 

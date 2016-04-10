@@ -25,48 +25,50 @@
 #ifdef USE_ENC28J60
 
 #include <Arduino.h>
-#include <../EtherCard/EtherCard.h>
+#include <EtherCard.h>
 #include "WebClientBase.h"
-#include "WebServerBase.h"
+#include "NetworkInterface.h"
 
 
 class WebClientENC28J60: public WebClientBase {
-private:
-	BufferFiller bfill;
-
 public:
 	void initReply ();
 
 	void sendReply ();
 
 	size_t write (uint8_t c);
-};
 
-
-class WebServerENC28J60: public WebServerBase {
 private:
-	bool initChip (byte *mac);
-	
+	BufferFiller bfill;
+};
+
+
+class NetworkInterfaceENC28J60: public NetworkInterface {
 public:
+	static const unsigned int ETHERNET_BUFSIZE = 800;
+
 	bool begin (byte *mac);
-	
+
 	bool begin (byte *mac, byte *ip, byte *gw, byte *mask);
-	
-	bool processPacket ();
-	
-	byte *getMAC ();
-	
-	byte *getIP ();
 
-	byte *getNetmask ();
-	
-	byte *getGateway ();
-};
+	WebClientBase* processPacket () override;
 
-class WebClient: public WebClientENC28J60 {
-};
+	bool usingDHCP () override;
 
-class WebServer: public WebServerENC28J60 {
+	byte *getMAC () override;
+
+	byte *getIP () override;
+
+	byte *getNetmask () override;
+
+	byte *getGateway () override;
+
+private:
+	bool dhcp;
+
+	bool initChip (byte *mac);
+
+	WebClientENC28J60 client;
 };
 
 #endif

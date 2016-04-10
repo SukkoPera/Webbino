@@ -20,13 +20,14 @@
 #ifndef WEBBINOCOMMON_H_
 #define WEBBINOCOMMON_H_
 
-//#define WEBBINO_VERBOSE
+#define WEBBINO_VERBOSE
 
-//#define USE_ENC28J60
+// Please enable *only one* of the following:
+//~ #define USE_WIZ5100
+#define USE_ENC28J60
+//~ #define USE_ESP8266
 
 #define ENABLE_TAGS
-
-#define ETHERNET_BUFSIZE 800
 
 #define SERVER_PORT 80
 

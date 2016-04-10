@@ -19,6 +19,7 @@
 
 #include "WebServerBase.h"
 #include "WebClientBase.h"
+#include "webbino_debug.h"
 
 #define REDIRECT_ROOT_PAGE "/index.html"
 #define REDIRECT_HEADER "HTTP/1.0 301 Moved Permanently\r\nLocation: " REDIRECT_ROOT_PAGE "\r\n\r\n"
@@ -26,8 +27,14 @@
 #define OK_HEADER "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nPragma: no-cache\r\n\r\n"
 
 
+bool WebServer::begin (NetworkInterface& _netint) {
+	this -> netint = &_netint;
 
-Page *WebServerBase::get_page (const char *name) {
+	return true;
+}
+
+
+Page *WebServer::get_page (const char *name) {
 	Page *p;
 
 	for (unsigned int i = 0; (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
@@ -39,7 +46,7 @@ Page *WebServerBase::get_page (const char *name) {
 }
 
 #ifdef ENABLE_TAGS
-char *WebServerBase::findSubstitutionTag (char *tag) {
+char *WebServer::findSubstitutionTag (char *tag) {
 	var_substitution *sub;
 
 	for (byte i = 0; (sub = reinterpret_cast<var_substitution *> (pgm_read_word (&substitutions[i]))); i++) {
@@ -50,28 +57,28 @@ char *WebServerBase::findSubstitutionTag (char *tag) {
 	return (sub ? (sub -> getFunction ()) (sub -> getData ()) : NULL);
 }
 
-char *WebServerBase::findSubstitutionTagGetParameter (HTTPRequestParser& request, const char *tag) {
+char *WebServer::findSubstitutionTagGetParameter (HTTPRequestParser& request, const char *tag) {
 	return request.get_get_parameter (tag);
 }
 
 // FIXME: Handle unterminated tags
-void WebServerBase::sendPage (HTTPRequestParser& request, WebClientBase& client) {
-	client.initReply ();
+void WebServer::sendPage (WebClientBase* client) {
+	client -> initReply ();
 
-	char *basename = request.get_basename ();
+	char *basename = client -> request.get_basename ();
 	if (strlen (basename) == 0) {
 		// Request for "/", redirect
-		client.print (F(REDIRECT_HEADER));
+		client -> print (F(REDIRECT_HEADER));
 	} else {
 		// Emit HTTP 200 OK
-		client.print (F(OK_HEADER));
+		client -> print (F(OK_HEADER));
 
 		Page *page = get_page (basename);
 		if (page) {
 			// Call page function
 			PageFunction func = page -> getFunction ();
 			if (func)
-				func (request);
+				func (client -> request);
 
 			// Read the page, perform tag substitutions and send it over
 			PGM_P content = page -> getContent ();
@@ -88,18 +95,24 @@ void WebServerBase::sendPage (HTTPRequestParser& request, WebClientBase& client)
 						// Tag complete
 						inTag = false;
 
+						DPRINT (F("Processing replacement tag: \""));
+						DPRINT (tag);
+						DPRINTLN (F("\""));
+
 						if (strncmp_P (tag, PSTR ("GETP_"), 5) == 0)
-							rep = findSubstitutionTagGetParameter (request, tag + 5);
+							rep = findSubstitutionTagGetParameter (client -> request, tag + 5);
 						else
 							rep = findSubstitutionTag (tag);
 						//panic_assert (panic, rep);
 						if (rep) {
-							client.print (rep);
+							client -> print (rep);
 						} else {
 							// Tag not found, emit it
-							client.print (F("#"));
-							client.print (tag);
-							client.print (F("#"));
+							client -> print (F("#"));
+							client -> print (tag);
+							client -> print (F("#"));
+
+							DPRINT (F("Tag not found"));
 						}
 					} else if (tagLen < MAX_TAG_LEN - 1) {
 						tag[tagLen++] = c;
@@ -108,9 +121,9 @@ void WebServerBase::sendPage (HTTPRequestParser& request, WebClientBase& client)
 						// Tag too long, emit what we got so far
 						// FIXME: This will detect a fake tag at the closing #
 						char tmp[2] = {c, '\0'};		// FIXME
-						client.print (F("#"));
-						client.print (tag);
-						client.print (tmp);
+						client -> print (F("#"));
+						client -> print (tag);
+						client -> print (tmp);
 						inTag = false;
 					}
 				} else {
@@ -121,72 +134,73 @@ void WebServerBase::sendPage (HTTPRequestParser& request, WebClientBase& client)
 						tagLen = 0;
 					} else {
 						char tmp[2] = {c, '\0'};		// FIXME
-						client.print (tmp);
+						client -> print (tmp);
 					}
 				}
 			}
 		} else {
-			client.print (F("<html><body><h3>No such page: \""));
-			client.print (basename);
-			client.print (F("\"</h3></body></html>"));
+			client -> print (F("<html><body><h3>No such page: \""));
+			client -> print (basename);
+			client -> print (F("\"</h3></body></html>"));
 		}
 	}
 
-	client.sendReply ();
+	client -> sendReply ();
 }
 
 #else
 
-void WebServerBase::sendPage (HTTPRequestParser& request, WebClientBase& client) {
-	client.initReply ();
+void WebServer::sendPage (WebClientBase* client) {
+	client -> initReply ();
 
-	char *basename = request.get_basename ();
+	char *basename = client -> request.get_basename ();
 	if (strlen (basename) == 0) {
 		// Request for "/", redirect
-		client.print (F(REDIRECT_HEADER));
+		client -> print (F(REDIRECT_HEADER));
 	} else {
 		// Emit HTTP 200 OK
-		client.print (F(OK_HEADER));
+		client -> print (F(OK_HEADER));
 
 		Page *page = get_page (basename);
 		if (page) {
 			PageFunction func = page -> getFunction ();
 			if (func)
-				func (request);
-			
+				func (client -> request);
+
 			PGM_P content = page -> getContent ();
-			client.print (reinterpret_cast<const __FlashStringHelper *> (content));
+			client -> print (reinterpret_cast<const __FlashStringHelper *> (content));
 		} else {
-			client.print (F("<html><body><h3>No such page: &quot;"));
-			client.print (basename);
-			client.print (F("&quot;</h3></body></html>"));
+			client -> print (F("<html><body><h3>No such page: &quot;"));
+			client -> print (basename);
+			client -> print (F("&quot;</h3></body></html>"));
 		}
 	}
 
-	client.sendReply ();
+	client -> sendReply ();
 }
 
 #endif
 
-void WebServerBase::setPages (const Page * const _pages[]) {
+void WebServer::setPages (const Page * const _pages[]) {
 	pages = _pages;
 }
 
 #ifdef ENABLE_TAGS
-void WebServerBase::setSubstitutions (const var_substitution * const _substitutions[]) {
+void WebServer::setSubstitutions (const var_substitution * const _substitutions[]) {
 	substitutions = _substitutions;
 }
 #endif
 
-bool WebServerBase::begin (byte *mac) {
-	usingDHCP = true;
-	
-	return true;
-}
+bool WebServer::loop () {
+	WebClientBase *c = netint -> processPacket ();
+	if (c != NULL) {
+		// Got a client with a request, process it
+		DPRINT (F("Request for \""));
+		DPRINT (c -> request.url);
+		DPRINTLN (F("\""));
 
-bool WebServerBase::begin (byte *mac, byte *ip, byte *gw, byte *mask) {
-	usingDHCP = false;
-	
-	return true;
-}
+		sendPage (c);
+	}
 
+	return c != NULL;
+}

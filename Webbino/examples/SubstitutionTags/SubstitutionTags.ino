@@ -18,21 +18,26 @@
  ***************************************************************************/
 
 #include <Webbino.h>
-
-/* See http://provideyourown.com/2011/advanced-arduino-including-multiple-libraries/
- * to understand why this is unfortunately necessary.
- */
-#ifdef USE_ENC28J60
-	#include <EtherCard.h>
-#else
-	#include <SPI.h>
-	#include <Ethernet.h>
-#endif
-
 #include <avr/pgmspace.h>
 
 // Instantiate the WebServer
 WebServer webserver;
+
+//~ #define USE_ENC28J60
+//~ #include <WebServer_ENC28J60.h>
+//~ NetworkInterfaceENC28J60 netint;
+
+#define USE_ESP8266
+#include <WebServer_ESP8266.h>
+
+#include <SoftwareSerial.h>
+SoftwareSerial swSerial (7, 8);
+
+// Wi-Fi parameters
+#define WIFI_SSID        "ssid"
+#define WIFI_PASSWORD    "password"
+
+NetworkInterfaceESP8266 netint;
 
 
 /******************************************************************************
@@ -65,60 +70,58 @@ static char *ip2str (const byte *buf) {
 	itoa (buf[2], replaceBuffer + strlen (replaceBuffer), DEC);
 	strcat_P (replaceBuffer, PSTR ("."));
 	itoa (buf[3], replaceBuffer + strlen (replaceBuffer), DEC);
-	
+
 	return replaceBuffer;
 }
 
-static char *evaluate_ip (void *data) {
- 	return ip2str (webserver.getIP ());
+static char *evaluate_ip (void *data __attribute__ ((unused))) {
+ 	return ip2str (netint.getIP ());
 }
 
-static char *evaluate_netmask (void *data) {
-	return ip2str (webserver.getNetmask ());
+static char *evaluate_netmask (void *data __attribute__ ((unused))) {
+	return ip2str (netint.getNetmask ());
 }
 
-static char *evaluate_gw (void *data) {
-	return ip2str (webserver.getGateway ());
+static char *evaluate_gw (void *data __attribute__ ((unused))) {
+	return ip2str (netint.getGateway ());
 }
 
 const char COLON_STRING[] PROGMEM = ":";
-	
-static char *evaluate_mac_addr (void *data) {
-	const byte *buf = webserver.getMAC ();
+
+static char *evaluate_mac_addr (void *data __attribute__ ((unused))) {
+	const byte *buf = netint.getMAC ();
 
 	replaceBuffer[0] = '\0';
-	
+
 	for (byte i = 0; i < 5; i++) {
 		if (buf[i] < 16)
 			strcat_P (replaceBuffer, PSTR ("0"));
 		itoa (buf[i], replaceBuffer + strlen (replaceBuffer), HEX);
 		strcat_P (replaceBuffer, COLON_STRING);
 	}
+	if (buf[5] < 16)
+			strcat_P (replaceBuffer, PSTR ("0"));
 	itoa (buf[5], replaceBuffer + strlen (replaceBuffer), HEX);
 
 	return replaceBuffer;
 }
 
-
-const char CHECKED_STRING[] PROGMEM = "checked";
-const char SELECTED_STRING[] PROGMEM = "selected=\"true\"";
-
-static char *evaluate_ip_src (void *data) {
-	if (webserver.usingDHCP)
+static char *evaluate_ip_src (void *data __attribute__ ((unused))) {
+	if (netint.usingDHCP ())
 		strlcpy_P (replaceBuffer, PSTR ("DHCP"), REP_BUFFER_LEN);
 	else
 		strlcpy_P (replaceBuffer, PSTR ("MANUAL"), REP_BUFFER_LEN);
-		
-	return replaceBuffer;	
-}
 
-static char *evaluate_webbino_version (void *data) {
-	strlcpy (replaceBuffer, WEBBINO_VERSION, REP_BUFFER_LEN);
-	
 	return replaceBuffer;
 }
 
-static char *evaluate_uptime (void *data) {
+static char *evaluate_webbino_version (void *data __attribute__ ((unused))) {
+	strlcpy (replaceBuffer, WEBBINO_VERSION, REP_BUFFER_LEN);
+
+	return replaceBuffer;
+}
+
+static char *evaluate_uptime (void *data __attribute__ ((unused))) {
 	unsigned long uptime = millis () / 1000;
 	byte d, h, m, s;
 
@@ -153,7 +156,7 @@ static char *evaluate_uptime (void *data) {
 	return replaceBuffer;
 }
 
-static char *evaluate_free_ram (void *data) {
+static char *evaluate_free_ram (void *data __attribute__ ((unused))) {
 	extern int __heap_start, *__brkval;
 	int v;
 
@@ -181,7 +184,7 @@ static const var_substitution subNetConfSrcVarSub PROGMEM = {subNetConfSrcStr, e
 static const var_substitution subWebbinoVerVarSub PROGMEM = {subWebbinoVerStr, evaluate_webbino_version, NULL};
 static const var_substitution subUptimeVarSub PROGMEM = {subUptimeStr, evaluate_uptime, NULL};
 static const var_substitution subFreeRAMVarSub PROGMEM = {subFreeRAMStr, evaluate_free_ram, NULL};
-	
+
 static const var_substitution * const substitutions[] PROGMEM = {
 	&subMacAddrVarSub,
 	&subIPAddressVarSub,
@@ -199,17 +202,23 @@ static const var_substitution * const substitutions[] PROGMEM = {
  * MAIN STUFF                                                                 *
  ******************************************************************************/
 
- void setup () {
-	byte mac[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
-
+void setup () {
 	Serial.begin (9600);
 	Serial.println (F("Webbino " WEBBINO_VERSION));
+
+#if defined (USE_ENC28J60)
+	byte mac[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
+	netint.begin (mac);
+#elif defined (USE_ESP8266)
+	swSerial.begin (9600);
+	netint.begin (swSerial, WIFI_SSID, WIFI_PASSWORD);
+#endif
 
 	webserver.setPages (pages);
 	webserver.setSubstitutions (substitutions);
 
 	Serial.println (F("Trying to get an IP address through DHCP"));
-	if (!webserver.begin (mac)) {
+	if (!webserver.begin (netint)) {
 		Serial.println (F("Failed to get configuration from DHCP"));
 		while (42)
 			;
@@ -225,5 +234,5 @@ static const var_substitution * const substitutions[] PROGMEM = {
 }
 
 void loop () {
-	webserver.processPacket ();
+	webserver.loop ();
 }

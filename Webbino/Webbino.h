@@ -16,8 +16,9 @@
  *   You should have received a copy of the GNU General Public License     *
  *   along with SmartStrip.  If not, see <http://www.gnu.org/licenses/>.   *
  ***************************************************************************/
- 
+
 #include "webbino_common.h"
 #include "WebServerBase.h"
-#include "WebServer_ENC28J60.h"
-#include "WebServer_WIZ5100.h"
+//~ #include "WebServer_ENC28J60.h"
+//~ #include "WebServer_WIZ5100.h"
+//~ #include "WebServer_ESP8266.h"

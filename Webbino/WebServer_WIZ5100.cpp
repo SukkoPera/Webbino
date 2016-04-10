@@ -19,7 +19,7 @@
 
 #include "WebServer_WIZ5100.h"
 
-#ifndef USE_ENC28J60
+#ifdef USE_WIZ5100
 
 
 WebClientWIZ5100::WebClientWIZ5100 (EthernetClient& client): internalClient (client) {
@@ -30,7 +30,7 @@ size_t WebClientWIZ5100::write (uint8_t c) {
 }
 
 /****************************************************************************/
-	
+
 #ifdef WEBBINO_VERBOSE
 const char info[] PROGMEM = "Using Arduino Ethernet library";
 #endif
@@ -42,7 +42,7 @@ WebServerWIZ5100::WebServerWIZ5100 (): server (SERVER_PORT) {
 
 bool WebServerWIZ5100::begin (byte *mac) {
 	bool ret;
-	
+
 #ifdef WEBBINO_VERBOSE
 	// start the Ethernet connection and the server:
 	Serial.println (reinterpret_cast<const __FlashStringHelper *> (info));
@@ -61,7 +61,7 @@ bool WebServerWIZ5100::begin (byte *mac) {
 
 bool WebServerWIZ5100::begin (byte *mac, byte *ip, byte *gw, byte *mask) {
 	bool ret;
-	
+
 #ifdef WEBBINO_VERBOSE
 	// start the Ethernet connection and the server:
 	Serial.println (reinterpret_cast<const __FlashStringHelper *> (info));
@@ -129,7 +129,7 @@ bool WebServerWIZ5100::processPacket () {
 						// No, start over
 						ethernetBufferSize = 0;
 					}
-					
+
 					// you're starting a new line
 					currentLineIsBlank = true;
 				} else if (c != '\r') {
@@ -143,7 +143,7 @@ bool WebServerWIZ5100::processPacket () {
 		//delay (500);
 		// close the connection:
 		client.stop ();
-// 		Serial.println (F("Client disonnected"));
+// 		Serial.println (F("Client disconnected"));
 	}
 }
 

@@ -17,21 +17,21 @@
  *   along with SmartStrip.  If not, see <http://www.gnu.org/licenses/>.   *
  ***************************************************************************/
 
-//#include <stdlib.h>
-#include <string.h>
 #include "webbino_debug.h"
 #include "HTTPRequestParser.h"
 
-
-HTTPRequestParser::HTTPRequestParser (char *req): request (req) {
-	extract_url ();
+HTTPRequestParser::HTTPRequestParser () {
+	url[0] = '\0';
 }
 
-// HTTPRequestParser::~HTTPRequestParser () {
-// }
-
-void HTTPRequestParser::extract_url () {
+void HTTPRequestParser::parse (char *request) {
 	char *p, *q;
+
+#ifdef VERBOSE_REQUEST_PARSER
+	DPRINT (F("Parsing request: \""));
+	DPRINT (request);
+	DPRINTLN (F("\""));
+#endif
 
 	url[0] = '\0';
 	if ((p = strstr_P (request, PSTR ("GET ")))) {
@@ -41,9 +41,9 @@ void HTTPRequestParser::extract_url () {
 			strlcpy (url, p + 4, MAX_URL_LEN);
 
 #ifdef VERBOSE_REQUEST_PARSER
-		Serial.print (F("Extracted URL: \""));
-		Serial.print (url);
-		Serial.println (F("\""));
+		DPRINT (F("Extracted URL: \""));
+		DPRINT (url);
+		DPRINTLN (F("\""));
 #endif
 	} else {
 		DPRINTLN (F("Cannot extract URL"));
@@ -62,9 +62,9 @@ char *HTTPRequestParser::get_basename () {
 	}
 
 #ifdef VERBOSE_REQUEST_PARSER
-	Serial.print (F("Extracted basename: \""));
-	Serial.print (buffer);
-	Serial.println (F("\""));
+	DPRINT (F("Extracted basename: \""));
+	DPRINT (buffer);
+	DPRINTLN (F("\""));
 #endif
 
 	return buffer;
@@ -90,11 +90,11 @@ char *HTTPRequestParser::get_get_parameter (const char param[]) {
 	}
 
 #ifdef VERBOSE_REQUEST_PARSER
-	Serial.print (F("Extracted GET parameter: \""));
-	Serial.print (param);
-	Serial.print (F("\": \""));
-	Serial.print (buffer);
-	Serial.println (F("\""));
+	DPRINT (F("Extracted GET parameter: \""));
+	DPRINT (param);
+	DPRINT (F("\": \""));
+	DPRINT (buffer);
+	DPRINTLN (F("\""));
 #endif
 
 	return buffer;
@@ -108,7 +108,7 @@ char *HTTPRequestParser::get_get_parameter (const __FlashStringHelper *param) {
 	found = false;
 	for (start = strchr (url, '?'); !found && start; start = strchr (start + 1, '&')) {
 		char *end = strchr (start, '=');
-		if (end && (end - start - 1) == (int) 	strlen_P (reinterpret_cast<PGM_P> (param)) && strncmp_P (start + 1, reinterpret_cast<PGM_P> (param), end - start - 1) == 0) {
+		if (end && (end - start - 1) == (int) strlen_P (reinterpret_cast<PGM_P> (param)) && strncmp_P (start + 1, reinterpret_cast<PGM_P> (param), end - start - 1) == 0) {
 			// Found!
 			char *x = strchr (end + 1, '&');
 			if (x)
@@ -120,11 +120,11 @@ char *HTTPRequestParser::get_get_parameter (const __FlashStringHelper *param) {
 	}
 
 #ifdef VERBOSE_REQUEST_PARSER
-	Serial.print (F("Extracted GET parameter: \""));
-	Serial.print (param);
-	Serial.print (F("\": \""));
-	Serial.print (buffer);
-	Serial.println (F("\""));
+	DPRINT (F("Extracted GET parameter: \""));
+	DPRINT (param);
+	DPRINT (F("\": \""));
+	DPRINT (buffer);
+	DPRINTLN (F("\""));
 #endif
 
 	return buffer;

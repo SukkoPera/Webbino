@@ -17,15 +17,65 @@
  *   along with SmartStrip.  If not, see <http://www.gnu.org/licenses/>.   *
  ***************************************************************************/
 
+#ifndef _WEBSERVER8266_H_
+#define _WEBSERVER8266_H_
+
+#include "webbino_common.h"
+
+#ifdef USE_ESP8266
+
+#include <WiFiEsp.h>
 #include "WebClientBase.h"
+#include "WebServerBase.h"
 
-WebClientBase::WebClientBase () {
-}
 
-void WebClientBase::initReply () {
-	// Do nothing by default
-}
+#define CLIENT_BUFSIZE 256
 
-void WebClientBase::sendReply () {
-	// Do nothing by default
-}
+class WebClientESP8266: public WebClientBase {
+private:
+	WiFiEspClient internalClient;
+	byte buf[CLIENT_BUFSIZE];
+	int avail;
+
+	void flushBuffer ();
+
+public:
+	void init (WiFiEspClient& c, char* req);
+
+	size_t write (uint8_t c) override;
+
+	void sendReply () override;
+};
+
+
+class NetworkInterfaceESP8266: public NetworkInterface {
+private:
+	static byte retBuffer[6];
+
+	WiFiEspServer server;
+	byte ethernetBuffer[MAX_URL_LEN + 16];			// MAX_URL_LEN + X is enough, since we only store the "GET <url> HTTP/1.x" request line
+	unsigned int ethernetBufferSize;
+
+	WebClientESP8266 webClient;
+
+public:
+	NetworkInterfaceESP8266 ();
+
+	bool begin (Stream& _serial, const char *_ssid, const char *_password);
+
+	WebClientBase* processPacket () override;
+
+	bool usingDHCP () override;
+
+	byte *getMAC () override;
+
+	byte *getIP () override;
+
+	byte *getNetmask () override;
+
+	byte *getGateway () override;
+};
+
+#endif
+
+#endif
