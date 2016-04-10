@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of SmartStrip.                                      *
  *                                                                         *
- *   Copyright (C) 2012-2015 by SukkoPera                                  *
+ *   Copyright (C) 2012-2016 by SukkoPera                                  *
  *                                                                         *
  *   SmartStrip is free software: you can redistribute it and/or modify    *
  *   it under the terms of the GNU General Public License as published by  *
@@ -26,11 +26,11 @@
 
 #include <SPI.h>
 #include <Ethernet.h>
-#include "WebClientBase.h"
-#include "WebServerBase.h"
+#include "WebClient.h"
+#include "WebServer.h"
 
 
-class WebClientWIZ5100: public WebClientBase {
+class WebClientWIZ5100: public WebClient {
 private:
 	EthernetClient& internalClient;
 
@@ -41,7 +41,7 @@ public:
 };
 
 
-class WebServerWIZ5100: public WebServerBase {
+class WebServerWIZ5100: public WebServer {
 private:
 	static byte retBuffer[6];
 

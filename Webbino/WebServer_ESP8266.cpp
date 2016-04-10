@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of SmartStrip.                                      *
  *                                                                         *
- *   Copyright (C) 2012-2015 by SukkoPera                                  *
+ *   Copyright (C) 2012-2016 by SukkoPera                                  *
  *                                                                         *
  *   SmartStrip is free software: you can redistribute it and/or modify    *
  *   it under the terms of the GNU General Public License as published by  *
@@ -94,8 +94,8 @@ bool NetworkInterfaceESP8266::begin (Stream& _serial, const char *_ssid, const c
 
 }
 
-WebClientBase* NetworkInterfaceESP8266::processPacket () {
-	WebClientBase *ret = NULL;
+WebClient* NetworkInterfaceESP8266::processPacket () {
+	WebClient *ret = NULL;
 
 	WiFiEspClient client = server.available ();
 	if (client) {

@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of SmartStrip.                                      *
  *                                                                         *
- *   Copyright (C) 2012-2015 by SukkoPera                                  *
+ *   Copyright (C) 2012-2016 by SukkoPera                                  *
  *                                                                         *
  *   SmartStrip is free software: you can redistribute it and/or modify    *
  *   it under the terms of the GNU General Public License as published by  *
@@ -17,15 +17,26 @@
  *   along with SmartStrip.  If not, see <http://www.gnu.org/licenses/>.   *
  ***************************************************************************/
 
-#include "WebClientBase.h"
+#ifndef _INTERFACE_H_INCLUDED
+#define _INTERFACE_H_INCLUDED
 
-WebClientBase::WebClientBase () {
-}
+#include <Arduino.h>
+#include "WebClient.h"
 
-void WebClientBase::initReply () {
-	// Do nothing by default
-}
 
-void WebClientBase::sendReply () {
-	// Do nothing by default
-}
+class NetworkInterface {
+public:
+	virtual WebClient* processPacket () = 0;
+
+	virtual bool usingDHCP () = 0;
+
+	virtual byte* getMAC () = 0;
+
+	virtual byte* getIP () = 0;
+
+	virtual byte* getNetmask () = 0;
+
+	virtual byte* getGateway () = 0;
+};
+
+#endif

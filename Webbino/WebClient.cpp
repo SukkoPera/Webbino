@@ -17,17 +17,15 @@
  *   along with SmartStrip.  If not, see <http://www.gnu.org/licenses/>.   *
  ***************************************************************************/
 
-#ifndef _DEBUG_H_
-#define _DEBUG_H_
+#include "WebClient.h"
 
-#include "webbino_common.h"
+WebClient::WebClient () {
+}
 
-#ifndef NDEBUG
-	#define DPRINT(...) Serial.print(__VA_ARGS__)
-	#define DPRINTLN(...) Serial.println(__VA_ARGS__)
-#else
-	#define DPRINT(...)
-	#define DPRINTLN(...)
-#endif
+void WebClient::initReply () {
+	// Do nothing by default
+}
 
-#endif
+void WebClient::sendReply () {
+	// Do nothing by default
+}

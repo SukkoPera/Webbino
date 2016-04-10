@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of SmartStrip.                                      *
  *                                                                         *
- *   Copyright (C) 2012-2015 by SukkoPera                                  *
+ *   Copyright (C) 2012-2016 by SukkoPera                                  *
  *                                                                         *
  *   SmartStrip is free software: you can redistribute it and/or modify    *
  *   it under the terms of the GNU General Public License as published by  *
@@ -49,7 +49,7 @@ bool WebServerWIZ5100::begin (byte *mac) {
 #endif
 
 	memcpy (macAddress, mac, 6);
-	if ((ret = WebServerBase::begin (mac)) && (ret = Ethernet.begin (mac)))
+	if ((ret = WebServer::begin (mac)) && (ret = Ethernet.begin (mac)))
 		server.begin ();
 // 		Serial.print (F("Server is at "));
 // 		Serial.println (Ethernet.localIP ());
@@ -68,7 +68,7 @@ bool WebServerWIZ5100::begin (byte *mac, byte *ip, byte *gw, byte *mask) {
 #endif
 
 	memcpy (macAddress, mac, 6);
-	if ((ret = WebServerBase::begin (mac, ip, gw, mask))) {
+	if ((ret = WebServer::begin (mac, ip, gw, mask))) {
 		Ethernet.begin (mac, IPAddress (ip), IPAddress (gw), IPAddress (mask));
 		server.begin ();
 	// 		Serial.print (F("Server is at "));

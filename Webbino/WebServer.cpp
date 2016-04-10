@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of SmartStrip.                                      *
  *                                                                         *
- *   Copyright (C) 2012-2015 by SukkoPera                                  *
+ *   Copyright (C) 2012-2016 by SukkoPera                                  *
  *                                                                         *
  *   SmartStrip is free software: you can redistribute it and/or modify    *
  *   it under the terms of the GNU General Public License as published by  *
@@ -17,8 +17,8 @@
  *   along with SmartStrip.  If not, see <http://www.gnu.org/licenses/>.   *
  ***************************************************************************/
 
-#include "WebServerBase.h"
-#include "WebClientBase.h"
+#include "WebServer.h"
+#include "WebClient.h"
 #include "webbino_debug.h"
 
 #define REDIRECT_ROOT_PAGE "/index.html"
@@ -62,7 +62,7 @@ char *WebServer::findSubstitutionTagGetParameter (HTTPRequestParser& request, co
 }
 
 // FIXME: Handle unterminated tags
-void WebServer::sendPage (WebClientBase* client) {
+void WebServer::sendPage (WebClient* client) {
 	client -> initReply ();
 
 	char *basename = client -> request.get_basename ();
@@ -150,7 +150,7 @@ void WebServer::sendPage (WebClientBase* client) {
 
 #else
 
-void WebServer::sendPage (WebClientBase* client) {
+void WebServer::sendPage (WebClient* client) {
 	client -> initReply ();
 
 	char *basename = client -> request.get_basename ();
@@ -192,7 +192,7 @@ void WebServer::setSubstitutions (const var_substitution * const _substitutions[
 #endif
 
 bool WebServer::loop () {
-	WebClientBase *c = netint -> processPacket ();
+	WebClient *c = netint -> processPacket ();
 	if (c != NULL) {
 		// Got a client with a request, process it
 		DPRINT (F("Request for \""));

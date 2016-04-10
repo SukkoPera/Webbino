@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of SmartStrip.                                      *
  *                                                                         *
- *   Copyright (C) 2012-2015 by SukkoPera                                  *
+ *   Copyright (C) 2012-2016 by SukkoPera                                  *
  *                                                                         *
  *   SmartStrip is free software: you can redistribute it and/or modify    *
  *   it under the terms of the GNU General Public License as published by  *
@@ -18,7 +18,7 @@
  ***************************************************************************/
 
 #include "webbino_common.h"
-#include "WebServerBase.h"
+#include "WebServer.h"
 //~ #include "WebServer_ENC28J60.h"
 //~ #include "WebServer_WIZ5100.h"
 //~ #include "WebServer_ESP8266.h"

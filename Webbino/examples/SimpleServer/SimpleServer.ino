@@ -23,21 +23,21 @@
 // Instantiate the WebServer
 WebServer webserver;
 
-//~ #define USE_ENC28J60
-//~ #include <WebServer_ENC28J60.h>
-//~ NetworkInterfaceENC28J60 netint;
+#define USE_ENC28J60
+#include <WebServer_ENC28J60.h>
+NetworkInterfaceENC28J60 netint;
 
-#define USE_ESP8266
-#include <WebServer_ESP8266.h>
+//~ #define USE_ESP8266
+//~ #include <WebServer_ESP8266.h>
 
-#include <SoftwareSerial.h>
-SoftwareSerial swSerial (7, 8);
+//~ #include <SoftwareSerial.h>
+//~ SoftwareSerial swSerial (7, 8);
 
-// Wi-Fi parameters
-#define WIFI_SSID        "ssid"
-#define WIFI_PASSWORD    "password"
+//~ // Wi-Fi parameters
+//~ #define WIFI_SSID        "ssid"
+//~ #define WIFI_PASSWORD    "password"
 
-NetworkInterfaceESP8266 netint;
+//~ NetworkInterfaceESP8266 netint;
 
 
 /******************************************************************************

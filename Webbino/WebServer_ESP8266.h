@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of SmartStrip.                                      *
  *                                                                         *
- *   Copyright (C) 2012-2015 by SukkoPera                                  *
+ *   Copyright (C) 2012-2016 by SukkoPera                                  *
  *                                                                         *
  *   SmartStrip is free software: you can redistribute it and/or modify    *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,13 +25,13 @@
 #ifdef USE_ESP8266
 
 #include <WiFiEsp.h>
-#include "WebClientBase.h"
-#include "WebServerBase.h"
+#include "WebClient.h"
+#include "WebServer.h"
 
 
 #define CLIENT_BUFSIZE 256
 
-class WebClientESP8266: public WebClientBase {
+class WebClientESP8266: public WebClient {
 private:
 	WiFiEspClient internalClient;
 	byte buf[CLIENT_BUFSIZE];
@@ -63,7 +63,7 @@ public:
 
 	bool begin (Stream& _serial, const char *_ssid, const char *_password);
 
-	WebClientBase* processPacket () override;
+	WebClient* processPacket () override;
 
 	bool usingDHCP () override;
 

@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of SmartStrip.                                      *
  *                                                                         *
- *   Copyright (C) 2012-2015 by SukkoPera                                  *
+ *   Copyright (C) 2012-2016 by SukkoPera                                  *
  *                                                                         *
  *   SmartStrip is free software: you can redistribute it and/or modify    *
  *   it under the terms of the GNU General Public License as published by  *
@@ -26,11 +26,11 @@
 
 #include <Arduino.h>
 #include <EtherCard.h>
-#include "WebClientBase.h"
+#include "WebClient.h"
 #include "NetworkInterface.h"
 
 
-class WebClientENC28J60: public WebClientBase {
+class WebClientENC28J60: public WebClient {
 public:
 	void initReply ();
 
@@ -51,7 +51,7 @@ public:
 
 	bool begin (byte *mac, byte *ip, byte *gw, byte *mask);
 
-	WebClientBase* processPacket () override;
+	WebClient* processPacket () override;
 
 	bool usingDHCP () override;
 

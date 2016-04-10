@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of SmartStrip.                                      *
  *                                                                         *
- *   Copyright (C) 2012-2015 by SukkoPera                                  *
+ *   Copyright (C) 2012-2016 by SukkoPera                                  *
  *                                                                         *
  *   SmartStrip is free software: you can redistribute it and/or modify    *
  *   it under the terms of the GNU General Public License as published by  *
@@ -74,8 +74,8 @@ bool NetworkInterfaceENC28J60::begin (byte *mac, byte *ip, byte *gw, byte *mask)
 	return ret;
 }
 
-WebClientBase *NetworkInterfaceENC28J60::processPacket () {
-	WebClientBase* ret = NULL;
+WebClient *NetworkInterfaceENC28J60::processPacket () {
+	WebClient* ret = NULL;
 
 	word len = ether.packetReceive ();
 	word pos = ether.packetLoop (len);

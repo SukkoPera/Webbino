@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of SmartStrip.                                      *
  *                                                                         *
- *   Copyright (C) 2012-2015 by SukkoPera                                  *
+ *   Copyright (C) 2012-2016 by SukkoPera                                  *
  *                                                                         *
  *   SmartStrip is free software: you can redistribute it and/or modify    *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,11 +24,11 @@
 #include <HTTPRequestParser.h>
 
 
-class WebClientBase: public Print {
+class WebClient: public Print {
 public:
 	HTTPRequestParser request;
 
-	WebClientBase ();
+	WebClient ();
 
 	virtual void initReply ();
 
