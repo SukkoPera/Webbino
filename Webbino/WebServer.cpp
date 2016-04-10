@@ -103,6 +103,11 @@ void WebServer::sendPage (WebClient* client) {
 							rep = findSubstitutionTagGetParameter (client -> request, tag + 5);
 						else
 							rep = findSubstitutionTag (tag);
+
+						DPRINT (F("Replacement is: \""));
+						DPRINT (rep);
+						DPRINTLN (F("\""));
+
 						//panic_assert (panic, rep);
 						if (rep) {
 							client -> print (rep);
