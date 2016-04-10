@@ -22,7 +22,7 @@
 
 #include "webbino_common.h"
 
-#ifdef USE_ENC28J60
+#ifdef WEBBINO_USE_ENC28J60
 
 #include <Arduino.h>
 #include <EtherCard.h>

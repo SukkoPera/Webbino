@@ -19,7 +19,7 @@
 
 #include "WebServer_WIZ5100.h"
 
-#ifdef USE_WIZ5100
+#ifdef WEBBINO_USE_WIZ5100
 
 #include "webbino_debug.h"
 
@@ -31,6 +31,11 @@ void WebClientWIZ5100::init (EthernetClient& c, char* req) {
 
 size_t WebClientWIZ5100::write (uint8_t c) {
 	return internalClient.write (c);
+}
+
+void WebClientWIZ5100::sendReply () {
+	internalClient.stop ();
+	DPRINTLN (F("Client disconnected"));
 }
 
 /****************************************************************************/
@@ -49,6 +54,8 @@ boolean NetworkInterfaceWIZ5100::begin (byte *mac) {
 	memcpy (macAddress, mac, 6);
 	if ((ret = Ethernet.begin (mac))) {
 		server.begin ();
+		dhcp = true;
+
  		DPRINT (F("Server is at "));
  		DPRINTLN (Ethernet.localIP ());
 	}
@@ -64,6 +71,8 @@ boolean NetworkInterfaceWIZ5100::begin (byte *mac, byte *ip, byte *gw, byte *mas
 	memcpy (macAddress, mac, 6);
 	Ethernet.begin (mac, IPAddress (ip), IPAddress (gw), IPAddress (mask));
 	server.begin ();
+	dhcp = false;
+
 	DPRINT (F("Server is at "));
 	DPRINTLN (Ethernet.localIP ());
 

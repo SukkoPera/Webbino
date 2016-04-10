@@ -23,26 +23,25 @@
 // Instantiate the WebServer
 WebServer webserver;
 
-//~ #define USE_ENC28J60
-//~ #include <WebServer_ENC28J60.h>
-//~ NetworkInterfaceENC28J60 netint;
+// Instantiate the network interface defined in the Webbino headers
+#if defined (WEBBINO_USE_WIZ5100)
+	#include <WebServer_ENC28J60.h>
+	NetworkInterfaceENC28J60 netint;
+#elif defined (WEBBINO_USE_WIZ5100)
+	#include <WebServer_WIZ5100.h>
+	NetworkInterfaceWIZ5100 netint;
+#elif defined (WEBBINO_USE_ESP8266)
+	#include <WebServer_ESP8266.h>
 
-#define USE_WIZ5100
-#include <WebServer_WIZ5100.h>
-NetworkInterfaceWIZ5100 netint;
+	#include <SoftwareSerial.h>
+	SoftwareSerial swSerial (7, 8);
 
-//~ #define USE_ESP8266
-//~ #include <WebServer_ESP8266.h>
+	// Wi-Fi parameters
+	#define WIFI_SSID        "ssid"
+	#define WIFI_PASSWORD    "password"
 
-//~ #include <SoftwareSerial.h>
-//~ SoftwareSerial swSerial (7, 8);
-
-//~ // Wi-Fi parameters
-//~ #define WIFI_SSID        "ssid"
-//~ #define WIFI_PASSWORD    "password"
-
-//~ NetworkInterfaceESP8266 netint;
-
+	NetworkInterfaceESP8266 netint;
+#endif
 
 /******************************************************************************
  * DEFINITION OF PAGES                                                        *
@@ -66,10 +65,10 @@ void setup () {
 	Serial.begin (9600);
 	// Serial.println (F("Webbino " PROGRAM_VERSION));
 
-#if defined (USE_ENC28J60) | defined (WIZ5100)
+#if defined (WEBBINO_USE_ENC28J60) || defined (WEBBINO_USE_WIZ5100)
 	byte mac[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
 	netint.begin (mac);
-#elif defined (USE_ESP8266)
+#elif defined (WEBBINO_USE_ESP8266)
 	swSerial.begin (9600);
 	netint.begin (swSerial, WIFI_SSID, WIFI_PASSWORD);
 #endif

@@ -22,7 +22,7 @@
 
 #include "webbino_common.h"
 
-#ifdef USE_ESP8266
+#ifdef WEBBINO_USE_ESP8266
 
 #include <WiFiEsp.h>
 #include "WebClient.h"

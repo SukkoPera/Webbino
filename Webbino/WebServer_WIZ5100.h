@@ -22,7 +22,7 @@
 
 #include "webbino_common.h"
 
-#ifdef USE_WIZ5100
+#ifdef WEBBINO_USE_WIZ5100
 
 #include <Ethernet.h>
 #include "WebClient.h"
@@ -37,6 +37,8 @@ public:
 	void init (EthernetClient& c, char* req);
 
 	size_t write (uint8_t c) override;
+
+	void sendReply () override;
 };
 
 

@@ -19,7 +19,7 @@
 
 #include "WebServer_ESP8266.h"
 
-#ifdef USE_ESP8266
+#ifdef WEBBINO_USE_ESP8266
 
 #include "webbino_debug.h"
 

@@ -19,7 +19,7 @@
 
 #include "WebServer_ENC28J60.h"
 
-#ifdef USE_ENC28J60
+#ifdef WEBBINO_USE_ENC28J60
 
 #include "webbino_debug.h"
 

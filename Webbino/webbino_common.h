@@ -20,12 +20,12 @@
 #ifndef WEBBINOCOMMON_H_
 #define WEBBINOCOMMON_H_
 
-//~ #define NDEBUG
+#define NDEBUG
 
 // Please enable *only one* of the following:
-#define USE_WIZ5100
-//~ #define USE_ENC28J60
-//~ #define USE_ESP8266
+//~ #define WEBBINO_USE_WIZ5100
+//~ #define WEBBINO_USE_ENC28J60
+#define WEBBINO_USE_ESP8266
 
 #define ENABLE_TAGS
 
