@@ -1,5 +1,5 @@
 /***************************************************************************
- *   This file is part of SmartStrip.                                      *
+ *   This file is part of Webbino                                          *
  *                                                                         *
  *   Copyright (C) 2012-2016 by SukkoPera                                  *
  *                                                                         *
