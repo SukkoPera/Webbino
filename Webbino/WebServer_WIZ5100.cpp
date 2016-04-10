@@ -21,8 +21,12 @@
 
 #ifdef USE_WIZ5100
 
+#include "webbino_debug.h"
 
-WebClientWIZ5100::WebClientWIZ5100 (EthernetClient& client): internalClient (client) {
+
+void WebClientWIZ5100::init (EthernetClient& c, char* req) {
+	internalClient = c;
+	request.parse (req);
 }
 
 size_t WebClientWIZ5100::write (uint8_t c) {
@@ -31,57 +35,47 @@ size_t WebClientWIZ5100::write (uint8_t c) {
 
 /****************************************************************************/
 
-#ifdef WEBBINO_VERBOSE
-const char info[] PROGMEM = "Using Arduino Ethernet library";
-#endif
+byte NetworkInterfaceWIZ5100::retBuffer[6];
 
-byte WebServerWIZ5100::retBuffer[6];
-
-WebServerWIZ5100::WebServerWIZ5100 (): server (SERVER_PORT) {
+// FIXME
+NetworkInterfaceWIZ5100::NetworkInterfaceWIZ5100 (): server (SERVER_PORT) {
 }
 
-bool WebServerWIZ5100::begin (byte *mac) {
+bool NetworkInterfaceWIZ5100::begin (byte *mac) {
 	bool ret;
 
-#ifdef WEBBINO_VERBOSE
-	// start the Ethernet connection and the server:
-	Serial.println (reinterpret_cast<const __FlashStringHelper *> (info));
-#endif
+	DPRINTLN (F("Using Arduino Ethernet library"));
 
 	memcpy (macAddress, mac, 6);
-	if ((ret = WebServer::begin (mac)) && (ret = Ethernet.begin (mac)))
+	if ((ret = Ethernet.begin (mac))) {
 		server.begin ();
-// 		Serial.print (F("Server is at "));
-// 		Serial.println (Ethernet.localIP ());
+ 		DPRINT (F("Server is at "));
+ 		DPRINTLN (Ethernet.localIP ());
+	}
 
 	//realIp = Ethernet.localIP ();
 
 	return ret;
 }
 
-bool WebServerWIZ5100::begin (byte *mac, byte *ip, byte *gw, byte *mask) {
-	bool ret;
-
-#ifdef WEBBINO_VERBOSE
-	// start the Ethernet connection and the server:
-	Serial.println (reinterpret_cast<const __FlashStringHelper *> (info));
-#endif
+bool NetworkInterfaceWIZ5100::begin (byte *mac, byte *ip, byte *gw, byte *mask) {
+	DPRINTLN (F("Using Arduino Ethernet library"));
 
 	memcpy (macAddress, mac, 6);
-	if ((ret = WebServer::begin (mac, ip, gw, mask))) {
-		Ethernet.begin (mac, IPAddress (ip), IPAddress (gw), IPAddress (mask));
-		server.begin ();
-	// 		Serial.print (F("Server is at "));
-	// 		Serial.println (Ethernet.localIP ());
-	}
+	Ethernet.begin (mac, IPAddress (ip), IPAddress (gw), IPAddress (mask));
+	server.begin ();
+	DPRINT (F("Server is at "));
+	DPRINTLN (Ethernet.localIP ());
 
-	return ret;
+	return true;
 }
 
-bool WebServerWIZ5100::processPacket () {
+WebClient* NetworkInterfaceWIZ5100::processPacket () {
+	WebClient *ret = NULL;
+
 	EthernetClient client = server.available ();
 	if (client) {
-// 			Serial.println (F("New client"));
+		DPRINTLN (F("New client"));
 
 		// An http request ends with a blank line
 		bool currentLineIsBlank = true;
@@ -90,32 +84,18 @@ bool WebServerWIZ5100::processPacket () {
 		while (client.connected ()) {
 			if (client.available ()) {
 				char c = client.read ();
-
-				/* OK, I don't like this, but in order to maintain the same
-					* program logic as for the ENC28J60, it is necessary.*/
 				if (ethernetBufferSize < sizeof (ethernetBuffer)) {
 					if (copy)
 						ethernetBuffer[ethernetBufferSize++] = c;
 				} else {
-#ifdef WEBBINO_VERBOSE
-					Serial.println (F("Ethernet buffer overflow"));
-#endif
+					DPRINTLN (F("Ethernet buffer overflow"));
 				}
 
 				// If you've gotten to the end of the line (received a newline
 				// character) and the line is blank, the http request has ended,
 				if (c == '\n' && currentLineIsBlank) {
-					HTTPRequestParser request = HTTPRequestParser ((char *) ethernetBuffer);
-
-#ifdef WEBBINO_VERBOSE
-					Serial.print (F("Request for \""));
-					Serial.print (request.url);
-					Serial.println (F("\""));
-#endif
-
-					// Send the requested page
-					WebClientWIZ5100 webClient (client);
-					sendPage (request, webClient);
+					webClient.init (client, (char *) ethernetBuffer);
+					ret = &webClient;
 					break;
 				}
 
@@ -141,27 +121,36 @@ bool WebServerWIZ5100::processPacket () {
 
 		// give the web browser time to receive the data
 		//delay (500);
-		// close the connection:
-		client.stop ();
-// 		Serial.println (F("Client disconnected"));
+
+		// If we are not returning a client, close the connection
+		if (!ret) {
+			client.stop ();
+			DPRINTLN (F("Client disconnected"));
+		}
 	}
+
+		return ret;
 }
 
-byte *WebServerWIZ5100::getMAC () {
+bool NetworkInterfaceWIZ5100::usingDHCP () {
+	return dhcp;
+}
+
+byte *NetworkInterfaceWIZ5100::getMAC () {
 	return macAddress;
 }
 
-byte *WebServerWIZ5100::getIP () {
+byte *NetworkInterfaceWIZ5100::getIP () {
 	(*(uint32_t *) &retBuffer) = static_cast<uint32_t> (Ethernet.localIP ());
 	return retBuffer;
 }
 
-byte *WebServerWIZ5100::getNetmask () {
+byte *NetworkInterfaceWIZ5100::getNetmask () {
 	(*(uint32_t *) &retBuffer) = static_cast<uint32_t> (Ethernet.subnetMask ());
 	return retBuffer;
 }
 
-byte *WebServerWIZ5100::getGateway () {
+byte *NetworkInterfaceWIZ5100::getGateway () {
 	(*(uint32_t *) &retBuffer) = static_cast<uint32_t> (Ethernet.gatewayIP ());
 	return retBuffer;
 }

@@ -24,7 +24,6 @@
 
 #ifdef USE_WIZ5100
 
-#include <SPI.h>
 #include <Ethernet.h>
 #include "WebClient.h"
 #include "WebServer.h"
@@ -32,47 +31,45 @@
 
 class WebClientWIZ5100: public WebClient {
 private:
-	EthernetClient& internalClient;
+	EthernetClient internalClient;
 
 public:
-	WebClientWIZ5100 (EthernetClient& client);
+	void init (EthernetClient& c, char* req);
 
-	size_t write (uint8_t c);
+	size_t write (uint8_t c) override;
 };
 
 
-class WebServerWIZ5100: public WebServer {
+class NetworkInterfaceWIZ5100: public NetworkInterface {
 private:
 	static byte retBuffer[6];
 
+	bool dhcp;
 	byte macAddress[6];
 	EthernetServer server;
 	byte ethernetBuffer[MAX_URL_LEN + 16];			// MAX_URL_LEN + X is enough, since we only store the "GET <url> HTTP/1.x" request line
 	unsigned int ethernetBufferSize;
 
+	WebClientWIZ5100 webClient;
+
 public:
-	WebServerWIZ5100 ();
+	NetworkInterfaceWIZ5100 ();
 
 	bool begin (byte *mac);
 
 	bool begin (byte *mac, byte *ip, byte *gw, byte *mask);
 
-	bool processPacket ();
+	WebClient* processPacket () override;
 
-	byte *getMAC ();
+	bool usingDHCP () override;
 
-	byte *getIP ();
+	byte *getMAC () override;
 
-	byte *getNetmask ();
+	byte *getIP () override;
 
-	byte *getGateway ();
-};
+	byte *getNetmask () override;
 
-
-class WebClient: public WebClientWIZ5100 {
-};
-
-class WebServer: public WebServerWIZ5100 {
+	byte *getGateway () override;
 };
 
 #endif

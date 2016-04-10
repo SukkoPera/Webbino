@@ -19,6 +19,3 @@
 
 #include "webbino_common.h"
 #include "WebServer.h"
-//~ #include "WebServer_ENC28J60.h"
-//~ #include "WebServer_WIZ5100.h"
-//~ #include "WebServer_ESP8266.h"
