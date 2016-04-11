@@ -104,20 +104,19 @@ void WebServer::sendPage (WebClient* client) {
 						else
 							rep = findSubstitutionTag (tag);
 
-						DPRINT (F("Replacement is: \""));
-						DPRINT (rep);
-						DPRINTLN (F("\""));
-
-						//panic_assert (panic, rep);
 						if (rep) {
+							DPRINT (F("Replacement is: \""));
+							DPRINT (rep);
+							DPRINTLN (F("\""));
+
 							client -> print (rep);
 						} else {
 							// Tag not found, emit it
+							DPRINTLN (F("Tag not found"));
+
 							client -> print (F("#"));
 							client -> print (tag);
 							client -> print (F("#"));
-
-							DPRINTLN (F("Tag not found"));
 						}
 					} else if (tagLen < MAX_TAG_LEN - 1) {
 						tag[tagLen++] = c;

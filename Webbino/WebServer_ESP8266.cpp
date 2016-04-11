@@ -131,6 +131,10 @@ WebClient* NetworkInterfaceESP8266::processPacket () {
 						copy = false;
 					} else {
 						// No, start over
+						DPRINT (F("Discarding header line: \""));
+						DPRINT (reinterpret_cast<char *> (ethernetBuffer));
+						DPRINTLN (F("\""));
+
 						ethernetBufferSize = 0;
 					}
 
