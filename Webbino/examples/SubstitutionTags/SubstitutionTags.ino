@@ -24,7 +24,7 @@
 WebServer webserver;
 
 // Instantiate the network interface defined in the Webbino headers
-#if defined (WEBBINO_USE_WIZ5100)
+#if defined (WEBBINO_USE_ENC28J60)
 	#include <WebServer_ENC28J60.h>
 	NetworkInterfaceENC28J60 netint;
 #elif defined (WEBBINO_USE_WIZ5100)
