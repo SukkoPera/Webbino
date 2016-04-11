@@ -13,21 +13,24 @@ Webbino
 =======
 Webbino is a webserver for Arduino with the following features:
 - Compatible with both the official Ethernet Shield (based on WizNet's W5100
-  chip) and ENC28J60-based shields. This is a unique feature of Webbino, as far
-  as I know.
+  chip) and ENC28J60-based shields. Experimental support for ESP8266-based
+  wireless shields is also available. This is a unique feature of Webbino, as
+  far as I know.
 - HTML pages and other data get embedded in the code. This avoids the need of
   an SD card (and, consequently, of the SD access libraries).
-- Tags like "#SOMETHING#" in HTML pages can be replaced at page request time,
+- Tags like "#WHATEVER#" in HTML pages can be replaced at page request time,
   allowing the delivery of dynamic contents.
   
 The ENC28J60 Ethernet Controller is supported it through the EtherCard library,
 so you will need it to compile the sketch. Get it at
 https://github.com/jcw/ethercard/.
 
+ESP8266 support is achieved through Bruno Portaluri's WiFiEsp library available
+at https://github.com/bportaluri/WiFiEsp.
+
 To switch between the target chipsets, and to enable/disable server features,
-have a look at the webbino_common.h file: the USE_ENC28J60 define will enable
-support for the ENC28J60 Ethernet Controller. Comment it to enable support for
-the W5100 chip (i.e.: official Ethernet Shield). Please be aware of the
+have a look at the webbino_common.h file: the WEBBINO_USE_* #defines will enable
+support for the chosen network interface. Please be aware of the
 following:
 - When ENC28J60 support is enabled, a lot of RAM is used for the packet buffer,
   as EtherCard currently needs it to be allocated in the main RAM. It is
