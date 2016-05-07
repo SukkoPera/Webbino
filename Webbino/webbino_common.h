@@ -20,17 +20,36 @@
 #ifndef WEBBINOCOMMON_H_
 #define WEBBINOCOMMON_H_
 
-#define NDEBUG
-
-// Please enable *only one* of the following:
-//~ #define WEBBINO_USE_WIZ5100
+/* Network device selection: please enable *only one* of the following,
+ * corresponding to the network device you will be using
+ */
+#define WEBBINO_USE_WIZ5100
 //~ #define WEBBINO_USE_ENC28J60
-#define WEBBINO_USE_ESP8266
+//~ #define WEBBINO_USE_ESP8266
 
+/* Define to enable serving webpages from SD. This will use the SD
+ * library, but you will have to initialize it in your sketch's setup()
+ */
+//~ #define WEBBINO_ENABLE_SD
+
+/* Define to enable support for tag substitutions, i.e.: replace #TAGS#
+ * in served pages
+ */
 #define ENABLE_TAGS
 
+/* Character that delimits tags
+ */
+#define TAG_CHAR '#'
+
+/* TCP port the server will listen on
+ * NOTE: Currently changing this will have no effect, FIXME
+ */
 #define SERVER_PORT 80
 
-#define WEBBINO_VERSION "20160410"
+// DEFINE this to DISABLE debug messages
+#define NDEBUG
+
+// Don't touch :)
+#define WEBBINO_VERSION "20160505"
 
 #endif
