@@ -17,8 +17,14 @@
  *   along with SmartStrip.  If not, see <http://www.gnu.org/licenses/>.   *
  ***************************************************************************/
 
+#include <SD.h>
 #include <Webbino.h>
 #include <avr/pgmspace.h>
+
+/* SS pin for the SD card reader. Pin 4 is used for the reader included
+ * on most WIZ5100-based Ethernet shields
+ */
+#define SD_SS 4
 
 // Instantiate the WebServer
 WebServer webserver;
@@ -42,20 +48,6 @@ WebServer webserver;
 
 	NetworkInterfaceESP8266 netint;
 #endif
-
-
-/******************************************************************************
- * DEFINITION OF PAGES                                                        *
- ******************************************************************************/
-
-#include "html.h"
-
-static const Page indexPage PROGMEM = {index_html_name, index_html, NULL};
-
-static const Page * const pages[] PROGMEM = {
-	&indexPage,
- 	NULL
-};
 
 
 /******************************************************************************
@@ -189,7 +181,7 @@ static const var_substitution subWebbinoVerVarSub PROGMEM = {subWebbinoVerStr, e
 static const var_substitution subUptimeVarSub PROGMEM = {subUptimeStr, evaluate_uptime, NULL};
 static const var_substitution subFreeRAMVarSub PROGMEM = {subFreeRAMStr, evaluate_free_ram, NULL};
 
-static const var_substitution* const substitutions[] PROGMEM = {
+static const var_substitution * const substitutions[] PROGMEM = {
 	&subMacAddrVarSub,
 	&subIPAddressVarSub,
 	&subNetmaskVarSub,
@@ -206,9 +198,22 @@ static const var_substitution* const substitutions[] PROGMEM = {
  * MAIN STUFF                                                                 *
  ******************************************************************************/
 
+// Avoid some bug reports :)
+#ifndef WEBBINO_ENABLE_SD
+#error Please enable WEBBINO_ENABLE_SD in webbino_common.h
+#endif
+
 void setup () {
 	Serial.begin (9600);
-	Serial.println (F("Webbino " WEBBINO_VERSION));
+	// Serial.println (F("Webbino " PROGRAM_VERSION));
+
+	Serial.print (F("Initializing SD card..."));
+	if (!SD.begin (SD_SS)) {
+		Serial.println (F(" failed"));
+		while (42)
+			;
+	}
+	Serial.println (F(" done"));
 
 #if defined (WEBBINO_USE_ENC28J60) || defined (WEBBINO_USE_WIZ5100)
 	byte mac[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
@@ -219,7 +224,7 @@ void setup () {
 #endif
 
 	Serial.println (F("Trying to get an IP address through DHCP"));
-	if (!webserver.begin (netint, pages, substitutions)) {
+	if (!webserver.begin (netint, NULL, substitutions)) {
 		Serial.println (F("Failed to get configuration from DHCP"));
 		while (42)
 			;

@@ -24,6 +24,11 @@
 #include "NetworkInterface.h"
 #include "HTTPRequestParser.h"
 
+#ifdef WEBBINO_ENABLE_SD
+#include <SD.h>
+#endif
+
+
 class WebClient;
 
 
@@ -39,14 +44,59 @@ struct Page {
 		return reinterpret_cast<PGM_P> (pgm_read_word (&(this -> name)));
 	}
 
-	PGM_P getContent () {
-		return reinterpret_cast<PGM_P> (pgm_read_word (&(this -> content)));
-	}
-
 	PageFunction getFunction () {
 		return reinterpret_cast<PageFunction> (pgm_read_word (&(this -> function)));
 	}
+
+	PGM_P getContent () {
+		return reinterpret_cast<PGM_P> (pgm_read_word (&(this -> content)));
+	}
 };
+
+class PageContent {
+public:
+	virtual char getNextByte () = 0;
+};
+
+class FlashContent: public PageContent {
+private:
+	const Page& page;
+	PGM_P next;
+
+public:
+	FlashContent (Page* p): page (*p), next (p -> getContent ()) {
+	}
+
+	char getNextByte () override {
+		return pgm_read_byte (next++);
+	}
+};
+
+
+
+#ifdef WEBBINO_ENABLE_SD
+struct SDContent: public PageContent {
+private:
+	File file;
+
+public:
+	SDContent (const char* filename) {
+		file = SD.open (filename);
+	}
+
+	~SDContent () {
+		file.close ();
+	}
+
+	char getNextByte () override {
+		if (file.available ()) {
+			return file.read ();
+		} else {
+			return '\0';
+		}
+	}
+};
+#endif
 
 
 #ifdef ENABLE_TAGS
@@ -85,30 +135,30 @@ class WebServer {
 private:
 	NetworkInterface* netint;
 
-	const Page * const *pages;
+	const Page* const *pages;
 
 #ifdef ENABLE_TAGS
-	const var_substitution * const *substitutions;
+	const var_substitution* const * substitutions;
 #endif
 
-	void sendPage (WebClient *client);
+	void sendPage (WebClient* client);
 
-	Page *get_page (const char *name);
+	void sendContent (WebClient* client, PageContent* content);
+
+	Page *get_page (const char* name);
 
 #ifdef ENABLE_TAGS
-	char *findSubstitutionTag (char *tag);
+	char *findSubstitutionTag (const char* tag);
 
-	char *findSubstitutionTagGetParameter (HTTPRequestParser& request, const char *tag);
+	char *findSubstitutionTagGetParameter (HTTPRequestParser& request, const char* tag);
 #endif
 
 public:
-	void setPages (const Page * const _pages[]);
-
+	boolean begin (NetworkInterface& _netint, const Page* const _pages[] = NULL
 #ifdef ENABLE_TAGS
-	void setSubstitutions (const var_substitution * const _substitutions[]);
+		, const var_substitution* const _substitutions[] = NULL
 #endif
-
-	boolean begin (NetworkInterface& netint);
+	);
 
 	boolean loop ();
 };

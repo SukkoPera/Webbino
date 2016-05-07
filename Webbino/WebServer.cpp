@@ -21,23 +21,50 @@
 #include "WebClient.h"
 #include "webbino_debug.h"
 
-#define REDIRECT_ROOT_PAGE "/index.html"
-#define REDIRECT_HEADER "HTTP/1.0 301 Moved Permanently\r\nLocation: " REDIRECT_ROOT_PAGE "\r\n\r\n"
+#define REDIRECT_ROOT_PAGE "index.html"
+#define HEADER_START "HTTP/1.0 "
+#define REDIRECT_HEADER "301 Moved Permanently\r\nLocation: "
+#define OK_HEADER "200 OK\r\nContent-Type: text/html"		// \r\nPragma: no-cache"
+#define NOT_FOUND_HEADER "404 Not Found\r\nContent-Type: text/html"
+#define HEADER_END "\r\n\r\n"
 
-#define OK_HEADER "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nPragma: no-cache\r\n\r\n"
+boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
+#ifdef ENABLE_TAGS
+		, const var_substitution* const _substitutions[]
+#endif
+		) {
 
-
-boolean WebServer::begin (NetworkInterface& _netint) {
 	this -> netint = &_netint;
+
+	pages = _pages;
+
+#ifdef ENABLE_TAGS
+	substitutions = _substitutions;
+#endif
+
+	DPRINTLN (F("Pages available in flash memory:"));
+	Page *p = NULL;
+	for (unsigned int i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
+		DPRINT (i);
+		DPRINT (F(". "));
+		DPRINTLN (reinterpret_cast<const __FlashStringHelper*> (p -> getName ()));
+	}
+
+	DPRINTLN (F("Tags available:"));
+	var_substitution* sub;
+	for (byte i = 0; (sub = reinterpret_cast<var_substitution *> (pgm_read_word (&substitutions[i]))); i++) {
+		DPRINT (i);
+		DPRINT (F(". "));
+		DPRINTLN (reinterpret_cast<const __FlashStringHelper*> (sub -> getName ()));
+	}
 
 	return true;
 }
 
+Page *WebServer::get_page (const char* name) {
+	Page *p = NULL;
 
-Page *WebServer::get_page (const char *name) {
-	Page *p;
-
-	for (unsigned int i = 0; (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
+	for (unsigned int i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
 		if (strcmp_P (name, p -> getName ()) == 0)
 			break;
 	}
@@ -45,8 +72,58 @@ Page *WebServer::get_page (const char *name) {
 	return p;
 }
 
+void WebServer::sendPage (WebClient* client) {
+	client -> initReply ();
+
+	unsigned int l = strlen (client -> request.url);
+	if (l == 0 || client -> request.url[l - 1] == '/') {
+		// Request for "/", redirect
+		DPRINT (F("Redirecting to "));
+		DPRINT (client -> request.url);
+		DPRINTLN (F(REDIRECT_ROOT_PAGE));
+
+		client -> print (F(HEADER_START));
+		client -> print (F(REDIRECT_HEADER));
+		if (l == 0)
+			client -> print ('/');
+		else
+			client -> print (client -> request.url);
+		client -> print (F(REDIRECT_ROOT_PAGE));
+		client -> print (F(HEADER_END));
+	} else {
+		Page *page = get_page (client -> request.url);
+		if (page) {
+			// Call page function
+			PageFunction func = page -> getFunction ();
+			if (func)
+				func (client -> request);
+
+			FlashContent content = FlashContent (page);
+			sendContent (client, &content);
+#ifdef WEBBINO_ENABLE_SD
+		} else if (SD.exists (client -> request.url)) {
+			DPRINT (F("Sending page from SD file "));
+			DPRINTLN (client -> request.url);
+
+			SDContent content = SDContent (client -> request.url);
+			sendContent (client, &content);
+#endif
+		} else {
+			client -> print (F(HEADER_START));
+			client -> print (F(NOT_FOUND_HEADER));
+			client -> print (F(HEADER_END));
+
+			client -> print (F("<html><body><h3>No such page: \""));
+			client -> print (client -> request.url);
+			client -> print (F("\"</h3></body></html>"));
+		}
+	}
+
+	client -> sendReply ();
+}
+
 #ifdef ENABLE_TAGS
-char *WebServer::findSubstitutionTag (char *tag) {
+char *WebServer::findSubstitutionTag (const char *tag) {
 	var_substitution *sub;
 
 	for (byte i = 0; (sub = reinterpret_cast<var_substitution *> (pgm_read_word (&substitutions[i]))); i++) {
@@ -60,140 +137,78 @@ char *WebServer::findSubstitutionTag (char *tag) {
 char *WebServer::findSubstitutionTagGetParameter (HTTPRequestParser& request, const char *tag) {
 	return request.get_get_parameter (tag);
 }
+#endif
 
+// Read the page, perform tag substitutions and send it over
 // FIXME: Handle unterminated tags
-void WebServer::sendPage (WebClient* client) {
-	client -> initReply ();
+void WebServer::sendContent (WebClient* client, PageContent* content) {
+	// Send headers
+	client -> print (F(HEADER_START));
+	client -> print (F(OK_HEADER));
+	client -> print (F(HEADER_END));
 
-	char *basename = client -> request.get_basename ();
-	if (strlen (basename) == 0) {
-		// Request for "/", redirect
-		client -> print (F(REDIRECT_HEADER));
-	} else {
-		// Emit HTTP 200 OK
-		client -> print (F(OK_HEADER));
+	char c;
+#ifdef ENABLE_TAGS
+	char tag[MAX_TAG_LEN];
+	int tagLen = -1;			// If >= 0 we are inside a tag
+#endif
+	while ((c = content -> getNextByte ())) {
+#ifdef ENABLE_TAGS
+		if (tagLen >= 0) {
+			if (c == TAG_CHAR) {
+				char *rep;
 
-		Page *page = get_page (basename);
-		if (page) {
-			// Call page function
-			PageFunction func = page -> getFunction ();
-			if (func)
-				func (client -> request);
+				DPRINT (F("Processing replacement tag: \""));
+				DPRINT (tag);
+				DPRINTLN (F("\""));
 
-			// Read the page, perform tag substitutions and send it over
-			PGM_P content = page -> getContent ();
-			char c, tag[MAX_TAG_LEN];
-			boolean inTag;
-			int tagLen = 0;
+				if (strncmp_P (tag, PSTR ("GETP_"), 5) == 0)
+					rep = findSubstitutionTagGetParameter (client -> request, tag + 5);
+				else
+					rep = findSubstitutionTag (tag);
 
-			inTag = false;
-			while ((c = pgm_read_byte (content++))) {
-				if (inTag) {
-					if (c == '#') {
-						char *rep;
+				if (rep) {
+					DPRINT (F("Replacement is: \""));
+					DPRINT (rep);
+					DPRINTLN (F("\""));
 
-						// Tag complete
-						inTag = false;
-
-						DPRINT (F("Processing replacement tag: \""));
-						DPRINT (tag);
-						DPRINTLN (F("\""));
-
-						if (strncmp_P (tag, PSTR ("GETP_"), 5) == 0)
-							rep = findSubstitutionTagGetParameter (client -> request, tag + 5);
-						else
-							rep = findSubstitutionTag (tag);
-
-						if (rep) {
-							DPRINT (F("Replacement is: \""));
-							DPRINT (rep);
-							DPRINTLN (F("\""));
-
-							client -> print (rep);
-						} else {
-							// Tag not found, emit it
-							DPRINTLN (F("Tag not found"));
-
-							client -> print (F("#"));
-							client -> print (tag);
-							client -> print (F("#"));
-						}
-					} else if (tagLen < MAX_TAG_LEN - 1) {
-						tag[tagLen++] = c;
-						tag[tagLen] = '\0';
-					} else {
-						// Tag too long, emit what we got so far
-						// FIXME: This will detect a fake tag at the closing #
-						char tmp[2] = {c, '\0'};		// FIXME
-						client -> print (F("#"));
-						client -> print (tag);
-						client -> print (tmp);
-						inTag = false;
-					}
+					client -> print (rep);
 				} else {
-					if (c == '#') {
-						// Check if we have a tag to be replaced
-						tag[0] = '\0';
-						inTag = true;
-						tagLen = 0;
-					} else {
-						char tmp[2] = {c, '\0'};		// FIXME
-						client -> print (tmp);
-					}
+					// Tag not found, emit it
+					DPRINTLN (F("Tag not found"));
+
+					client -> print (TAG_CHAR);
+					client -> print (tag);
+					client -> print (TAG_CHAR);
 				}
+
+				// Tag complete
+				tagLen = -1;
+			} else if (tagLen < MAX_TAG_LEN - 1) {
+				tag[tagLen++] = c;
+				tag[tagLen] = '\0';
+			} else {
+				// Tag too long, emit what we got so far
+				// FIXME: This will detect a fake tag at the closing TAG_CHAR
+				client -> print (TAG_CHAR);
+				client -> print (tag);
+				client -> print (c);
+				tagLen = -1;
 			}
 		} else {
-			client -> print (F("<html><body><h3>No such page: \""));
-			client -> print (basename);
-			client -> print (F("\"</h3></body></html>"));
+			if (c == TAG_CHAR) {
+				// Check if we have a tag to be replaced
+				tag[0] = '\0';
+				tagLen = 0;
+			} else {
+				client -> print (c);
+			}
 		}
-	}
-
-	client -> sendReply ();
-}
-
 #else
-
-void WebServer::sendPage (WebClient* client) {
-	client -> initReply ();
-
-	char *basename = client -> request.get_basename ();
-	if (strlen (basename) == 0) {
-		// Request for "/", redirect
-		client -> print (F(REDIRECT_HEADER));
-	} else {
-		// Emit HTTP 200 OK
-		client -> print (F(OK_HEADER));
-
-		Page *page = get_page (basename);
-		if (page) {
-			PageFunction func = page -> getFunction ();
-			if (func)
-				func (client -> request);
-
-			PGM_P content = page -> getContent ();
-			client -> print (reinterpret_cast<const __FlashStringHelper *> (content));
-		} else {
-			client -> print (F("<html><body><h3>No such page: &quot;"));
-			client -> print (basename);
-			client -> print (F("&quot;</h3></body></html>"));
-		}
+		client -> print (c);
+#endif
 	}
-
-	client -> sendReply ();
 }
-
-#endif
-
-void WebServer::setPages (const Page * const _pages[]) {
-	pages = _pages;
-}
-
-#ifdef ENABLE_TAGS
-void WebServer::setSubstitutions (const var_substitution * const _substitutions[]) {
-	substitutions = _substitutions;
-}
-#endif
 
 boolean WebServer::loop () {
 	WebClient *c = netint -> processPacket ();
