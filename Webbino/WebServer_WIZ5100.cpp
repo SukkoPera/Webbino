@@ -93,11 +93,13 @@ WebClient* NetworkInterfaceWIZ5100::processPacket () {
 		while (client.connected ()) {
 			if (client.available ()) {
 				char c = client.read ();
-				if (ethernetBufferSize < sizeof (ethernetBuffer)) {
-					if (copy)
+				if (copy) {
+					if (ethernetBufferSize < sizeof (ethernetBuffer)) {
 						ethernetBuffer[ethernetBufferSize++] = c;
-				} else {
-					DPRINTLN (F("Ethernet buffer overflow"));
+					} else {
+						DPRINTLN (F("Ethernet buffer overflow"));
+						break;
+					}
 				}
 
 				// If you've gotten to the end of the line (received a newline
@@ -138,7 +140,7 @@ WebClient* NetworkInterfaceWIZ5100::processPacket () {
 		}
 	}
 
-		return ret;
+	return ret;
 }
 
 boolean NetworkInterfaceWIZ5100::usingDHCP () {
