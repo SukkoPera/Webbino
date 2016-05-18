@@ -34,7 +34,7 @@ boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 #endif
 		) {
 
-	this -> netint = &_netint;
+	netint = &_netint;
 
 	pages = _pages;
 
@@ -82,14 +82,12 @@ void WebServer::sendPage (WebClient* client) {
 		DPRINT (client -> request.url);
 		DPRINTLN (F(REDIRECT_ROOT_PAGE));
 
-		client -> print (F(HEADER_START));
-		client -> print (F(REDIRECT_HEADER));
+		client -> print (F(HEADER_START REDIRECT_HEADER));
 		if (l == 0)
 			client -> print ('/');
 		else
 			client -> print (client -> request.url);
-		client -> print (F(REDIRECT_ROOT_PAGE));
-		client -> print (F(HEADER_END));
+		client -> print (F(REDIRECT_ROOT_PAGE HEADER_END));
 	} else {
 		Page *page = get_page (client -> request.url);
 		if (page) {
@@ -109,9 +107,7 @@ void WebServer::sendPage (WebClient* client) {
 			sendContent (client, &content);
 #endif
 		} else {
-			client -> print (F(HEADER_START));
-			client -> print (F(NOT_FOUND_HEADER));
-			client -> print (F(HEADER_END));
+			client -> print (F(HEADER_START NOT_FOUND_HEADER HEADER_END));
 
 			client -> print (F("<html><body><h3>No such page: \""));
 			client -> print (client -> request.url);
@@ -123,15 +119,18 @@ void WebServer::sendPage (WebClient* client) {
 }
 
 #ifdef ENABLE_TAGS
-char *WebServer::findSubstitutionTag (const char *tag) {
+PString* WebServer::findSubstitutionTag (const char *tag) {
 	var_substitution *sub;
+	PString* ret = NULL;
 
-	for (byte i = 0; (sub = reinterpret_cast<var_substitution *> (pgm_read_word (&substitutions[i]))); i++) {
-		if (strcmp_P (tag, sub -> getName ()) == 0)
-			break;
+	for (byte i = 0; !ret && (sub = reinterpret_cast<var_substitution *> (pgm_read_word (&substitutions[i]))); i++) {
+		if (strcmp_P (tag, sub -> getName ()) == 0) {
+			PString& pb = (sub -> getFunction ()) (sub -> getData ());
+			ret = &pb;
+		}
 	}
 
-	return (sub ? (sub -> getFunction ()) (sub -> getData ()) : NULL);
+	return ret;
 }
 
 char *WebServer::findSubstitutionTagGetParameter (HTTPRequestParser& request, const char *tag) {
@@ -143,37 +142,46 @@ char *WebServer::findSubstitutionTagGetParameter (HTTPRequestParser& request, co
 // FIXME: Handle unterminated tags
 void WebServer::sendContent (WebClient* client, PageContent* content) {
 	// Send headers
-	client -> print (F(HEADER_START));
-	client -> print (F(OK_HEADER));
-	client -> print (F(HEADER_END));
+	client -> print (F(HEADER_START OK_HEADER HEADER_END));
 
 	char c;
 #ifdef ENABLE_TAGS
 	char tag[MAX_TAG_LEN];
-	int tagLen = -1;			// If >= 0 we are inside a tag
+	int8_t tagLen = -1;			// If >= 0 we are inside a tag
 #endif
 	while ((c = content -> getNextByte ())) {
 #ifdef ENABLE_TAGS
 		if (tagLen >= 0) {
 			if (c == TAG_CHAR) {
-				char *rep;
-
 				DPRINT (F("Processing replacement tag: \""));
 				DPRINT (tag);
 				DPRINTLN (F("\""));
 
-				if (strncmp_P (tag, PSTR ("GETP_"), 5) == 0)
-					rep = findSubstitutionTagGetParameter (client -> request, tag + 5);
-				else
-					rep = findSubstitutionTag (tag);
+				boolean found = false;
+				if (strncmp_P (tag, PSTR ("GETP_"), 5) == 0) {
+					char* rep = findSubstitutionTagGetParameter (client -> request, tag + 5);
+					if (rep) {
+						DPRINT (F("Replacement is: \""));
+						DPRINT (rep);
+						DPRINTLN (F("\""));
 
-				if (rep) {
-					DPRINT (F("Replacement is: \""));
-					DPRINT (rep);
-					DPRINTLN (F("\""));
-
-					client -> print (rep);
+						client -> print (rep);
+						found = true;
+					}
 				} else {
+					PString* pstr = findSubstitutionTag (tag);
+					if (pstr) {
+						DPRINT (F("Replacement is: \""));
+						DPRINT (*pstr);
+						DPRINTLN (F("\""));
+
+						client -> print (*pstr);
+						pstr -> begin ();		// Reset for next usage
+						found = true;
+					}
+				}
+
+				if (!found) {
 					// Tag not found, emit it
 					DPRINTLN (F("Tag not found"));
 
