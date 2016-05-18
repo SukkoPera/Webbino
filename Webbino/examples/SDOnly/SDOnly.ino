@@ -106,7 +106,7 @@ static PString& evaluate_ip_src (void *data __attribute__ ((unused))) {
 }
 
 static PString& evaluate_webbino_version (void *data __attribute__ ((unused))) {
-	subBuffer.print (F("WEBBINO_VERSION"));
+	subBuffer.print (WEBBINO_VERSION);
 
 	return subBuffer;
 }
