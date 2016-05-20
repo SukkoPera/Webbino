@@ -166,19 +166,16 @@ byte *NetworkInterfaceESP8266::getMAC () {
 	return WiFi.macAddress (retBuffer);
 }
 
-byte *NetworkInterfaceESP8266::getIP () {
-	(*(uint32_t *) &retBuffer) = static_cast<uint32_t> (WiFi.localIP ());
-	return retBuffer;
+IPAddress NetworkInterfaceESP8266::getIP () {
+	return WiFi.localIP ();
 }
 
-byte *NetworkInterfaceESP8266::getNetmask () {
-	(*(uint32_t *) &retBuffer) = static_cast<uint32_t> (WiFi.subnetMask ());
-	return retBuffer;
+IPAddress NetworkInterfaceESP8266::getNetmask () {
+	return WiFi.subnetMask ();
 }
 
-byte *NetworkInterfaceESP8266::getGateway () {
-	(*(uint32_t *) &retBuffer) = static_cast<uint32_t> (WiFi.gatewayIP ());
-	return retBuffer;
+IPAddress NetworkInterfaceESP8266::getGateway () {
+	return WiFi.gatewayIP ();
 }
 
 #endif

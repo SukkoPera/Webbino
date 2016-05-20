@@ -55,13 +55,13 @@ public:
 
 	boolean usingDHCP () override;
 
-	byte *getMAC () override;
+	byte* getMAC () override;
 
-	byte *getIP () override;
+	IPAddress getIP () override;
 
-	byte *getNetmask () override;
+	IPAddress getNetmask () override;
 
-	byte *getGateway () override;
+	IPAddress getGateway () override;
 
 private:
 	boolean dhcp;

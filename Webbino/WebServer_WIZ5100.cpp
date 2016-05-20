@@ -151,19 +151,16 @@ byte *NetworkInterfaceWIZ5100::getMAC () {
 	return macAddress;
 }
 
-byte *NetworkInterfaceWIZ5100::getIP () {
-	(*(uint32_t *) &retBuffer) = static_cast<uint32_t> (Ethernet.localIP ());
-	return retBuffer;
+IPAddress NetworkInterfaceWIZ5100::getIP () {
+	return Ethernet.localIP ();
 }
 
-byte *NetworkInterfaceWIZ5100::getNetmask () {
-	(*(uint32_t *) &retBuffer) = static_cast<uint32_t> (Ethernet.subnetMask ());
-	return retBuffer;
+IPAddress NetworkInterfaceWIZ5100::getNetmask () {
+	return Ethernet.subnetMask ();
 }
 
-byte *NetworkInterfaceWIZ5100::getGateway () {
-	(*(uint32_t *) &retBuffer) = static_cast<uint32_t> (Ethernet.gatewayIP ());
-	return retBuffer;
+IPAddress NetworkInterfaceWIZ5100::getGateway () {
+	return Ethernet.gatewayIP ();
 }
 
 #endif

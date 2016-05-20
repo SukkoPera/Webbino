@@ -98,16 +98,20 @@ byte *NetworkInterfaceENC28J60::getMAC () {
 	return EtherCard::mymac;
 }
 
-byte *NetworkInterfaceENC28J60::getIP () {
-	return EtherCard::myip;
+// These need to be tested!
+IPAddress NetworkInterfaceENC28J60::getIP () {
+	IPAddress ip = EtherCard::myip;
+	return ip;
 }
 
-byte *NetworkInterfaceENC28J60::getNetmask () {
-	return EtherCard::netmask;
+IPAddress NetworkInterfaceENC28J60::getNetmask () {
+	IPAddress ip = EtherCard::netmask;
+	return ip;
 }
 
-byte *NetworkInterfaceENC28J60::getGateway () {
-	return EtherCard::gwip;
+IPAddress NetworkInterfaceENC28J60::getGateway () {
+	IPAddress ip = EtherCard::gwip;
+	return ip;
 }
 
 #endif

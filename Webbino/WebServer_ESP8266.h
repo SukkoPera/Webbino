@@ -69,11 +69,11 @@ public:
 
 	byte *getMAC () override;
 
-	byte *getIP () override;
+	IPAddress getIP () override;
 
-	byte *getNetmask () override;
+	IPAddress getNetmask () override;
 
-	byte *getGateway () override;
+	IPAddress getGateway () override;
 };
 
 #endif

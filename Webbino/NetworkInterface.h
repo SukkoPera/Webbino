@@ -21,6 +21,7 @@
 #define _INTERFACE_H_INCLUDED
 
 #include <Arduino.h>
+#include <IPAddress.h>
 #include "WebClient.h"
 
 
@@ -32,11 +33,11 @@ public:
 
 	virtual byte* getMAC () = 0;
 
-	virtual byte* getIP () = 0;
+	virtual IPAddress getIP () = 0;
 
-	virtual byte* getNetmask () = 0;
+	virtual IPAddress getNetmask () = 0;
 
-	virtual byte* getGateway () = 0;
+	virtual IPAddress getGateway () = 0;
 };
 
 #endif
