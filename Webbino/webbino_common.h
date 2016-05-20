@@ -47,7 +47,7 @@
 #define SERVER_PORT 80
 
 // DEFINE this to DISABLE debug messages
-#define NDEBUG
+#define WEBBINO_NDEBUG
 
 // Don't touch :)
 #define WEBBINO_VERSION "20160518"

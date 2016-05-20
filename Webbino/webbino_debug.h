@@ -22,7 +22,7 @@
 
 #include "webbino_common.h"
 
-#ifndef NDEBUG
+#ifndef WEBBINO_NDEBUG
 	#define DPRINT(...) Serial.print(__VA_ARGS__)
 	#define DPRINTLN(...) Serial.println(__VA_ARGS__)
 #else
