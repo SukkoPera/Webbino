@@ -52,14 +52,11 @@ void HTTPRequestParser::parse (char *request) {
 
 char *HTTPRequestParser::get_basename () {
 	buffer[0] = '\0';
-	char *slash = strrchr (url, '/');
-	if (slash) {
-		char *qMark = strchr (slash + 1, '?');
-		if (qMark)
-			strlcpy (buffer, slash + 1, qMark - slash < BUF_LEN ? qMark - slash : BUF_LEN);
-		else
-			strlcpy (buffer, slash + 1, BUF_LEN);
-	}
+	char *qMark = strchr (url, '?');
+	if (qMark)
+		strlcpy (buffer, url, qMark - url + 1 < BUF_LEN ? qMark - url + 1 : BUF_LEN);
+	else
+		strlcpy (buffer, url, BUF_LEN);
 
 #ifdef VERBOSE_REQUEST_PARSER
 	DPRINT (F("Extracted basename: \""));
@@ -72,10 +69,18 @@ char *HTTPRequestParser::get_basename () {
 
 char *HTTPRequestParser::get_parameter (const char param[]) {
 	char *start;
-	boolean found;
+	boolean found = false;
 
-	buffer[0] = '\0';
-	found = false;
+#ifdef VERBOSE_REQUEST_PARSER
+	/* Print this now, because if we got called by
+	 * get_parameter(const __FlashStringHelper *), param is actually stored in
+	 * buffer and will be overwritten.
+	 */
+	DPRINT (F("Extracting GET parameter: \""));
+	DPRINT (param);
+	DPRINT (F("\": \""));
+#endif
+
 	for (start = strchr (url, '?'); !found && start; start = strchr (start + 1, '&')) {
 		char *end = strchr (start, '=');
 		if (end && (end - start - 1) == (int) strlen (param) && strncmp (start + 1, param, end - start - 1) == 0) {
@@ -89,10 +94,10 @@ char *HTTPRequestParser::get_parameter (const char param[]) {
 		}
 	}
 
+	if (!found)
+		buffer[0] = '\0';
+
 #ifdef VERBOSE_REQUEST_PARSER
-	DPRINT (F("Extracted GET parameter: \""));
-	DPRINT (param);
-	DPRINT (F("\": \""));
 	DPRINT (buffer);
 	DPRINTLN (F("\""));
 #endif
@@ -101,31 +106,6 @@ char *HTTPRequestParser::get_parameter (const char param[]) {
 }
 
 char *HTTPRequestParser::get_parameter (const __FlashStringHelper *param) {
-	char *start;
-	boolean found;
-
-	buffer[0] = '\0';
-	found = false;
-	for (start = strchr (url, '?'); !found && start; start = strchr (start + 1, '&')) {
-		char *end = strchr (start, '=');
-		if (end && (end - start - 1) == (int) strlen_P (reinterpret_cast<PGM_P> (param)) && strncmp_P (start + 1, reinterpret_cast<PGM_P> (param), end - start - 1) == 0) {
-			// Found!
-			char *x = strchr (end + 1, '&');
-			if (x)
-				strlcpy (buffer, end + 1, x - end < BUF_LEN ? x - end : BUF_LEN);
-			else
-				strlcpy (buffer, end + 1, BUF_LEN);
-			found = true;
-		}
-	}
-
-#ifdef VERBOSE_REQUEST_PARSER
-	DPRINT (F("Extracted GET parameter: \""));
-	DPRINT (param);
-	DPRINT (F("\": \""));
-	DPRINT (buffer);
-	DPRINTLN (F("\""));
-#endif
-
-	return buffer;
+	strncpy_P (buffer, reinterpret_cast<PGM_P> (param), BUF_LEN);
+	return get_parameter (buffer);
 }

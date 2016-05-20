@@ -21,13 +21,7 @@
 #define _HTTPREQUESTPARSER_H_
 
 #include <Arduino.h>
-
-// Maximum length of a get parameter value
-#define BUF_LEN 32
-
-#define MAX_URL_LEN 128
-
-//~ #define VERBOSE_REQUEST_PARSER
+#include "webbino_common.h"
 
 
 class HTTPRequestParser {
