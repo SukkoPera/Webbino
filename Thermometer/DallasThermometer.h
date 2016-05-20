@@ -27,7 +27,8 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include "ThermometerBase.h"
- 
+#include "thermometer_debug.h"
+
 // Chosen data resolution
 #define THERMOMETER_RESOLUTION 9
 
@@ -35,21 +36,21 @@
 class DallasThermometer: public ThermometerBase {
 private:
 	//byte busPin;
-	
+
 	// OneWire instance to communicate with OneWire devices
 	OneWire oneWire;
 	DallasTemperature sensors;
 	DeviceAddress thermometerAddress;
-	
+
 	// function to print a device address
 	static void printAddress (DeviceAddress deviceAddress);
-	
+
 	bool refreshTemperature ();
-	
+
 public:
 	DallasThermometer ();
-	
-	
+
+
 
 	void begin (byte busPin);
 };

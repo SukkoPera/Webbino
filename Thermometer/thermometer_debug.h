@@ -17,19 +17,27 @@
  *   along with Sukkino.  If not, see <http://www.gnu.org/licenses/>.      *
  ***************************************************************************/
 
-#ifndef _DEBUG_H_
-#define _DEBUG_H_
+#ifndef _THERMOMETERDEBUG_H_
+#define _THERMOMETERDEBUG_H_
 
-//#include "common.h"
-#include <Arduino.h>
+#include "thermometer_common.h"
 
+#ifndef THERMOMETER_NDEBUG
+	#ifndef DPRINT
+		#define DPRINT(...) Serial.print(__VA_ARGS__)
+	#endif
 
-#ifndef NDEBUG
-	#define DPRINT(...) Serial.print(__VA_ARGS__)
-	#define DPRINTLN(...) Serial.println(__VA_ARGS__)
+	#ifndef DPRINTLN
+		#define DPRINTLN(...) Serial.println(__VA_ARGS__)
+	#endif
 #else
-	#define DPRINT(...) do {} while (0);
-	#define DPRINTLN(...) do {} while (0);
+	#ifndef DPRINT
+		#define DPRINT(...) do {} while (0)
+	#endif
+
+	#ifndef DPRINTLN
+		#define DPRINTLN(...) do {} while (0)
+	#endif
 #endif
 
 #endif

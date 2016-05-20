@@ -21,7 +21,7 @@
 #define _THERMOMETER_H_
 
 // #include "common.h"
-#include "debug.h"
+#include "thermometer_debug.h"
 
 
 struct Temperature {
@@ -48,11 +48,11 @@ protected:
 */
 
 	virtual bool refreshTemperature () = 0;
-	
+
 public:
 	bool available;
 	Temperature currentTemp;
-	
+
 	/*ThermometerBase () {
 	}*/
 
