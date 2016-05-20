@@ -43,9 +43,9 @@ public:
 
 	char *get_basename ();
 
-	char *get_get_parameter (const char param[]);
+	char *get_parameter (const char param[]);
 
-	char *get_get_parameter (const __FlashStringHelper *param);
+	char *get_parameter (const __FlashStringHelper *param);
 };
 
 #endif

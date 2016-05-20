@@ -134,7 +134,7 @@ PString* WebServer::findSubstitutionTag (const char *tag) {
 }
 
 char *WebServer::findSubstitutionTagGetParameter (HTTPRequestParser& request, const char *tag) {
-	return request.get_get_parameter (tag);
+	return request.get_parameter (tag);
 }
 #endif
 
