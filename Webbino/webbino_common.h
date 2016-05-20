@@ -30,7 +30,7 @@
 /* Define to enable serving webpages from SD. This will use the SD
  * library, but you will have to initialize it in your sketch's setup()
  */
-#define WEBBINO_ENABLE_SD
+//~ #define WEBBINO_ENABLE_SD
 
 /* Define to enable support for tag substitutions, i.e.: replace #TAGS#
  * in served pages
@@ -47,7 +47,7 @@
 #define SERVER_PORT 80
 
 // DEFINE this to DISABLE debug messages
-//~ #define NDEBUG
+#define NDEBUG
 
 // Don't touch :)
 #define WEBBINO_VERSION "20160518"
