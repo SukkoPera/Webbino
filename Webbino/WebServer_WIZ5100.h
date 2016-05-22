@@ -20,7 +20,7 @@
 #ifndef _WEBSERVER5100_H_
 #define _WEBSERVER5100_H_
 
-#include "webbino_common.h"
+#include "webbino_config.h"
 
 #ifdef WEBBINO_USE_WIZ5100
 

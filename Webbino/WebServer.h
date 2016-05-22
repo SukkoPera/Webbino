@@ -20,7 +20,7 @@
 #ifndef _WEBSERVER_H_
 #define _WEBSERVER_H_
 
-#include "webbino_common.h"
+#include "webbino_config.h"
 #include "NetworkInterface.h"
 #include "HTTPRequestParser.h"
 

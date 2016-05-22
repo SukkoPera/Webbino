@@ -17,5 +17,5 @@
  *   along with Webbino. If not, see <http://www.gnu.org/licenses/>.       *
  ***************************************************************************/
 
-#include "webbino_common.h"
+#include "webbino_config.h"
 #include "WebServer.h"

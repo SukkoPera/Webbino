@@ -21,7 +21,7 @@
 #define _HTTPREQUESTPARSER_H_
 
 #include <Arduino.h>
-#include "webbino_common.h"
+#include "webbino_config.h"
 
 
 class HTTPRequestParser {

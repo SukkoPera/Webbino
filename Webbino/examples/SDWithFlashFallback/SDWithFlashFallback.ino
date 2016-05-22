@@ -200,7 +200,7 @@ static const var_substitution * const substitutions[] PROGMEM = {
 
 // Avoid some bug reports :)
 #if !defined (WEBBINO_ENABLE_SD) && !defined (WEBBINO_ENABLE_SDFAT)
-#error Please enable WEBBINO_ENABLE_SD or WEBBINO_ENABLE_SDFAT in webbino_common.h
+#error Please enable WEBBINO_ENABLE_SD or WEBBINO_ENABLE_SDFAT in webbino_config.h
 #endif
 
 void setup () {
