@@ -17,8 +17,8 @@
  *   along with SmartStrip.  If not, see <http://www.gnu.org/licenses/>.   *
  ***************************************************************************/
 
-#ifndef _DEBUG_H_
-#define _DEBUG_H_
+#ifndef _WEBBINO_DEBUG_H_
+#define _WEBBINO_DEBUG_H_
 
 #include "webbino_common.h"
 
