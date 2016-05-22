@@ -127,9 +127,19 @@ void WebServer::sendPage (WebClient* client) {
 			client -> print (client -> request.url);
 		client -> print (F(REDIRECT_ROOT_PAGE HEADER_END));
 	} else {
+		Page *page;
 		char *pagename = client -> request.get_basename ();
-		Page *page = get_page (pagename);
-		if (page) {
+
+#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
+		if (SD.exists (pagename)) {
+			DPRINT (F("Sending page from SD file "));
+			DPRINTLN (pagename);
+
+			SDContent content = SDContent (pagename);
+			sendContent (client, &content);
+		} else
+#endif
+		if ((page = get_page (pagename))) {
 			// Call page function
 			PageFunction func = page -> getFunction ();
 			if (func)
@@ -137,14 +147,6 @@ void WebServer::sendPage (WebClient* client) {
 
 			FlashContent content = FlashContent (page);
 			sendContent (client, &content);
-#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
-		} else if (SD.exists (pagename)) {
-			DPRINT (F("Sending page from SD file "));
-			DPRINTLN (pagename);
-
-			SDContent content = SDContent (pagename);
-			sendContent (client, &content);
-#endif
 		} else {
 			client -> print (F(HEADER_START NOT_FOUND_HEADER HEADER_END));
 
