@@ -27,10 +27,19 @@
 //~ #define WEBBINO_USE_ENC28J60
 //~ #define WEBBINO_USE_ESP8266
 
-/* Define to enable serving webpages from SD. This will use the SD
- * library, but you will have to initialize it in your sketch's setup()
+/* Define to enable serving webpages from SD. This will use Arduino's SD
+ * library, which only allows DOS-style (i.e. 8+3 characters) file names. This
+ * means that you will have to name your pages with a .htm extension, instead of
+ * .html. If you don't like this, install the SdFat library and see below.
  */
 //~ #define WEBBINO_ENABLE_SD
+
+/* Define to enable serving webpages from SD. This will use the SDFat
+ * library (https://github.com/greiman/SdFat). This library allows access to
+ * files with long names (LFNs), if properly configured (see SdFatConfig.h in
+ * the library sources).
+ */
+//~ #define WEBBINO_ENABLE_SDFAT
 
 /* Define to enable support for tag substitutions, i.e.: replace #TAGS#
  * in served pages
@@ -61,6 +70,10 @@
  * NOTE: Currently changing this will have no effect, FIXME
  */
 #define SERVER_PORT 80
+
+/* Name of the index page, i.e. the page requests for / get redirected to.
+ */
+#define REDIRECT_ROOT_PAGE "index.html"
 
 /* DEFINE this to DISABLE debug messages
  */

@@ -27,13 +27,17 @@
 // http://arduiniana.org/libraries/pstring/
 #include <PString.h>
 
-#ifdef WEBBINO_ENABLE_SD
+#if defined (WEBBINO_ENABLE_SD)
 #include <SD.h>
+#elif defined (WEBBINO_ENABLE_SDFAT)
+#include <SdFat.h>
 #endif
 
 
 class WebClient;
 
+
+/******************************************************************************/
 
 typedef void (*PageFunction) (HTTPRequestParser& request);
 
@@ -56,10 +60,16 @@ struct Page {
 	}
 };
 
+/******************************************************************************/
+
+
 class PageContent {
 public:
 	virtual char getNextByte () = 0;
 };
+
+/******************************************************************************/
+
 
 class FlashContent: public PageContent {
 private:
@@ -67,39 +77,30 @@ private:
 	PGM_P next;
 
 public:
-	FlashContent (Page* p): page (*p), next (p -> getContent ()) {
-	}
+	FlashContent (Page* p);
 
-	char getNextByte () override {
-		return pgm_read_byte (next++);
-	}
+	char getNextByte () override;
 };
 
+/******************************************************************************/
 
 
-#ifdef WEBBINO_ENABLE_SD
+#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
+
 struct SDContent: public PageContent {
 private:
 	File file;
 
 public:
-	SDContent (const char* filename) {
-		file = SD.open (filename);
-	}
+	SDContent (const char* filename);
+	~SDContent ();
 
-	~SDContent () {
-		file.close ();
-	}
-
-	char getNextByte () override {
-		if (file.available ()) {
-			return file.read ();
-		} else {
-			return '\0';
-		}
-	}
+	char getNextByte () override;
 };
+
 #endif
+
+/******************************************************************************/
 
 
 #ifdef ENABLE_TAGS
@@ -111,7 +112,7 @@ struct var_substitution {
 	var_evaluate_func function;
 	void *data;
 
-		// Methods that (try to) hide the complexity of accessing PROGMEM data
+	// Methods that (try to) hide the complexity of accessing PROGMEM data
 	PGM_P getName () {
 		return reinterpret_cast<PGM_P> (pgm_read_word (&(this -> name)));
 	}
@@ -126,6 +127,8 @@ struct var_substitution {
 };
 
 #endif
+
+/******************************************************************************/
 
 
 class WebServer {
@@ -156,6 +159,10 @@ public:
 		, const var_substitution* const _substitutions[] = NULL
 #endif
 	);
+
+#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
+	boolean enableSD (byte pin);
+#endif
 
 	boolean loop ();
 };

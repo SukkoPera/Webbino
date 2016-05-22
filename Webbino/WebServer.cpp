@@ -21,7 +21,45 @@
 #include "WebClient.h"
 #include "webbino_debug.h"
 
-#define REDIRECT_ROOT_PAGE "index.html"
+#if defined (WEBBINO_ENABLE_SDFAT)
+static SdFat SD;
+#endif
+
+
+/******************************************************************************/
+
+FlashContent::FlashContent (Page* p): page (*p), next (p -> getContent ()) {
+}
+
+char FlashContent::getNextByte () {
+	return pgm_read_byte (next++);
+}
+
+/******************************************************************************/
+
+#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
+
+SDContent::SDContent (const char* filename) {
+	file = SD.open (filename);
+}
+
+SDContent::~SDContent () {
+	file.close ();
+}
+
+char SDContent::getNextByte () {
+	if (file.available ()) {
+		return file.read ();
+	} else {
+		return '\0';
+	}
+}
+
+#endif
+
+/******************************************************************************/
+
+
 #define HEADER_START "HTTP/1.0 "
 #define REDIRECT_HEADER "301 Moved Permanently\r\nLocation: "
 #define OK_HEADER "200 OK\r\nContent-Type: text/html"		// \r\nPragma: no-cache"
@@ -99,7 +137,7 @@ void WebServer::sendPage (WebClient* client) {
 
 			FlashContent content = FlashContent (page);
 			sendContent (client, &content);
-#ifdef WEBBINO_ENABLE_SD
+#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
 		} else if (SD.exists (pagename)) {
 			DPRINT (F("Sending page from SD file "));
 			DPRINTLN (pagename);
@@ -232,3 +270,15 @@ boolean WebServer::loop () {
 
 	return c != NULL;
 }
+
+#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
+boolean WebServer::enableSD (byte pin) {
+	DPRINT (F("Initializing SD card..."));
+	if (!SD.begin (pin)) {
+		DPRINTLN (F(" failed"));
+		return false;
+	}
+	DPRINTLN (F(" done"));
+	return true;
+}
+#endif
