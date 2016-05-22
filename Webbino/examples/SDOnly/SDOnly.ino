@@ -17,7 +17,6 @@
  *   along with SmartStrip.  If not, see <http://www.gnu.org/licenses/>.   *
  ***************************************************************************/
 
-#include <SD.h>
 #include <Webbino.h>
 #include <avr/pgmspace.h>
 
@@ -58,27 +57,22 @@ WebServer webserver;
 static char replaceBuffer[REP_BUFFER_LEN];
 PString subBuffer (replaceBuffer, REP_BUFFER_LEN);
 
-static PString& ip2str (const byte *buf) {
-	for (byte i = 0; i < 4; i++) {
-		subBuffer.print (buf[i]);
-
-		if (i < 3)
-			subBuffer.print ('.');
-	}
-
-	return subBuffer;
-}
-
 static PString& evaluate_ip (void *data __attribute__ ((unused))) {
- 	return ip2str (netint.getIP ());
+   subBuffer.print (netint.getIP ());
+
+  return subBuffer;
 }
 
 static PString& evaluate_netmask (void *data __attribute__ ((unused))) {
-	return ip2str (netint.getNetmask ());
+  subBuffer.print (netint.getNetmask ());
+
+  return subBuffer;
 }
 
 static PString& evaluate_gw (void *data __attribute__ ((unused))) {
-	return ip2str (netint.getGateway ());
+  subBuffer.print (netint.getGateway ());
+
+  return subBuffer;
 }
 
 static PString& evaluate_mac_addr (void *data __attribute__ ((unused))) {
@@ -123,27 +117,24 @@ static PString& evaluate_uptime (void *data __attribute__ ((unused))) {
 	uptime %= 60;
 	s = uptime;
 
-	replaceBuffer[0] = '\0';
+  if (d > 0) {
+    subBuffer.print (d);
+    subBuffer.print (d == 1 ? F(" day, ") : F(" days, "));
+  }
 
-	if (d > 0) {
-		itoa (d, replaceBuffer, DEC);
-		strcat_P (replaceBuffer, d == 1 ? PSTR (" day, ") : PSTR (" days, "));
-	}
+  if (h < 10)
+    subBuffer.print ('0');
+  subBuffer.print (h);
+  subBuffer.print (':');
+  if (m < 10)
+    subBuffer.print ('0');
+  subBuffer.print (m);
+  subBuffer.print (':');
+  if (s < 10)
+    subBuffer.print ('0');
+  subBuffer.print (s);
 
-	// Shorter format: "2 days, 4:12:22", saves 70 bytes and doesn't overflow :D
-	if (h < 10)
-		subBuffer.print ('0');
-	subBuffer.print (h);
-	subBuffer.print (':');
-	if (m < 10)
-		subBuffer.print ('0');
-	subBuffer.print (m);
-	subBuffer.print (':');
-	if (s < 10)
-		subBuffer.print ('0');
-	subBuffer.print (s);
-
-	return subBuffer;
+  return subBuffer;
 }
 
 static PString& evaluate_free_ram (void *data __attribute__ ((unused))) {
@@ -194,21 +185,13 @@ static const var_substitution * const substitutions[] PROGMEM = {
  ******************************************************************************/
 
 // Avoid some bug reports :)
-#ifndef WEBBINO_ENABLE_SD
-#error Please enable WEBBINO_ENABLE_SD in webbino_common.h
+#if !defined (WEBBINO_ENABLE_SD) && !defined (WEBBINO_ENABLE_SDFAT)
+#error Please enable WEBBINO_ENABLE_SD or WEBBINO_ENABLE_SDFAT in webbino_common.h
 #endif
 
 void setup () {
 	Serial.begin (9600);
-	// Serial.println (F("Webbino " PROGRAM_VERSION));
-
-	Serial.print (F("Initializing SD card..."));
-	if (!SD.begin (SD_SS)) {
-		Serial.println (F(" failed"));
-		while (42)
-			;
-	}
-	Serial.println (F(" done"));
+	Serial.println (F("Using Webbino " WEBBINO_VERSION));
 
 #if defined (WEBBINO_USE_ENC28J60) || defined (WEBBINO_USE_WIZ5100)
 	byte mac[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
@@ -218,19 +201,27 @@ void setup () {
 	netint.begin (swSerial, WIFI_SSID, WIFI_PASSWORD);
 #endif
 
+	Serial.print (F("Initializing SD card..."));
+	if (!webserver.enableSD (SD_SS)) {
+		Serial.println (F(" failed"));
+		while (42)
+			;
+	}
+	Serial.println (F(" done"));
+
 	Serial.println (F("Trying to get an IP address through DHCP"));
 	if (!webserver.begin (netint, NULL, substitutions)) {
 		Serial.println (F("Failed to get configuration from DHCP"));
 		while (42)
 			;
 	} else {
-		Serial.println (F("DHCP configuration done"));
-#if 0
-		ether.printIp ("IP:\t", webserver.getIP ());
-		ether.printIp ("Mask:\t", webserver.getNetmask ());
-		ether.printIp ("GW:\t", webserver.getGateway ());
-		Serial.println ();
-#endif
+		Serial.println (F("DHCP configuration done:"));
+		Serial.print (F("- IP: "));
+		Serial.println (netint.getIP ());
+		Serial.print (F("- Netmask: "));
+		Serial.println (netint.getNetmask ());
+		Serial.print (F("- Default Gateway: "));
+		Serial.println (netint.getGateway ());
 	}
 }
 
