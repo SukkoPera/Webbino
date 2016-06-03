@@ -18,7 +18,6 @@
  ***************************************************************************/
 
 #include <Webbino.h>
-#include <avr/pgmspace.h>
 
 // Instantiate the WebServer
 WebServer webserver;
@@ -41,6 +40,9 @@ WebServer webserver;
 	#define WIFI_PASSWORD    "password"
 
 	NetworkInterfaceESP8266 netint;
+#elif defined (WEBBINO_USE_DIGIFI)
+	#include <WebServer_DigiFi.h>
+	NetworkInterfaceDigiFi netint;
 #endif
 
 
@@ -63,69 +65,58 @@ static const Page * const pages[] PROGMEM = {
  ******************************************************************************/
 
 #define REP_BUFFER_LEN 32
-
 static char replaceBuffer[REP_BUFFER_LEN];
+PString subBuffer (replaceBuffer, REP_BUFFER_LEN);
 
-static char *ip2str (const byte *buf) {
-	itoa (buf[0], replaceBuffer, DEC);
-	strcat_P (replaceBuffer, PSTR ("."));
-	itoa (buf[1], replaceBuffer + strlen (replaceBuffer), DEC);
-	strcat_P (replaceBuffer, PSTR ("."));
-	itoa (buf[2], replaceBuffer + strlen (replaceBuffer), DEC);
-	strcat_P (replaceBuffer, PSTR ("."));
-	itoa (buf[3], replaceBuffer + strlen (replaceBuffer), DEC);
+static PString& evaluate_ip (void *data __attribute__ ((unused))) {
+   subBuffer.print (netint.getIP ());
 
-	return replaceBuffer;
+  return subBuffer;
 }
 
-static char *evaluate_ip (void *data __attribute__ ((unused))) {
- 	return ip2str (netint.getIP ());
+static PString& evaluate_netmask (void *data __attribute__ ((unused))) {
+  subBuffer.print (netint.getNetmask ());
+
+  return subBuffer;
 }
 
-static char *evaluate_netmask (void *data __attribute__ ((unused))) {
-	return ip2str (netint.getNetmask ());
+static PString& evaluate_gw (void *data __attribute__ ((unused))) {
+  subBuffer.print (netint.getGateway ());
+
+  return subBuffer;
 }
 
-static char *evaluate_gw (void *data __attribute__ ((unused))) {
-	return ip2str (netint.getGateway ());
-}
-
-const char COLON_STRING[] PROGMEM = ":";
-
-static char *evaluate_mac_addr (void *data __attribute__ ((unused))) {
+static PString& evaluate_mac_addr (void *data __attribute__ ((unused))) {
 	const byte *buf = netint.getMAC ();
 
-	replaceBuffer[0] = '\0';
-
-	for (byte i = 0; i < 5; i++) {
+	for (byte i = 0; i < 6; i++) {
 		if (buf[i] < 16)
-			strcat_P (replaceBuffer, PSTR ("0"));
-		itoa (buf[i], replaceBuffer + strlen (replaceBuffer), HEX);
-		strcat_P (replaceBuffer, COLON_STRING);
+			subBuffer.print ('0');
+		subBuffer.print (buf[i], HEX);
+
+		if (i < 5)
+			subBuffer.print (':');
 	}
-	if (buf[5] < 16)
-			strcat_P (replaceBuffer, PSTR ("0"));
-	itoa (buf[5], replaceBuffer + strlen (replaceBuffer), HEX);
 
-	return replaceBuffer;
+	return subBuffer;
 }
 
-static char *evaluate_ip_src (void *data __attribute__ ((unused))) {
+static PString& evaluate_ip_src (void *data __attribute__ ((unused))) {
 	if (netint.usingDHCP ())
-		strlcpy_P (replaceBuffer, PSTR ("DHCP"), REP_BUFFER_LEN);
+		subBuffer.print (F("DHCP"));
 	else
-		strlcpy_P (replaceBuffer, PSTR ("MANUAL"), REP_BUFFER_LEN);
+		subBuffer.print (F("MANUAL"));
 
-	return replaceBuffer;
+	return subBuffer;
 }
 
-static char *evaluate_webbino_version (void *data __attribute__ ((unused))) {
-	strlcpy (replaceBuffer, WEBBINO_VERSION, REP_BUFFER_LEN);
+static PString& evaluate_webbino_version (void *data __attribute__ ((unused))) {
+	subBuffer.print (WEBBINO_VERSION);
 
-	return replaceBuffer;
+	return subBuffer;
 }
 
-static char *evaluate_uptime (void *data __attribute__ ((unused))) {
+static PString& evaluate_uptime (void *data __attribute__ ((unused))) {
 	unsigned long uptime = millis () / 1000;
 	byte d, h, m, s;
 
@@ -137,36 +128,33 @@ static char *evaluate_uptime (void *data __attribute__ ((unused))) {
 	uptime %= 60;
 	s = uptime;
 
-	replaceBuffer[0] = '\0';
+  if (d > 0) {
+    subBuffer.print (d);
+    subBuffer.print (d == 1 ? F(" day, ") : F(" days, "));
+  }
 
-	if (d > 0) {
-		itoa (d, replaceBuffer, DEC);
-		strcat_P (replaceBuffer, d == 1 ? PSTR (" day, ") : PSTR (" days, "));
-	}
+  if (h < 10)
+    subBuffer.print ('0');
+  subBuffer.print (h);
+  subBuffer.print (':');
+  if (m < 10)
+    subBuffer.print ('0');
+  subBuffer.print (m);
+  subBuffer.print (':');
+  if (s < 10)
+    subBuffer.print ('0');
+  subBuffer.print (s);
 
-	// Shorter format: "2 days, 4:12:22", saves 70 bytes and doesn't overflow :D
-	if (h < 10)
-		strcat_P (replaceBuffer, PSTR ("0"));
-	itoa (h, replaceBuffer + strlen (replaceBuffer), DEC);
-	strcat_P (replaceBuffer, PSTR (":"));
-	if (m < 10)
-		strcat_P (replaceBuffer, PSTR ("0"));
-	itoa (m, replaceBuffer + strlen (replaceBuffer), DEC);
-	strcat_P (replaceBuffer, PSTR (":"));
-	if (s < 10)
-		strcat_P (replaceBuffer, PSTR ("0"));
-	itoa (s, replaceBuffer + strlen (replaceBuffer), DEC);
-
-	return replaceBuffer;
+  return subBuffer;
 }
 
-static char *evaluate_free_ram (void *data __attribute__ ((unused))) {
+static PString& evaluate_free_ram (void *data __attribute__ ((unused))) {
 	extern int __heap_start, *__brkval;
 	int v;
 
-	itoa ((int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval), replaceBuffer, DEC);
+	subBuffer.print ((int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval));
 
-	return replaceBuffer;
+	return subBuffer;
 }
 
 
@@ -216,6 +204,8 @@ void setup () {
 #elif defined (WEBBINO_USE_ESP8266)
 	swSerial.begin (9600);
 	netint.begin (swSerial, WIFI_SSID, WIFI_PASSWORD);
+#elif defined (WEBBINO_USE_DIGIFI)
+	netint.begin ();
 #endif
 
 	Serial.println (F("Trying to get an IP address through DHCP"));

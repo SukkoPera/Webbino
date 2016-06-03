@@ -18,7 +18,6 @@
  ***************************************************************************/
 
 #include <Webbino.h>
-#include <avr/pgmspace.h>
 
 // Instantiate the WebServer
 WebServer webserver;
@@ -41,6 +40,9 @@ WebServer webserver;
 	#define WIFI_PASSWORD    "password"
 
 	NetworkInterfaceESP8266 netint;
+#elif defined (WEBBINO_USE_DIGIFI)
+	#include <WebServer_DigiFi.h>
+	NetworkInterfaceDigiFi netint;
 #endif
 
 /******************************************************************************
@@ -51,7 +53,6 @@ WebServer webserver;
 
 static const Page indexPage PROGMEM = {index_html_name, index_html, NULL};
 
-static const Page * const pages[] PROGMEM = {
 	&indexPage,
  	NULL
 };
@@ -71,6 +72,8 @@ void setup () {
 #elif defined (WEBBINO_USE_ESP8266)
 	swSerial.begin (9600);
 	netint.begin (swSerial, WIFI_SSID, WIFI_PASSWORD);
+#elif defined (WEBBINO_USE_DIGIFI)
+	netint.begin ();
 #endif
 
 	Serial.println (F("Trying to get an IP address through DHCP"));
