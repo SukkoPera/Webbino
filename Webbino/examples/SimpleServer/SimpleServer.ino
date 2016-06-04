@@ -53,6 +53,7 @@ WebServer webserver;
 
 static const Page indexPage PROGMEM = {index_html_name, index_html, NULL};
 
+static const Page * const pages[] PROGMEM = {
 	&indexPage,
  	NULL
 };
@@ -82,13 +83,13 @@ void setup () {
 		while (42)
 			;
 	} else {
-		Serial.println (F("DHCP configuration done"));
-#if 0
-		ether.printIp ("IP:\t", webserver.getIP ());
-		ether.printIp ("Mask:\t", webserver.getNetmask ());
-		ether.printIp ("GW:\t", webserver.getGateway ());
-		Serial.println ();
-#endif
+		Serial.println (F("DHCP configuration done:"));
+		Serial.print (F("- IP: "));
+		Serial.println (netint.getIP ());
+		Serial.print (F("- Netmask: "));
+		Serial.println (netint.getNetmask ());
+		Serial.print (F("- Default Gateway: "));
+		Serial.println (netint.getGateway ());
 	}
 }
 
