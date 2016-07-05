@@ -65,11 +65,11 @@ boolean NetworkInterfaceWIZ5100::begin (byte *mac) {
 	return ret;
 }
 
-boolean NetworkInterfaceWIZ5100::begin (byte *mac, byte *ip, byte *gw, byte *mask) {
+boolean NetworkInterfaceWIZ5100::begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask) {
 	DPRINTLN (F("Using Arduino Ethernet library"));
 
 	memcpy (macAddress, mac, 6);
-	Ethernet.begin (mac, IPAddress (ip), IPAddress (gw), IPAddress (mask));
+	Ethernet.begin (mac, ip, dns, gw, mask);
 	server.begin ();
 	dhcp = false;
 

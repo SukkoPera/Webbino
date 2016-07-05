@@ -59,7 +59,7 @@ public:
 
 	boolean begin (byte *mac);
 
-	boolean begin (byte *mac, byte *ip, byte *gw, byte *mask);
+	boolean begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask);
 
 	WebClient* processPacket () override;
 
