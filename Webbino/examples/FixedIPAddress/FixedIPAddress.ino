@@ -43,6 +43,12 @@ WebServer webserver;
 	NetworkInterfaceESP8266 netint;
 #endif
 
+// Network configuration (Note the commas)
+#define IP_ADDRESS 192,168,1,177
+#define DNS_ADDRESS 192,168,1,254
+#define GW_ADDRESS 192,168,1,254
+#define NETMASK	255,255,255,0
+
 /******************************************************************************
  * DEFINITION OF PAGES                                                        *
  ******************************************************************************/
@@ -51,7 +57,7 @@ WebServer webserver;
 
 static const Page indexPage PROGMEM = {index_html_name, index_html, NULL};
 
-static const Page * const pages[] PROGMEM = {
+static const Page* const pages[] PROGMEM = {
 	&indexPage,
  	NULL
 };
@@ -65,21 +71,25 @@ void setup () {
 	Serial.begin (9600);
 	Serial.println (F("Webbino " WEBBINO_VERSION));
 
-	Serial.println (F("Trying to get an IP address through DHCP"));
+	IPAddress ip (IP_ADDRESS);
+	IPAddress dns (DNS_ADDRESS);
+	IPAddress gw (GW_ADDRESS);
+	IPAddress mask (NETMASK);
+
+	Serial.println (F("Configuring static IP address"));
 #if defined (WEBBINO_USE_ENC28J60) || defined (WEBBINO_USE_WIZ5100)
 	byte mac[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
-	bool ok = netint.begin (mac);
+	bool ok = netint.begin (mac, ip, dns, gw, mask);
 #elif defined (WEBBINO_USE_ESP8266)
-	swSerial.begin (9600);
-	bool ok = netint.begin (swSerial, WIFI_SSID, WIFI_PASSWORD);
+	#error "ESP8266 does not currently support static IP configuration"
 #endif
 
 	if (!ok) {
-		Serial.println (F("Failed to get configuration from DHCP"));
+		Serial.println (F("Failed to configure static IP address"));
 		while (42)
 			;
 	} else {
-		Serial.println (F("DHCP configuration done:"));
+		Serial.println (F("Static IP configuration done:"));
 		Serial.print (F("- IP: "));
 		Serial.println (netint.getIP ());
 		Serial.print (F("- Netmask: "));

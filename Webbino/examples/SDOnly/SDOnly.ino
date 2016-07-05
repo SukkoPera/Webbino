@@ -193,14 +193,6 @@ void setup () {
 	Serial.begin (9600);
 	Serial.println (F("Using Webbino " WEBBINO_VERSION));
 
-#if defined (WEBBINO_USE_ENC28J60) || defined (WEBBINO_USE_WIZ5100)
-	byte mac[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
-	netint.begin (mac);
-#elif defined (WEBBINO_USE_ESP8266)
-	swSerial.begin (9600);
-	netint.begin (swSerial, WIFI_SSID, WIFI_PASSWORD);
-#endif
-
 	Serial.print (F("Initializing SD card..."));
 	if (!webserver.enableSD (SD_SS)) {
 		Serial.println (F(" failed"));
@@ -210,7 +202,15 @@ void setup () {
 	Serial.println (F(" done"));
 
 	Serial.println (F("Trying to get an IP address through DHCP"));
-	if (!webserver.begin (netint, NULL, substitutions)) {
+#if defined (WEBBINO_USE_ENC28J60) || defined (WEBBINO_USE_WIZ5100)
+	byte mac[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
+	bool ok = netint.begin (mac);
+#elif defined (WEBBINO_USE_ESP8266)
+	swSerial.begin (9600);
+	bool ok = netint.begin (swSerial, WIFI_SSID, WIFI_PASSWORD);
+#endif
+
+	if (!ok) {
 		Serial.println (F("Failed to get configuration from DHCP"));
 		while (42)
 			;
@@ -222,6 +222,8 @@ void setup () {
 		Serial.println (netint.getNetmask ());
 		Serial.print (F("- Default Gateway: "));
 		Serial.println (netint.getGateway ());
+
+		webserver.begin (netint, NULL, substitutions);
 	}
 }
 
