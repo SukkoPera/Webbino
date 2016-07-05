@@ -69,7 +69,7 @@ boolean NetworkInterfaceESP8266::begin (Stream& _serial, const char *_ssid, cons
 	WiFi.init (&_serial);
 
 	// Check for the presence of ESP
-	if (WiFi.status() == WL_NO_SHIELD) {
+	if (WiFi.status () == WL_NO_SHIELD) {
 		DPRINTLN (F("ESP8266 not found"));
 		return false;
 	}
@@ -108,11 +108,13 @@ WebClient* NetworkInterfaceESP8266::processPacket () {
 		while (client.connected ()) {
 			if (client.available ()) {
 				char c = client.read ();
-				if (ethernetBufferSize < sizeof (ethernetBuffer)) {
-					if (copy)
+				if (copy) {
+					if (ethernetBufferSize < sizeof (ethernetBuffer)) {
 						ethernetBuffer[ethernetBufferSize++] = c;
-				} else {
-					DPRINTLN (F("Ethernet buffer overflow"));
+					} else {
+						DPRINTLN (F("Ethernet buffer overflow"));
+						break;
+					}
 				}
 
 				// If you've gotten to the end of the line (received a newline
