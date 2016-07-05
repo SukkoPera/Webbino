@@ -66,7 +66,7 @@ char SDContent::getNextByte () {
 #define NOT_FOUND_HEADER "404 Not Found\r\nContent-Type: text/html"
 #define HEADER_END "\r\n\r\n"
 
-boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
+void WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 #ifdef ENABLE_TAGS
 		, const var_substitution* const _substitutions[]
 #endif
@@ -76,6 +76,7 @@ boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 
 	pages = _pages;
 
+#ifndef WEBBINO_NDEBUG
 	DPRINTLN (F("Pages available in flash memory:"));
 	Page *p = NULL;
 	for (unsigned int i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
@@ -83,10 +84,12 @@ boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 		DPRINT (F(". "));
 		DPRINTLN (reinterpret_cast<const __FlashStringHelper*> (p -> getName ()));
 	}
+#endif
 
 #ifdef ENABLE_TAGS
 	substitutions = _substitutions;
 
+#ifndef WEBBINO_NDEBUG
 	DPRINTLN (F("Tags available:"));
 	var_substitution* sub;
 	for (byte i = 0; substitutions && (sub = reinterpret_cast<var_substitution *> (pgm_read_word (&substitutions[i]))); i++) {
@@ -96,7 +99,7 @@ boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 	}
 #endif
 
-	return true;
+#endif
 }
 
 Page *WebServer::get_page (const char* name) {

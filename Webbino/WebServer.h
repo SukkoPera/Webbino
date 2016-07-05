@@ -154,7 +154,7 @@ private:
 #endif
 
 public:
-	boolean begin (NetworkInterface& _netint, const Page* const _pages[] = NULL
+	void begin (NetworkInterface& _netint, const Page* const _pages[] = NULL
 #ifdef ENABLE_TAGS
 		, const var_substitution* const _substitutions[] = NULL
 #endif
