@@ -105,11 +105,11 @@ public:
 
 #ifdef ENABLE_TAGS
 
-typedef PString& (*var_evaluate_func) (void* data);
+typedef PString& (*TagEvaluateFn) (void* data);
 
 struct ReplacementTag {
 	PGM_P name;				// Max length: MAX_TAG_LEN
-	var_evaluate_func function;
+	TagEvaluateFn function;
 	void *data;
 
 	// Methods that (try to) hide the complexity of accessing PROGMEM data
@@ -117,8 +117,8 @@ struct ReplacementTag {
 		return reinterpret_cast<PGM_P> (pgm_read_word (&(this -> name)));
 	}
 
-	var_evaluate_func getFunction () {
-		return reinterpret_cast<var_evaluate_func> (pgm_read_word (&(this -> function)));
+	TagEvaluateFn getFunction () {
+		return reinterpret_cast<TagEvaluateFn> (pgm_read_word (&(this -> function)));
 	}
 
 	void *getData () {
