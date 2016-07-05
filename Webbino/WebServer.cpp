@@ -102,7 +102,7 @@ void WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 #endif
 }
 
-Page *WebServer::get_page (const char* name) {
+Page *WebServer::getPage (const char* name) {
 	Page *p = NULL;
 
 	for (unsigned int i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
@@ -142,7 +142,7 @@ void WebServer::sendPage (WebClient* client) {
 			sendContent (client, &content);
 		} else
 #endif
-		if ((page = get_page (pagename))) {
+		if ((page = getPage (pagename))) {
 			// Call page function
 			PageFunction func = page -> getFunction ();
 			if (func)

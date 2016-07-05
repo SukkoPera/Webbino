@@ -145,7 +145,7 @@ private:
 
 	void sendContent (WebClient* client, PageContent* content);
 
-	Page *get_page (const char* name);
+	Page *getPage (const char* name);
 
 #ifdef ENABLE_TAGS
 	PString* findSubstitutionTag (const char* tag);
