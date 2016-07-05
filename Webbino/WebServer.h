@@ -107,7 +107,7 @@ public:
 
 typedef PString& (*var_evaluate_func) (void* data);
 
-struct var_substitution {
+struct ReplacementTag {
 	PGM_P name;				// Max length: MAX_TAG_LEN
 	var_evaluate_func function;
 	void *data;
@@ -138,7 +138,7 @@ private:
 	const Page* const *pages;
 
 #ifdef ENABLE_TAGS
-	const var_substitution* const * substitutions;
+	const ReplacementTag* const * substitutions;
 #endif
 
 	void sendPage (WebClient* client);
@@ -156,7 +156,7 @@ private:
 public:
 	void begin (NetworkInterface& _netint, const Page* const _pages[] = NULL
 #ifdef ENABLE_TAGS
-		, const var_substitution* const _substitutions[] = NULL
+		, const ReplacementTag* const _substitutions[] = NULL
 #endif
 	);
 

@@ -166,16 +166,16 @@ static const char subWebbinoVerStr[] PROGMEM = "WEBBINO_VER";
 static const char subUptimeStr[] PROGMEM = "UPTIME";
 static const char subFreeRAMStr[] PROGMEM = "FREERAM";
 
-static const var_substitution subMacAddrVarSub PROGMEM = {subMacAddrStr, evaluate_mac_addr, NULL};
-static const var_substitution subIPAddressVarSub PROGMEM = {subIPAddressStr, evaluate_ip, NULL};
-static const var_substitution subNetmaskVarSub PROGMEM = {subNetmaskStr, evaluate_netmask, NULL};
-static const var_substitution subGatewayVarSub PROGMEM = {subGatewayStr, evaluate_gw, NULL};
-static const var_substitution subNetConfSrcVarSub PROGMEM = {subNetConfSrcStr, evaluate_ip_src, NULL};
-static const var_substitution subWebbinoVerVarSub PROGMEM = {subWebbinoVerStr, evaluate_webbino_version, NULL};
-static const var_substitution subUptimeVarSub PROGMEM = {subUptimeStr, evaluate_uptime, NULL};
-static const var_substitution subFreeRAMVarSub PROGMEM = {subFreeRAMStr, evaluate_free_ram, NULL};
+static const ReplacementTag subMacAddrVarSub PROGMEM = {subMacAddrStr, evaluate_mac_addr, NULL};
+static const ReplacementTag subIPAddressVarSub PROGMEM = {subIPAddressStr, evaluate_ip, NULL};
+static const ReplacementTag subNetmaskVarSub PROGMEM = {subNetmaskStr, evaluate_netmask, NULL};
+static const ReplacementTag subGatewayVarSub PROGMEM = {subGatewayStr, evaluate_gw, NULL};
+static const ReplacementTag subNetConfSrcVarSub PROGMEM = {subNetConfSrcStr, evaluate_ip_src, NULL};
+static const ReplacementTag subWebbinoVerVarSub PROGMEM = {subWebbinoVerStr, evaluate_webbino_version, NULL};
+static const ReplacementTag subUptimeVarSub PROGMEM = {subUptimeStr, evaluate_uptime, NULL};
+static const ReplacementTag subFreeRAMVarSub PROGMEM = {subFreeRAMStr, evaluate_free_ram, NULL};
 
-static const var_substitution* const substitutions[] PROGMEM = {
+static const ReplacementTag* const substitutions[] PROGMEM = {
 	&subMacAddrVarSub,
 	&subIPAddressVarSub,
 	&subNetmaskVarSub,

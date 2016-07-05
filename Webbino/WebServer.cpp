@@ -68,7 +68,7 @@ char SDContent::getNextByte () {
 
 void WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 #ifdef ENABLE_TAGS
-		, const var_substitution* const _substitutions[]
+		, const ReplacementTag* const _substitutions[]
 #endif
 		) {
 
@@ -91,8 +91,8 @@ void WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 
 #ifndef WEBBINO_NDEBUG
 	DPRINTLN (F("Tags available:"));
-	var_substitution* sub;
-	for (byte i = 0; substitutions && (sub = reinterpret_cast<var_substitution *> (pgm_read_word (&substitutions[i]))); i++) {
+	ReplacementTag* sub;
+	for (byte i = 0; substitutions && (sub = reinterpret_cast<ReplacementTag *> (pgm_read_word (&substitutions[i]))); i++) {
 		DPRINT (i);
 		DPRINT (F(". "));
 		DPRINTLN (reinterpret_cast<const __FlashStringHelper*> (sub -> getName ()));
@@ -164,10 +164,10 @@ void WebServer::sendPage (WebClient* client) {
 
 #ifdef ENABLE_TAGS
 PString* WebServer::findSubstitutionTag (const char *tag) {
-	var_substitution *sub;
+	ReplacementTag *sub;
 	PString* ret = NULL;
 
-	for (byte i = 0; !ret && (sub = reinterpret_cast<var_substitution *> (pgm_read_word (&substitutions[i]))); i++) {
+	for (byte i = 0; !ret && (sub = reinterpret_cast<ReplacementTag *> (pgm_read_word (&substitutions[i]))); i++) {
 		if (strcmp_P (tag, sub -> getName ()) == 0) {
 			PString& pb = (sub -> getFunction ()) (sub -> getData ());
 			ret = &pb;
