@@ -47,9 +47,11 @@ class NetworkInterfaceENC28J60: public NetworkInterface {
 public:
 	static const unsigned int ETHERNET_BUFSIZE = 800;
 
-	boolean begin (byte *mac);
+	static const byte DEFAULT_CS_PIN = 10;
 
-	boolean begin (byte *mac, byte *ip, byte *gw, byte *mask);
+	boolean begin (byte *mac, byte csPin = DEFAULT_CS_PIN);
+
+	boolean begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask, byte csPin = DEFAULT_CS_PIN);
 
 	WebClient* processPacket () override;
 
@@ -65,8 +67,6 @@ public:
 
 private:
 	boolean dhcp;
-
-	boolean initChip (byte *mac);
 
 	WebClientENC28J60 client;
 };
