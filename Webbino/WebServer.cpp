@@ -76,10 +76,6 @@ boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 
 	pages = _pages;
 
-#ifdef ENABLE_TAGS
-	substitutions = _substitutions;
-#endif
-
 	DPRINTLN (F("Pages available in flash memory:"));
 	Page *p = NULL;
 	for (unsigned int i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
@@ -88,13 +84,17 @@ boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 		DPRINTLN (reinterpret_cast<const __FlashStringHelper*> (p -> getName ()));
 	}
 
+#ifdef ENABLE_TAGS
+	substitutions = _substitutions;
+
 	DPRINTLN (F("Tags available:"));
 	var_substitution* sub;
-	for (byte i = 0; (sub = reinterpret_cast<var_substitution *> (pgm_read_word (&substitutions[i]))); i++) {
+	for (byte i = 0; substitutions && (sub = reinterpret_cast<var_substitution *> (pgm_read_word (&substitutions[i]))); i++) {
 		DPRINT (i);
 		DPRINT (F(". "));
 		DPRINTLN (reinterpret_cast<const __FlashStringHelper*> (sub -> getName ()));
 	}
+#endif
 
 	return true;
 }
