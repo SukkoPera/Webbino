@@ -17,27 +17,60 @@
  *   along with Webbino. If not, see <http://www.gnu.org/licenses/>.       *
  ***************************************************************************/
 
-#ifndef _INTERFACE_H_INCLUDED
-#define _INTERFACE_H_INCLUDED
+#ifndef _WEBSERVER28J60_H_
+#define _WEBSERVER28J60_H_
+
+#include "webbino_config.h"
+
+#ifdef WEBBINO_USE_ENC28J60
 
 #include <Arduino.h>
-#include <IPAddress.h>
-#include "WebClient.h"
+#include <EtherCard.h>
+#include "WebbinoCore/WebClient.h"
+#include "WebbinoCore/NetworkInterface.h"
 
 
-class NetworkInterface {
+class WebClientENC28J60: public WebClient {
 public:
-	virtual WebClient* processPacket () = 0;
+	void initReply ();
 
-	virtual boolean usingDHCP () = 0;
+	void sendReply ();
 
-	virtual byte* getMAC () = 0;
+	size_t write (uint8_t c);
 
-	virtual IPAddress getIP () = 0;
-
-	virtual IPAddress getNetmask () = 0;
-
-	virtual IPAddress getGateway () = 0;
+private:
+	BufferFiller bfill;
 };
+
+
+class NetworkInterfaceENC28J60: public NetworkInterface {
+public:
+	static const unsigned int ETHERNET_BUFSIZE = 800;
+
+	static const byte DEFAULT_CS_PIN = 10;
+
+	boolean begin (byte *mac, byte csPin = DEFAULT_CS_PIN);
+
+	boolean begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask, byte csPin = DEFAULT_CS_PIN);
+
+	WebClient* processPacket () override;
+
+	boolean usingDHCP () override;
+
+	byte* getMAC () override;
+
+	IPAddress getIP () override;
+
+	IPAddress getNetmask () override;
+
+	IPAddress getGateway () override;
+
+private:
+	boolean dhcp;
+
+	WebClientENC28J60 client;
+};
+
+#endif
 
 #endif

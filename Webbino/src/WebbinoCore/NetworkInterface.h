@@ -17,63 +17,27 @@
  *   along with Webbino. If not, see <http://www.gnu.org/licenses/>.       *
  ***************************************************************************/
 
-#ifndef _WEBSERVER5100_H_
-#define _WEBSERVER5100_H_
+#ifndef _INTERFACE_H_INCLUDED
+#define _INTERFACE_H_INCLUDED
 
-#include "webbino_config.h"
-
-#ifdef WEBBINO_USE_WIZ5100
-
-#include <Ethernet.h>
-#include "WebClient.h"
-#include "WebServer.h"
+#include <Arduino.h>
+#include <IPAddress.h>
+#include <WebbinoCore/WebClient.h>
 
 
-class WebClientWIZ5100: public WebClient {
-private:
-	EthernetClient internalClient;
-
+class NetworkInterface {
 public:
-	void init (EthernetClient& c, char* req);
+	virtual WebClient* processPacket () = 0;
 
-	size_t write (uint8_t c) override;
+	virtual boolean usingDHCP () = 0;
 
-	void sendReply () override;
+	virtual byte* getMAC () = 0;
+
+	virtual IPAddress getIP () = 0;
+
+	virtual IPAddress getNetmask () = 0;
+
+	virtual IPAddress getGateway () = 0;
 };
-
-
-class NetworkInterfaceWIZ5100: public NetworkInterface {
-private:
-	static byte retBuffer[6];
-
-	boolean dhcp;
-	byte macAddress[6];
-	EthernetServer server;
-	byte ethernetBuffer[MAX_URL_LEN + 16];			// MAX_URL_LEN + X is enough, since we only store the "GET <url> HTTP/1.x" request line
-	unsigned int ethernetBufferSize;
-
-	WebClientWIZ5100 webClient;
-
-public:
-	NetworkInterfaceWIZ5100 ();
-
-	boolean begin (byte *mac);
-
-	boolean begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask);
-
-	WebClient* processPacket () override;
-
-	boolean usingDHCP () override;
-
-	byte *getMAC () override;
-
-	IPAddress getIP () override;
-
-	IPAddress getNetmask () override;
-
-	IPAddress getGateway () override;
-};
-
-#endif
 
 #endif

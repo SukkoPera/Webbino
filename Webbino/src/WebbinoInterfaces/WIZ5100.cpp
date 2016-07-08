@@ -17,87 +17,72 @@
  *   along with Webbino. If not, see <http://www.gnu.org/licenses/>.       *
  ***************************************************************************/
 
-#include "WebServer_ESP8266.h"
+#include "WIZ5100.h"
 
-#ifdef WEBBINO_USE_ESP8266
+#ifdef WEBBINO_USE_WIZ5100
 
-#include "webbino_debug.h"
+#include <webbino_debug.h>
 
-void WebClientESP8266::init (WiFiEspClient& c, char* req) {
+
+void WebClientWIZ5100::init (EthernetClient& c, char* req) {
 	internalClient = c;
 	request.parse (req);
-	avail = 0;
 }
 
-size_t WebClientESP8266::write (uint8_t c) {
-	buf[avail++] = c;
-
-	if (avail >= CLIENT_BUFSIZE) {
-		flushBuffer ();
-	}
-
-	return 1;
+size_t WebClientWIZ5100::write (uint8_t c) {
+	return internalClient.write (c);
 }
 
-void WebClientESP8266::flushBuffer () {
-	if (avail > 0) {
-		//~ DPRINT (F("Flushing "));
-		//~ DPRINT (avail);
-		//~ DPRINTLN (F(" bytes to client"));
-
-		internalClient.write (buf, avail);
-		avail = 0;
-	}
-}
-
-void WebClientESP8266::sendReply () {
-	flushBuffer ();
+void WebClientWIZ5100::sendReply () {
 	internalClient.stop ();
 	DPRINTLN (F("Client disconnected"));
 }
 
-
 /****************************************************************************/
 
-byte NetworkInterfaceESP8266::retBuffer[6];
+byte NetworkInterfaceWIZ5100::retBuffer[6];
 
 // FIXME
-NetworkInterfaceESP8266::NetworkInterfaceESP8266 (): server (80) {
+NetworkInterfaceWIZ5100::NetworkInterfaceWIZ5100 (): server (SERVER_PORT) {
 }
 
-boolean NetworkInterfaceESP8266::begin (Stream& _serial, const char *_ssid, const char *_password) {
-	WiFi.init (&_serial);
+boolean NetworkInterfaceWIZ5100::begin (byte *mac) {
+	boolean ret;
 
-	// Check for the presence of ESP
-	if (WiFi.status () == WL_NO_SHIELD) {
-		DPRINTLN (F("ESP8266 not found"));
-		return false;
+	DPRINTLN (F("Using Arduino Ethernet library"));
+
+	memcpy (macAddress, mac, 6);
+	if ((ret = Ethernet.begin (mac))) {
+		server.begin ();
+		dhcp = true;
+
+ 		DPRINT (F("Server is at "));
+ 		DPRINTLN (Ethernet.localIP ());
 	}
 
-	DPRINT (F("FW Version: "));
-	DPRINTLN (WiFi.firmwareVersion ());
+	//realIp = Ethernet.localIP ();
 
-	// Attempt to connect to WiFi network
-	int status;
-	do {
-		DPRINT (F("Connecting to AP: "));
-		DPRINTLN (_ssid);
-		status = WiFi.begin (const_cast<char *> (_ssid), _password);
-	} while (status != WL_CONNECTED);
-
-	DPRINT (F("Joined AP, local IP address: "));
-	DPRINTLN (WiFi.localIP ());
-
-	server.begin ();
-
-	return true;
-
+	return ret;
 }
 
-WebClient* NetworkInterfaceESP8266::processPacket () {
+boolean NetworkInterfaceWIZ5100::begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask) {
+	DPRINTLN (F("Using Arduino Ethernet library"));
+
+	memcpy (macAddress, mac, 6);
+	Ethernet.begin (mac, ip, dns, gw, mask);
+	server.begin ();
+	dhcp = false;
+
+	DPRINT (F("Server is at "));
+	DPRINTLN (Ethernet.localIP ());
+
+	return true;
+}
+
+WebClient* NetworkInterfaceWIZ5100::processPacket () {
 	WebClient *ret = NULL;
 
-	WiFiEspClient client = server.available ();
+	EthernetClient client = server.available ();
 	if (client) {
 		DPRINTLN (F("New client"));
 
@@ -118,7 +103,7 @@ WebClient* NetworkInterfaceESP8266::processPacket () {
 				}
 
 				// If you've gotten to the end of the line (received a newline
-				// character) and the line is blank, the http request has ended
+				// character) and the line is blank, the http request has ended,
 				if (c == '\n' && currentLineIsBlank) {
 					webClient.init (client, (char *) ethernetBuffer);
 					ret = &webClient;
@@ -133,10 +118,6 @@ WebClient* NetworkInterfaceESP8266::processPacket () {
 						copy = false;
 					} else {
 						// No, start over
-						DPRINT (F("Discarding header line: \""));
-						DPRINT (reinterpret_cast<char *> (ethernetBuffer));
-						DPRINTLN (F("\""));
-
 						ethernetBufferSize = 0;
 					}
 
@@ -149,6 +130,9 @@ WebClient* NetworkInterfaceESP8266::processPacket () {
 			}
 		}
 
+		// give the web browser time to receive the data
+		//delay (500);
+
 		// If we are not returning a client, close the connection
 		if (!ret) {
 			client.stop ();
@@ -159,25 +143,24 @@ WebClient* NetworkInterfaceESP8266::processPacket () {
 	return ret;
 }
 
-boolean NetworkInterfaceESP8266::usingDHCP () {
-	// FIXME
-	return true;
+boolean NetworkInterfaceWIZ5100::usingDHCP () {
+	return dhcp;
 }
 
-byte *NetworkInterfaceESP8266::getMAC () {
-	return WiFi.macAddress (retBuffer);
+byte *NetworkInterfaceWIZ5100::getMAC () {
+	return macAddress;
 }
 
-IPAddress NetworkInterfaceESP8266::getIP () {
-	return WiFi.localIP ();
+IPAddress NetworkInterfaceWIZ5100::getIP () {
+	return Ethernet.localIP ();
 }
 
-IPAddress NetworkInterfaceESP8266::getNetmask () {
-	return WiFi.subnetMask ();
+IPAddress NetworkInterfaceWIZ5100::getNetmask () {
+	return Ethernet.subnetMask ();
 }
 
-IPAddress NetworkInterfaceESP8266::getGateway () {
-	return WiFi.gatewayIP ();
+IPAddress NetworkInterfaceWIZ5100::getGateway () {
+	return Ethernet.gatewayIP ();
 }
 
 #endif
