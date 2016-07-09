@@ -26,6 +26,7 @@
 #define WEBBINO_USE_WIZ5100
 //~ #define WEBBINO_USE_ENC28J60
 //~ #define WEBBINO_USE_ESP8266
+//~ #define WEBBINO_USE_DIGIFI
 
 /* Define to enable serving webpages from SD. This will use Arduino's SD
  * library, which only allows DOS-style (i.e. 8+3 characters) file names. This
@@ -67,13 +68,22 @@
 #define MAX_URL_LEN 128
 
 /* TCP port the server will listen on
- * NOTE: Currently changing this will have no effect, FIXME
+ *
+ * NOTE: Port 80 can not be used with DigiFi
+ * NOTE: Currently changing this will have no effect with most cards, FIXME
  */
-#define SERVER_PORT 80
+#define SERVER_PORT 8000
 
 /* Name of the index page, i.e. the page requests for / get redirected to.
  */
 #define REDIRECT_ROOT_PAGE "index.html"
+
+/* Define this to store strings in flash memory. This saves RAM on smaller MCUs,
+ * recommended on AVRs, probably not supported on other targets.
+ */
+#if defined(ARDUINO_ARCH_AVR)
+	#define ENABLE_FLASH_STRINGS
+#endif
 
 /* DEFINE this to DISABLE debug messages
  */

@@ -68,7 +68,7 @@ void DallasThermometer::begin (byte busPin) {
 			available = true;
 		}
 	} else {
-		Serial.println (F("No sensors found"));
+		DPRINTLN (F("No sensors found"));
 		available = false;
 	}
 }

@@ -18,7 +18,6 @@
  ***************************************************************************/
 
 #include <Webbino.h>
-#include <avr/pgmspace.h>
 
 // Instantiate the WebServer
 WebServer webserver;
@@ -41,6 +40,9 @@ WebServer webserver;
 	#define WIFI_PASSWORD    "password"
 
 	NetworkInterfaceESP8266 netint;
+#elif defined (WEBBINO_USE_DIGIFI)
+	#include <WebbinoInterfaces/DigiFi.h>
+	NetworkInterfaceDigiFi netint;
 #endif
 
 /******************************************************************************
@@ -72,6 +74,8 @@ void setup () {
 #elif defined (WEBBINO_USE_ESP8266)
 	swSerial.begin (9600);
 	bool ok = netint.begin (swSerial, WIFI_SSID, WIFI_PASSWORD);
+#elif defined (WEBBINO_USE_DIGIFI)
+	bool ok = netint.begin ();
 #endif
 
 	if (!ok) {

@@ -19,7 +19,7 @@
 
 #include "WebServer.h"
 #include "WebClient.h"
-#include "webbino_debug.h"
+#include <webbino_debug.h>
 
 #if defined (WEBBINO_ENABLE_SDFAT)
 static SdFat SD;

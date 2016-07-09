@@ -17,7 +17,7 @@
  *   along with Webbino. If not, see <http://www.gnu.org/licenses/>.       *
  ***************************************************************************/
 
-#include "webbino_debug.h"
+#include <Arduino.h>
 #include "HTTPRequestParser.h"
 
 HTTPRequestParser::HTTPRequestParser () {
@@ -105,7 +105,9 @@ char *HTTPRequestParser::get_parameter (const char param[]) {
 	return buffer;
 }
 
-char *HTTPRequestParser::get_parameter (const __FlashStringHelper *param) {
-	strncpy_P (buffer, reinterpret_cast<PGM_P> (param), BUF_LEN);
+#ifdef ENABLE_FLASH_STRINGS
+char *HTTPRequestParser::get_parameter (FlashString param) {
+	strncpy_P (buffer, F_TO_PSTR (param), BUF_LEN);
 	return get_parameter (buffer);
 }
+#endif

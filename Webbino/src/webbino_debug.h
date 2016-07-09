@@ -31,3 +31,43 @@
 #endif
 
 #endif
+
+// FIXME: This should probably be moved somewhere else
+#ifdef ENABLE_FLASH_STRINGS
+
+#include <avr/pgmspace.h>
+
+#define PSTR_TO_F(s) reinterpret_cast<const __FlashStringHelper *> (s)
+#define F_TO_PSTR(s) reinterpret_cast<PGM_P> (s)
+#define FlashString const __FlashStringHelper *
+
+#else
+
+#warning Flash strings disabled
+
+#undef PSTR
+#define PSTR(s) s
+
+#undef F
+#define F(s) s
+
+#define PSTR_TO_F(s) s
+#define F_TO_PSTR(s) s
+
+#define FlashString const char *
+
+#undef strlen_P
+#define strlen_P strlen
+#undef strcmp_P
+#define strcmp_P strcmp
+#undef strcat_P
+#define strcat_P strcat
+#undef strncpy_P
+#define strncpy_P strncpy
+#undef strncmp_P
+#define strncmp_P strncmp
+
+#endif
+
+// Use to mark unused function parameters
+#define _UNUSED __attribute__ ((unused))

@@ -20,8 +20,8 @@
 #ifndef _HTTPREQUESTPARSER_H_
 #define _HTTPREQUESTPARSER_H_
 
-#include <Arduino.h>
-#include "webbino_config.h"
+#include <webbino_config.h>
+#include <webbino_debug.h>
 
 
 class HTTPRequestParser {
@@ -39,7 +39,9 @@ public:
 
 	char *get_parameter (const char param[]);
 
-	char *get_parameter (const __FlashStringHelper *param);
+#ifdef ENABLE_FLASH_STRINGS
+	char *get_parameter (FlashString param);
+#endif
 };
 
 #endif
