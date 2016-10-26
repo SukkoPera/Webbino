@@ -82,7 +82,7 @@ void WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 	for (byte i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
 		DPRINT (i);
 		DPRINT (F(". "));
-		DPRINTLN (reinterpret_cast<const __FlashStringHelper*> (p -> getName ()));
+		DPRINTLN (PSTR_TO_F (p -> getName ()));
 	}
 #endif
 
@@ -95,7 +95,7 @@ void WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 	for (byte i = 0; substitutions && (sub = reinterpret_cast<ReplacementTag *> (pgm_read_word (&substitutions[i]))); i++) {
 		DPRINT (i);
 		DPRINT (F(". "));
-		DPRINTLN (reinterpret_cast<const __FlashStringHelper*> (sub -> getName ()));
+		DPRINTLN (PSTR_TO_F (sub -> getName ()));
 	}
 #endif
 
