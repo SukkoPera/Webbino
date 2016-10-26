@@ -79,7 +79,7 @@ void WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 #ifndef WEBBINO_NDEBUG
 	DPRINTLN (F("Pages available in flash memory:"));
 	Page *p = NULL;
-	for (unsigned int i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
+	for (byte i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
 		DPRINT (i);
 		DPRINT (F(". "));
 		DPRINTLN (reinterpret_cast<const __FlashStringHelper*> (p -> getName ()));
@@ -105,6 +105,7 @@ void WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 Page *WebServer::getPage (const char* name) {
 	Page *p = NULL;
 
+	// For some reason, if we make i a byte here, the code uses 8 more bytes, so don't!
 	for (unsigned int i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
 		if (strcmp_P (name, p -> getName ()) == 0)
 			break;
