@@ -18,7 +18,6 @@
  ***************************************************************************/
 
 #include <Webbino.h>
-#include <avr/pgmspace.h>
 
 // Instantiate the WebServer
 WebServer webserver;
