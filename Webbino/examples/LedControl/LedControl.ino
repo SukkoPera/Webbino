@@ -110,8 +110,8 @@ static PString& evaluate_webbino_version (void *data __attribute__ ((unused))) {
 }
 
 
-EasyReplacementTag (tagStateOnChecked, ST_ON_CHK, evaluate_onoff_checked, reinterpret_cast<void *> (true));
-EasyReplacementTag (tagStateOffChecked, ST_OFF_CHK, evaluate_onoff_checked, reinterpret_cast<void *> (false));
+EasyReplacementTag (tagStateOnChecked, ST_ON_CHK, evaluate_onoff_checked, true);
+EasyReplacementTag (tagStateOffChecked, ST_OFF_CHK, evaluate_onoff_checked, false);
 EasyReplacementTag (tagWebbinoVer, WEBBINO_VER, evaluate_webbino_version);
 
 static const ReplacementTag* const tags[] PROGMEM = {
