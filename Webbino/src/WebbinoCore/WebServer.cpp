@@ -66,11 +66,17 @@ char SDContent::getNextByte () {
 #define NOT_FOUND_HEADER "404 Not Found\r\nContent-Type: text/html"
 #define HEADER_END "\r\n\r\n"
 
-void WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
+
+boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 #ifdef ENABLE_TAGS
 		, const ReplacementTag* const _substitutions[]
 #endif
+#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
+		, int8_t pin
+#endif
 		) {
+
+	boolean ret = true;
 
 	netint = &_netint;
 
@@ -100,6 +106,19 @@ void WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 #endif
 
 #endif
+
+#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
+	if (pin >= 0) {
+		DPRINT (F("Initializing SD card..."));
+		if (!SD.begin (pin)) {
+			DPRINTLN (F(" failed"));
+			ret = false;
+		}
+		DPRINTLN (F(" done"));
+	}
+#endif
+
+	return ret;
 }
 
 Page *WebServer::getPage (const char* name) {
@@ -276,15 +295,3 @@ boolean WebServer::loop () {
 
 	return c != NULL;
 }
-
-#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
-boolean WebServer::enableSD (byte pin) {
-	DPRINT (F("Initializing SD card..."));
-	if (!SD.begin (pin)) {
-		DPRINTLN (F(" failed"));
-		return false;
-	}
-	DPRINTLN (F(" done"));
-	return true;
-}
-#endif

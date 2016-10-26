@@ -154,15 +154,15 @@ private:
 #endif
 
 public:
-	void begin (NetworkInterface& _netint, const Page* const _pages[] = NULL
+	// Return value here is only meaningful if using SD
+	boolean begin (NetworkInterface& _netint, const Page* const _pages[] = NULL
 #ifdef ENABLE_TAGS
 		, const ReplacementTag* const _substitutions[] = NULL
 #endif
-	);
-
 #if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
-	boolean enableSD (byte pin);
+		, int8_t pin = -1
 #endif
+	);
 
 	boolean loop ();
 };
