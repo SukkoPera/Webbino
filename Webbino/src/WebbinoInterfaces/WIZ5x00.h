@@ -17,19 +17,19 @@
  *   along with Webbino. If not, see <http://www.gnu.org/licenses/>.       *
  ***************************************************************************/
 
-#ifndef _WEBSERVER5100_H_
-#define _WEBSERVER5100_H_
+#ifndef _WEBSERVER5x00_H_
+#define _WEBSERVER5x00_H_
 
 #include <webbino_config.h>
 
-#ifdef WEBBINO_USE_WIZ5100
+#if defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500)
 
 #include <Ethernet.h>
 #include <WebbinoCore/WebClient.h>
 #include <WebbinoCore/WebServer.h>
 
 
-class WebClientWIZ5100: public WebClient {
+class WebClientWIZ5x00: public WebClient {
 private:
 	EthernetClient internalClient;
 
@@ -42,7 +42,7 @@ public:
 };
 
 
-class NetworkInterfaceWIZ5100: public NetworkInterface {
+class NetworkInterfaceWIZ5x00: public NetworkInterface {
 private:
 	static byte retBuffer[6];
 
@@ -52,10 +52,10 @@ private:
 	byte ethernetBuffer[MAX_URL_LEN + 16];			// MAX_URL_LEN + X is enough, since we only store the "GET <url> HTTP/1.x" request line
 	unsigned int ethernetBufferSize;
 
-	WebClientWIZ5100 webClient;
+	WebClientWIZ5x00 webClient;
 
 public:
-	NetworkInterfaceWIZ5100 ();
+	NetworkInterfaceWIZ5x00 ();
 
 	boolean begin (byte *mac);
 

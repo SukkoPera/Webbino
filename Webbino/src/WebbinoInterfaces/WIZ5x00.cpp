@@ -17,36 +17,36 @@
  *   along with Webbino. If not, see <http://www.gnu.org/licenses/>.       *
  ***************************************************************************/
 
-#include "WIZ5100.h"
+#include "WIZ5x00.h"
 
-#ifdef WEBBINO_USE_WIZ5100
+#if defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500)
 
 #include <webbino_debug.h>
 
 
-void WebClientWIZ5100::init (EthernetClient& c, char* req) {
+void WebClientWIZ5x00::init (EthernetClient& c, char* req) {
 	internalClient = c;
 	request.parse (req);
 }
 
-size_t WebClientWIZ5100::write (uint8_t c) {
+size_t WebClientWIZ5x00::write (uint8_t c) {
 	return internalClient.write (c);
 }
 
-void WebClientWIZ5100::sendReply () {
+void WebClientWIZ5x00::sendReply () {
 	internalClient.stop ();
 	DPRINTLN (F("Client disconnected"));
 }
 
 /****************************************************************************/
 
-byte NetworkInterfaceWIZ5100::retBuffer[6];
+byte NetworkInterfaceWIZ5x00::retBuffer[6];
 
 // FIXME
-NetworkInterfaceWIZ5100::NetworkInterfaceWIZ5100 (): server (SERVER_PORT) {
+NetworkInterfaceWIZ5x00::NetworkInterfaceWIZ5x00 (): server (SERVER_PORT) {
 }
 
-boolean NetworkInterfaceWIZ5100::begin (byte *mac) {
+boolean NetworkInterfaceWIZ5x00::begin (byte *mac) {
 	boolean ret;
 
 	DPRINTLN (F("Using Arduino Ethernet library"));
@@ -65,7 +65,7 @@ boolean NetworkInterfaceWIZ5100::begin (byte *mac) {
 	return ret;
 }
 
-boolean NetworkInterfaceWIZ5100::begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask) {
+boolean NetworkInterfaceWIZ5x00::begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask) {
 	DPRINTLN (F("Using Arduino Ethernet library"));
 
 	memcpy (macAddress, mac, 6);
@@ -79,7 +79,7 @@ boolean NetworkInterfaceWIZ5100::begin (byte *mac, IPAddress ip, IPAddress dns, 
 	return true;
 }
 
-WebClient* NetworkInterfaceWIZ5100::processPacket () {
+WebClient* NetworkInterfaceWIZ5x00::processPacket () {
 	WebClient *ret = NULL;
 
 	EthernetClient client = server.available ();
@@ -143,23 +143,23 @@ WebClient* NetworkInterfaceWIZ5100::processPacket () {
 	return ret;
 }
 
-boolean NetworkInterfaceWIZ5100::usingDHCP () {
+boolean NetworkInterfaceWIZ5x00::usingDHCP () {
 	return dhcp;
 }
 
-byte *NetworkInterfaceWIZ5100::getMAC () {
+byte *NetworkInterfaceWIZ5x00::getMAC () {
 	return macAddress;
 }
 
-IPAddress NetworkInterfaceWIZ5100::getIP () {
+IPAddress NetworkInterfaceWIZ5x00::getIP () {
 	return Ethernet.localIP ();
 }
 
-IPAddress NetworkInterfaceWIZ5100::getNetmask () {
+IPAddress NetworkInterfaceWIZ5x00::getNetmask () {
 	return Ethernet.subnetMask ();
 }
 
-IPAddress NetworkInterfaceWIZ5100::getGateway () {
+IPAddress NetworkInterfaceWIZ5x00::getGateway () {
 	return Ethernet.gatewayIP ();
 }
 
