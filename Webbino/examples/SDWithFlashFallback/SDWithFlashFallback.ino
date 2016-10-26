@@ -160,35 +160,24 @@ static PString& evaluate_free_ram (void *data __attribute__ ((unused))) {
 }
 
 
+EasyReplacementTag (tagMacAddr, NET_MAC, evaluate_mac_addr);
+EasyReplacementTag (tagIPAddress, NET_IP, evaluate_ip);
+EasyReplacementTag (tagNetmask, NET_MASK, evaluate_netmask);
+EasyReplacementTag (tagGateway, NET_GW, evaluate_gw);
+EasyReplacementTag (tagNetConfSrc, NET_CONF_SRC, evaluate_ip_src);
+EasyReplacementTag (tagWebbinoVer, WEBBINO_VER, evaluate_webbino_version);
+EasyReplacementTag (tagUptime, UPTIME, evaluate_uptime);
+EasyReplacementTag (tagFreeRAM, FREERAM, evaluate_free_ram);
 
-// Max length of these is MAX_TAG_LEN (24)
-static const char subMacAddrStr[] PROGMEM = "NET_MAC";
-static const char subIPAddressStr[] PROGMEM = "NET_IP";
-static const char subNetmaskStr[] PROGMEM = "NET_MASK";
-static const char subGatewayStr[] PROGMEM = "NET_GW";
-static const char subNetConfSrcStr[] PROGMEM = "NET_CONF_SRC";
-static const char subWebbinoVerStr[] PROGMEM = "WEBBINO_VER";
-static const char subUptimeStr[] PROGMEM = "UPTIME";
-static const char subFreeRAMStr[] PROGMEM = "FREERAM";
-
-static const ReplacementTag subMacAddrVarSub PROGMEM = {subMacAddrStr, evaluate_mac_addr, NULL};
-static const ReplacementTag subIPAddressVarSub PROGMEM = {subIPAddressStr, evaluate_ip, NULL};
-static const ReplacementTag subNetmaskVarSub PROGMEM = {subNetmaskStr, evaluate_netmask, NULL};
-static const ReplacementTag subGatewayVarSub PROGMEM = {subGatewayStr, evaluate_gw, NULL};
-static const ReplacementTag subNetConfSrcVarSub PROGMEM = {subNetConfSrcStr, evaluate_ip_src, NULL};
-static const ReplacementTag subWebbinoVerVarSub PROGMEM = {subWebbinoVerStr, evaluate_webbino_version, NULL};
-static const ReplacementTag subUptimeVarSub PROGMEM = {subUptimeStr, evaluate_uptime, NULL};
-static const ReplacementTag subFreeRAMVarSub PROGMEM = {subFreeRAMStr, evaluate_free_ram, NULL};
-
-static const ReplacementTag * const substitutions[] PROGMEM = {
-	&subMacAddrVarSub,
-	&subIPAddressVarSub,
-	&subNetmaskVarSub,
-	&subGatewayVarSub,
-	&subNetConfSrcVarSub,
-	&subWebbinoVerVarSub,
-	&subUptimeVarSub,
-	&subFreeRAMVarSub,
+static const ReplacementTag* const substitutions[] PROGMEM = {
+	&tagMacAddr,
+	&tagIPAddress,
+	&tagNetmask,
+	&tagGateway,
+	&tagNetConfSrc,
+	&tagWebbinoVer,
+	&tagUptime,
+	&tagFreeRAM,
 	NULL
 };
 

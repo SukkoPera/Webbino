@@ -110,19 +110,14 @@ static PString& evaluate_webbino_version (void *data __attribute__ ((unused))) {
 }
 
 
-// Max length of these is MAX_TAG_LEN (24)
-static const char stateOnCheckedStr[] PROGMEM = "ST_ON_CHK";
-static const char stateOffCheckedStr[] PROGMEM = "ST_OFF_CHK";
-static const char subWebbinoVerStr[] PROGMEM = "WEBBINO_VER";
-
-static const ReplacementTag subStateOnCheckedTag PROGMEM = {stateOnCheckedStr, evaluate_onoff_checked, reinterpret_cast<void *> (true)};
-static const ReplacementTag subStateOffCheckedTag PROGMEM = {stateOffCheckedStr, evaluate_onoff_checked, reinterpret_cast<void *> (false)};
-static const ReplacementTag subWebbinoVerTag PROGMEM = {subWebbinoVerStr, evaluate_webbino_version, NULL};
+EasyReplacementTag (tagStateOnChecked, ST_ON_CHK, evaluate_onoff_checked, reinterpret_cast<void *> (true));
+EasyReplacementTag (tagStateOffChecked, ST_OFF_CHK, evaluate_onoff_checked, reinterpret_cast<void *> (false));
+EasyReplacementTag (tagWebbinoVer, WEBBINO_VER, evaluate_webbino_version);
 
 static const ReplacementTag* const tags[] PROGMEM = {
-	&subStateOnCheckedTag,
-	&subStateOffCheckedTag,
-	&subWebbinoVerTag,
+	&tagStateOnChecked,
+	&tagStateOffChecked,
+	&tagWebbinoVer,
 	NULL
 };
 
