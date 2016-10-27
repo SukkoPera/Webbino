@@ -24,7 +24,12 @@
 
 #if defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500)
 
+#if defined (WEBBINO_USE_WIZ5100)
 #include <Ethernet.h>
+#elif defined (WEBBINO_USE_WIZ5500)
+#include <Ethernet2.h>
+#endif
+
 #include <WebbinoCore/WebClient.h>
 #include <WebbinoCore/WebServer.h>
 
