@@ -114,7 +114,7 @@ EasyReplacementTag (tagStateOnChecked, ST_ON_CHK, evaluate_onoff_checked, true);
 EasyReplacementTag (tagStateOffChecked, ST_OFF_CHK, evaluate_onoff_checked, false);
 EasyReplacementTag (tagWebbinoVer, WEBBINO_VER, evaluate_webbino_version);
 
-const ReplacementTag* const tags[] PROGMEM = {
+EasyReplacementTagArray tags[] PROGMEM = {
 	&tagStateOnChecked,
 	&tagStateOffChecked,
 	&tagWebbinoVer,

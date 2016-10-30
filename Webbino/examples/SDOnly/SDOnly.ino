@@ -156,7 +156,7 @@ EasyReplacementTag (tagWebbinoVer, WEBBINO_VER, evaluate_webbino_version);
 EasyReplacementTag (tagUptime, UPTIME, evaluate_uptime);
 EasyReplacementTag (tagFreeRAM, FREERAM, evaluate_free_ram);
 
-const ReplacementTag* const substitutions[] PROGMEM = {
+EasyReplacementTagArray tags[] PROGMEM = {
 	&tagMacAddr,
 	&tagIPAddress,
 	&tagNetmask,
@@ -212,7 +212,7 @@ void setup () {
 		Serial.print (F("- Default Gateway: "));
 		Serial.println (netint.getGateway ());
 
-		webserver.begin (netint, NULL, substitutions);
+		webserver.begin (netint, NULL, tags);
 	}
 }
 

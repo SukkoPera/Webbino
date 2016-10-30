@@ -144,6 +144,8 @@ struct ReplacementTag {
 #define GET_MACRO(_1, _2, _3, _4, NAME, ...) NAME
 #define EasyReplacementTag(...) GET_MACRO (__VA_ARGS__, RepTagWithArg, RepTagNoArg) (__VA_ARGS__)
 
+typedef const ReplacementTag* const EasyReplacementTagArray;
+
 #endif
 
 /******************************************************************************/
