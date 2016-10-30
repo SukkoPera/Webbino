@@ -54,9 +54,9 @@ WebServer webserver;
 
 #include "html.h"
 
-static const Page page01 PROGMEM = {index_htm_name, index_htm, NULL};
+const Page page01 PROGMEM = {index_htm_name, index_htm, NULL};
 
-static const Page* const pages[] PROGMEM = {
+const Page* const pages[] PROGMEM = {
 	&page01,
 	NULL
 };
@@ -67,28 +67,28 @@ static const Page* const pages[] PROGMEM = {
  ******************************************************************************/
 
 #define REP_BUFFER_LEN 32
-static char replaceBuffer[REP_BUFFER_LEN];
+char replaceBuffer[REP_BUFFER_LEN];
 PString subBuffer (replaceBuffer, REP_BUFFER_LEN);
 
-static PString& evaluate_ip (void *data __attribute__ ((unused))) {
+PString& evaluate_ip (void *data __attribute__ ((unused))) {
    subBuffer.print (netint.getIP ());
 
   return subBuffer;
 }
 
-static PString& evaluate_netmask (void *data __attribute__ ((unused))) {
+PString& evaluate_netmask (void *data __attribute__ ((unused))) {
   subBuffer.print (netint.getNetmask ());
 
   return subBuffer;
 }
 
-static PString& evaluate_gw (void *data __attribute__ ((unused))) {
+PString& evaluate_gw (void *data __attribute__ ((unused))) {
   subBuffer.print (netint.getGateway ());
 
   return subBuffer;
 }
 
-static PString& evaluate_mac_addr (void *data __attribute__ ((unused))) {
+PString& evaluate_mac_addr (void *data __attribute__ ((unused))) {
 	const byte *buf = netint.getMAC ();
 
 	for (byte i = 0; i < 6; i++) {
@@ -103,7 +103,7 @@ static PString& evaluate_mac_addr (void *data __attribute__ ((unused))) {
 	return subBuffer;
 }
 
-static PString& evaluate_ip_src (void *data __attribute__ ((unused))) {
+PString& evaluate_ip_src (void *data __attribute__ ((unused))) {
 	if (netint.usingDHCP ())
 		subBuffer.print (F("DHCP"));
 	else
@@ -112,13 +112,13 @@ static PString& evaluate_ip_src (void *data __attribute__ ((unused))) {
 	return subBuffer;
 }
 
-static PString& evaluate_webbino_version (void *data __attribute__ ((unused))) {
+PString& evaluate_webbino_version (void *data __attribute__ ((unused))) {
 	subBuffer.print (WEBBINO_VERSION);
 
 	return subBuffer;
 }
 
-static PString& evaluate_uptime (void *data __attribute__ ((unused))) {
+PString& evaluate_uptime (void *data __attribute__ ((unused))) {
 	unsigned long uptime = millis () / 1000;
 	byte d, h, m, s;
 
@@ -150,7 +150,7 @@ static PString& evaluate_uptime (void *data __attribute__ ((unused))) {
   return subBuffer;
 }
 
-static PString& evaluate_free_ram (void *data __attribute__ ((unused))) {
+PString& evaluate_free_ram (void *data __attribute__ ((unused))) {
 	extern int __heap_start, *__brkval;
 	int v;
 
@@ -169,7 +169,7 @@ EasyReplacementTag (tagWebbinoVer, WEBBINO_VER, evaluate_webbino_version);
 EasyReplacementTag (tagUptime, UPTIME, evaluate_uptime);
 EasyReplacementTag (tagFreeRAM, FREERAM, evaluate_free_ram);
 
-static const ReplacementTag* const substitutions[] PROGMEM = {
+const ReplacementTag* const substitutions[] PROGMEM = {
 	&tagMacAddr,
 	&tagIPAddress,
 	&tagNetmask,
