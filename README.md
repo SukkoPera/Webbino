@@ -5,11 +5,11 @@ project](https://github.com/SukkoPera/SmartStrip), which required several unique
 features which were not present in other webservers that were available at the
 time:
 - Compatible with many network interfaces:
-  - WizNet W5100: Official Ethernet Shield
-  - WizNet W5500: Official Ethernet Shield 2 by arduino.org
-  - ENC28J60: KMTronic's DINo
+  - WizNet W5100: [Ethernet Shield](https://www.arduino.cc/en/Main/ArduinoEthernetShield)
+  - WizNet W5500: [Ethernet Shield 2](http://www.arduino.org/products/shields/arduino-ethernet-shield-2)
+  - ENC28J60: [KMTronic DINo](http://sigma-shop.com/product/72/web-internet-ethernet-controlled-relay-board-arduino-compatible-rs485-usb.html) (first version)
   - ESP8266 (Wi-Fi)
-  - WINC1500 (Wi-Fi): Official WiFi Shield 101, MKR1000
+  - WINC1500 (Wi-Fi): [WiFi Shield 101](https://www.arduino.cc/en/Main/ArduinoWiFiShield101), [MKR1000](https://www.arduino.cc/en/Main/ArduinoMKR1000)
 - HTML pages and other data can be embedded in the code. This avoids the need of
   an SD card for simple sites.
 - Otherwise, HTML pages can also be stored on an SD card (long file names are
