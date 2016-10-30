@@ -27,6 +27,7 @@
 //~ #define WEBBINO_USE_WIZ5500
 //~ #define WEBBINO_USE_ENC28J60
 //~ #define WEBBINO_USE_ESP8266
+//~ #define WEBBINO_USE_WIFI101
 //~ #define WEBBINO_USE_DIGIFI
 
 /* Define to enable serving webpages from SD. This will use Arduino's SD

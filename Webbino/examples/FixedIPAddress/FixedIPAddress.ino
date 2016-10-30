@@ -30,7 +30,7 @@ WebServer webserver;
 	#include <WebbinoInterfaces/WIZ5x00.h>
 	NetworkInterfaceWIZ5x00 netint;
 #elif defined (WEBBINO_USE_ESP8266)
-	#include <WebbinoInterfaces/ESP8266.h>
+	#include <WebbinoInterfaces/WiFi.h>
 
 	#include <SoftwareSerial.h>
 	SoftwareSerial swSerial (7, 8);
@@ -39,7 +39,18 @@ WebServer webserver;
 	#define WIFI_SSID        "ssid"
 	#define WIFI_PASSWORD    "password"
 
-	NetworkInterfaceESP8266 netint;
+	NetworkInterfaceWiFi netint;
+#elif defined (WEBBINO_USE_WIFI101)
+	#include <WebbinoInterfaces/WiFi.h>
+
+	// Wi-Fi parameters
+	#define WIFI_SSID        "ssid"
+	#define WIFI_PASSWORD    "password"
+
+	NetworkInterfaceWiFi netint;
+#elif defined (WEBBINO_USE_DIGIFI)
+	#include <WebServer_DigiFi.h>
+	NetworkInterfaceDigiFi netint;
 #endif
 
 // Network configuration (Note the commas)
@@ -81,6 +92,8 @@ void setup () {
 	bool ok = netint.begin (mac, ip, dns, gw, mask);
 #elif defined (WEBBINO_USE_ESP8266)
 	#error "ESP8266 does not currently support static IP configuration"
+#elif defined (WEBBINO_USE_WIFI101)
+	#error "WIFI101 does not currently support static IP configuration"
 #endif
 
 	if (!ok) {

@@ -17,19 +17,19 @@
  *   along with Webbino. If not, see <http://www.gnu.org/licenses/>.       *
  ***************************************************************************/
 
-#include "ESP8266.h"
+#include "WiFi.h"
 
-#ifdef WEBBINO_USE_ESP8266
+#if defined (WEBBINO_USE_WIFI101) || defined (WEBBINO_USE_ESP8266)
 
 #include <webbino_debug.h>
 
-void WebClientESP8266::init (WiFiEspClient& c, char* req) {
+void WebClientWifi::init (InternalClient& c, char* req) {
 	internalClient = c;
 	request.parse (req);
 	avail = 0;
 }
 
-size_t WebClientESP8266::write (uint8_t c) {
+size_t WebClientWifi::write (uint8_t c) {
 	buf[avail++] = c;
 
 	if (avail >= CLIENT_BUFSIZE) {
@@ -39,7 +39,7 @@ size_t WebClientESP8266::write (uint8_t c) {
 	return 1;
 }
 
-void WebClientESP8266::flushBuffer () {
+void WebClientWifi::flushBuffer () {
 	if (avail > 0) {
 		//~ DPRINT (F("Flushing "));
 		//~ DPRINT (avail);
@@ -50,7 +50,7 @@ void WebClientESP8266::flushBuffer () {
 	}
 }
 
-void WebClientESP8266::sendReply () {
+void WebClientWifi::sendReply () {
 	flushBuffer ();
 	internalClient.stop ();
 	DPRINTLN (F("Client disconnected"));
@@ -59,18 +59,22 @@ void WebClientESP8266::sendReply () {
 
 /****************************************************************************/
 
-byte NetworkInterfaceESP8266::retBuffer[6];
+byte NetworkInterfaceWiFi::retBuffer[6];
 
 // FIXME
-NetworkInterfaceESP8266::NetworkInterfaceESP8266 (): server (80) {
+NetworkInterfaceWiFi::NetworkInterfaceWiFi (): server (80) {
 }
 
-boolean NetworkInterfaceESP8266::begin (Stream& _serial, const char *_ssid, const char *_password) {
+#if defined (WEBBINO_USE_WIFI101)
+boolean NetworkInterfaceWiFi::begin (const char *_ssid, const char *_password) {
+#elif defined (WEBBINO_USE_ESP8266)
+boolean NetworkInterfaceWiFi::begin (Stream& _serial, const char *_ssid, const char *_password) {
 	WiFi.init (&_serial);
+#endif
 
-	// Check for the presence of ESP
+	// Check for the presence of the WiFi interface
 	if (WiFi.status () == WL_NO_SHIELD) {
-		DPRINTLN (F("ESP8266 not found"));
+		DPRINTLN (F("WiFi interface not found"));
 		return false;
 	}
 
@@ -94,10 +98,10 @@ boolean NetworkInterfaceESP8266::begin (Stream& _serial, const char *_ssid, cons
 
 }
 
-WebClient* NetworkInterfaceESP8266::processPacket () {
+WebClient* NetworkInterfaceWiFi::processPacket () {
 	WebClient *ret = NULL;
 
-	WiFiEspClient client = server.available ();
+	InternalClient client = server.available ();
 	if (client) {
 		DPRINTLN (F("New client"));
 
@@ -159,24 +163,24 @@ WebClient* NetworkInterfaceESP8266::processPacket () {
 	return ret;
 }
 
-boolean NetworkInterfaceESP8266::usingDHCP () {
+boolean NetworkInterfaceWiFi::usingDHCP () {
 	// FIXME
 	return true;
 }
 
-byte *NetworkInterfaceESP8266::getMAC () {
+byte *NetworkInterfaceWiFi::getMAC () {
 	return WiFi.macAddress (retBuffer);
 }
 
-IPAddress NetworkInterfaceESP8266::getIP () {
+IPAddress NetworkInterfaceWiFi::getIP () {
 	return WiFi.localIP ();
 }
 
-IPAddress NetworkInterfaceESP8266::getNetmask () {
+IPAddress NetworkInterfaceWiFi::getNetmask () {
 	return WiFi.subnetMask ();
 }
 
-IPAddress NetworkInterfaceESP8266::getGateway () {
+IPAddress NetworkInterfaceWiFi::getGateway () {
 	return WiFi.gatewayIP ();
 }
 
