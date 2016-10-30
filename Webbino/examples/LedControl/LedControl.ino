@@ -86,9 +86,9 @@ void ledToggle (HTTPRequestParser& request) {
 
 #include "html.h"
 
-static const Page page01 PROGMEM = {index_html_name, index_html, ledToggle};
+const Page page01 PROGMEM = {index_html_name, index_html, ledToggle};
 
-static const Page* const pages[] PROGMEM = {
+const Page* const pages[] PROGMEM = {
 	&page01,
 	NULL
 };
@@ -99,10 +99,10 @@ static const Page* const pages[] PROGMEM = {
  ******************************************************************************/
 
 #define REP_BUFFER_LEN 32
-static char replaceBuffer[REP_BUFFER_LEN];
+char replaceBuffer[REP_BUFFER_LEN];
 PString pBuffer (replaceBuffer, REP_BUFFER_LEN);
 
-static PString& evaluate_onoff_checked (void *data) {
+PString& evaluate_onoff_checked (void *data) {
 	boolean st = reinterpret_cast<int> (data);
 	if (ledState == st) {
 		pBuffer.print ("checked");
@@ -111,26 +111,21 @@ static PString& evaluate_onoff_checked (void *data) {
 	return pBuffer;
 }
 
-static PString& evaluate_webbino_version (void *data __attribute__ ((unused))) {
+PString& evaluate_webbino_version (void *data __attribute__ ((unused))) {
 	pBuffer.print (WEBBINO_VERSION);
 
 	return pBuffer;
 }
 
 
-// Max length of these is MAX_TAG_LEN (24)
-static const char stateOnCheckedStr[] PROGMEM = "ST_ON_CHK";
-static const char stateOffCheckedStr[] PROGMEM = "ST_OFF_CHK";
-static const char subWebbinoVerStr[] PROGMEM = "WEBBINO_VER";
+EasyReplacementTag (tagStateOnChecked, ST_ON_CHK, evaluate_onoff_checked, true);
+EasyReplacementTag (tagStateOffChecked, ST_OFF_CHK, evaluate_onoff_checked, false);
+EasyReplacementTag (tagWebbinoVer, WEBBINO_VER, evaluate_webbino_version);
 
-static const ReplacementTag subStateOnCheckedTag PROGMEM = {stateOnCheckedStr, evaluate_onoff_checked, reinterpret_cast<void *> (true)};
-static const ReplacementTag subStateOffCheckedTag PROGMEM = {stateOffCheckedStr, evaluate_onoff_checked, reinterpret_cast<void *> (false)};
-static const ReplacementTag subWebbinoVerTag PROGMEM = {subWebbinoVerStr, evaluate_webbino_version, NULL};
-
-static const ReplacementTag* const tags[] PROGMEM = {
-	&subStateOnCheckedTag,
-	&subStateOffCheckedTag,
-	&subWebbinoVerTag,
+EasyReplacementTagArray tags[] PROGMEM = {
+	&tagStateOnChecked,
+	&tagStateOffChecked,
+	&tagWebbinoVer,
 	NULL
 };
 

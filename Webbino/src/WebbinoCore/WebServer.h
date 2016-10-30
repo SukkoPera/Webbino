@@ -126,6 +126,26 @@ struct ReplacementTag {
 	}
 };
 
+/* Macros that simplify things
+ * Note that max length of tag name is MAX_TAG_LEN (24)
+ */
+#define REPTAG_STR(tag) #tag
+#define REPTAG_STR_VAR(tag) _rtStr_ ## tag
+//#define REPTAG_VAR(tag) _rtTag_ ## tag
+//#define REPTAG_PTR(tag) &REPTAG_VAR(tag)
+
+#define RepTagWithArg(var, tag, fn, arg) \
+                const char REPTAG_STR_VAR(tag)[] PROGMEM = REPTAG_STR(tag); \
+                const ReplacementTag var PROGMEM = {REPTAG_STR_VAR(tag), fn, reinterpret_cast<void *> (arg)};
+
+#define RepTagNoArg(var, tag, fn) RepTagWithArg(var, tag, fn, NULL)
+
+// http://stackoverflow.com/questions/11761703/overloading-macro-on-number-of-arguments
+#define GET_MACRO(_1, _2, _3, _4, NAME, ...) NAME
+#define EasyReplacementTag(...) GET_MACRO (__VA_ARGS__, RepTagWithArg, RepTagNoArg) (__VA_ARGS__)
+
+typedef const ReplacementTag* const EasyReplacementTagArray;
+
 #endif
 
 /******************************************************************************/
