@@ -32,10 +32,9 @@ Any file that must be available on the webserver can be converted to a C header 
 
 ### SD card
 If flash space is an issue or if you just prefer to store your pages on an SD card (to make them easily editable, for instance), you are welcome to do so. You will need to enable SD support by uncommenting one of two #defines in _webbino_config.h_:
-- WEBBINO_ENABLE_SD
-This will use Arduino's SD library, which only allows DOS-style (i.e. 8+3 characters) file names. This implies that you will have to name your pages with a _.htm_ extension, instead of _.html_.
+- WEBBINO_ENABLE_SD: This will use Arduino's SD library, which only allows DOS-style (i.e. 8+3 characters) file names. This implies that you will have to name your pages with a _.htm_ extension, instead of _.html_.
 - WEBBINO_ENABLE_SDFAT: This will use the [SDFat library](https://github.com/greiman/SdFat), which allows access to files with long names (LFNs), if properly configured (see _SdFatConfig.h_ in the library sources).
--
+
 ## Replacement Tags
 (Coming soon...)
 
