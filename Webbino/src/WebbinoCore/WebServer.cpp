@@ -66,17 +66,11 @@ char SDContent::getNextByte () {
 #define NOT_FOUND_HEADER "404 Not Found\r\nContent-Type: text/html"
 #define HEADER_END "\r\n\r\n"
 
-
-boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
+void WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 #ifdef ENABLE_TAGS
 		, const ReplacementTag* const _substitutions[]
 #endif
-#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
-		, int8_t pin
-#endif
 		) {
-
-	boolean ret = true;
 
 	netint = &_netint;
 
@@ -85,10 +79,10 @@ boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 #ifndef WEBBINO_NDEBUG
 	DPRINTLN (F("Pages available in flash memory:"));
 	Page *p = NULL;
-	for (byte i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
+	for (unsigned int i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
 		DPRINT (i);
 		DPRINT (F(". "));
-		DPRINTLN (PSTR_TO_F (p -> getName ()));
+		DPRINTLN (reinterpret_cast<const __FlashStringHelper*> (p -> getName ()));
 	}
 #endif
 
@@ -101,30 +95,16 @@ boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 	for (byte i = 0; substitutions && (sub = reinterpret_cast<ReplacementTag *> (pgm_read_word (&substitutions[i]))); i++) {
 		DPRINT (i);
 		DPRINT (F(". "));
-		DPRINTLN (PSTR_TO_F (sub -> getName ()));
+		DPRINTLN (reinterpret_cast<const __FlashStringHelper*> (sub -> getName ()));
 	}
 #endif
 
 #endif
-
-#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
-	if (pin >= 0) {
-		DPRINT (F("Initializing SD card..."));
-		if (!SD.begin (pin)) {
-			DPRINTLN (F(" failed"));
-			ret = false;
-		}
-		DPRINTLN (F(" done"));
-	}
-#endif
-
-	return ret;
 }
 
 Page *WebServer::getPage (const char* name) {
 	Page *p = NULL;
 
-	// For some reason, if we make i a byte here, the code uses 8 more bytes, so don't!
 	for (unsigned int i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
 		if (strcmp_P (name, p -> getName ()) == 0)
 			break;
@@ -295,3 +275,15 @@ boolean WebServer::loop () {
 
 	return c != NULL;
 }
+
+#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
+boolean WebServer::enableSD (byte pin) {
+	DPRINT (F("Initializing SD card..."));
+	if (!SD.begin (pin)) {
+		DPRINTLN (F(" failed"));
+		return false;
+	}
+	DPRINTLN (F(" done"));
+	return true;
+}
+#endif

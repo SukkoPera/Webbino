@@ -182,6 +182,14 @@ void setup () {
 	Serial.begin (9600);
 	Serial.println (F("Using Webbino " WEBBINO_VERSION));
 
+	Serial.print (F("Initializing SD card..."));
+	if (!webserver.enableSD (SD_SS)) {
+		Serial.println (F(" failed"));
+		while (42)
+			;
+	}
+	Serial.println (F(" done"));
+
 	Serial.println (F("Trying to get an IP address through DHCP"));
 #if defined (WEBBINO_USE_ENC28J60) || defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500)
 	byte mac[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
@@ -204,13 +212,7 @@ void setup () {
 		Serial.print (F("- Default Gateway: "));
 		Serial.println (netint.getGateway ());
 
-		Serial.print (F("Initializing SD card..."));
-		if (!webserver.begin (netint, NULL, substitutions, SD_SS)) {
-			Serial.println (F(" failed"));
-			while (42)
-				;
-		}
-		Serial.println (F(" done"));
+		webserver.begin (netint, NULL, substitutions);
 	}
 }
 
