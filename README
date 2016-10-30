@@ -1,37 +1,34 @@
-Sukkino
-=======
-Sukkino is a collection of libraries for the Arduino platform. I originally
-wrote them for my own projects but I think many arduinists can take advantage
-from them.
-
-All the libraries come with included examples to show how they can be used.
-Please also have a look at each library's header files, since the library
-behaviour can often be fine-tuned from there.
-
-
 Webbino
 =======
-Webbino is a webserver for Arduino with the following features:
-- Compatible with both the official Ethernet Shield (based on WizNet's W5100
-  chip) and ENC28J60-based shields. Experimental support for ESP8266-based
-  wireless shields is also available. This is a unique feature of Webbino, as
-  far as I know.
-- HTML pages and other data get embedded in the code. This avoids the need of
-  an SD card (and, consequently, of the SD access libraries).
+Webbino is a webserver for Arduino.  I originally wrote it for my [SmartStrip
+project](https://github.com/SukkoPera/SmartStrip), which required several unique
+features which were not present in other webservers that were available at the
+time:
+- Compatible with many network interfaces:
+  - WizNet W5100: Official Ethernet Shield
+  - WizNet W5500: Official Ethernet Shield 2 by arduino.org
+  - ENC28J60: KMTronic's DINo
+  - ESP8266 (Wi-Fi)
+  - WINC1500 (Wi-Fi): Official WiFi Shield 101, MKR1000
+- HTML pages and other data can be embedded in the code. This avoids the need of
+  an SD card for simple sites.
+- Otherwise, HTML pages can also be stored on an SD card (long file names are
+  supported!)
 - Tags like "#WHATEVER#" in HTML pages can be replaced at page request time,
   allowing the delivery of dynamic contents.
-  
+- Arbitrary functions can be associated to a page, to perform any needed
+  actions.
+
 The ENC28J60 Ethernet Controller is supported it through the EtherCard library,
 so you will need it to compile the sketch. Get it at
 https://github.com/jcw/ethercard/.
 
 ESP8266 support is achieved through Bruno Portaluri's WiFiEsp library available
-at https://github.com/bportaluri/WiFiEsp.
+in the Library Manager or at https://github.com/bportaluri/WiFiEsp.
 
 To switch between the target chipsets, and to enable/disable server features,
-have a look at the webbino_common.h file: the WEBBINO_USE_* #defines will enable
-support for the chosen network interface. Please be aware of the
-following:
+have a look at the webbino_config.h file: the WEBBINO_USE_* #defines will enable
+support for the chosen network interface. Please be aware of the following:
 - When ENC28J60 support is enabled, a lot of RAM is used for the packet buffer,
   as EtherCard currently needs it to be allocated in the main RAM. It is
   currently set at 800 bytes, which include TCP/IP headers, leaving about 750
@@ -47,42 +44,28 @@ following:
   directory. You can then include the generated file in the sketch as shown in
   the examples.
 
-Panic
-=====
-Panic is a small library that allows writing runtime assertions in Arduino
-code, just like the standard C assert.h header. It supports both the standard
-assert() mechanism, as well as the glib-inspired assert_not_reached() feature.
-Panic will halt the program and print a message on the Serial port and can also
-blink a led connected to an Arduino pin whenever an assertion fails.
-Assertions can be totally disabled by defining the NDEBUG symbol at compile
-time.
-
-Thermometer
-===========
-Thermometer allows interfacing with different temperature sensors with a uniform
-interface, so that you can switch among different sensors without changing the
-code. Currently DHT11 and DS18B20 are supported.
+Included are a lot of examples showing how to use all the different features.
 
 
-Sukkino is free software: you can redistribute it and/or modify
+Webbino is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 License
 =======
-Where not otherwise indicated, the Sukkino libraries are distributed under the
+Where not otherwise indicated, the Webbino libraries are distributed under the
 GNU General Public License v3.
 
-Sukkino is distributed in the hope that it will be useful,
+Webbino is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Sukkino.  If not, see <http://www.gnu.org/licenses/>.
+along with Webbino.  If not, see <http://www.gnu.org/licenses/>.
 
 That's all for the moment, please use the official github page to report issues
-and such: https://github.com/SukkoPera/Sukkino.
+and such: https://github.com/SukkoPera/Webbino.
 
 Enjoy!
