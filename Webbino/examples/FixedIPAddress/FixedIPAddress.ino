@@ -65,9 +65,9 @@ WebServer webserver;
 
 #include "html.h"
 
-const Page indexPage PROGMEM = {index_html_name, index_html, NULL};
+static const Page indexPage PROGMEM = {index_html_name, index_html, NULL};
 
-const Page* const pages[] PROGMEM = {
+static const Page* const pages[] PROGMEM = {
 	&indexPage,
  	NULL
 };

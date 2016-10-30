@@ -65,9 +65,9 @@ WebServer webserver;
 
 #include "html.h"
 
-const Page page01 PROGMEM = {index_htm_name, index_htm, NULL};
+static const Page page01 PROGMEM = {index_htm_name, index_htm, NULL};
 
-const Page* const pages[] PROGMEM = {
+static const Page* const pages[] PROGMEM = {
 	&page01,
 	NULL
 };
@@ -78,28 +78,28 @@ const Page* const pages[] PROGMEM = {
  ******************************************************************************/
 
 #define REP_BUFFER_LEN 32
-char replaceBuffer[REP_BUFFER_LEN];
+static char replaceBuffer[REP_BUFFER_LEN];
 PString subBuffer (replaceBuffer, REP_BUFFER_LEN);
 
-PString& evaluate_ip (void *data __attribute__ ((unused))) {
+static PString& evaluate_ip (void *data __attribute__ ((unused))) {
    subBuffer.print (netint.getIP ());
 
   return subBuffer;
 }
 
-PString& evaluate_netmask (void *data __attribute__ ((unused))) {
+static PString& evaluate_netmask (void *data __attribute__ ((unused))) {
   subBuffer.print (netint.getNetmask ());
 
   return subBuffer;
 }
 
-PString& evaluate_gw (void *data __attribute__ ((unused))) {
+static PString& evaluate_gw (void *data __attribute__ ((unused))) {
   subBuffer.print (netint.getGateway ());
 
   return subBuffer;
 }
 
-PString& evaluate_mac_addr (void *data __attribute__ ((unused))) {
+static PString& evaluate_mac_addr (void *data __attribute__ ((unused))) {
 	const byte *buf = netint.getMAC ();
 
 	for (byte i = 0; i < 6; i++) {
@@ -114,7 +114,7 @@ PString& evaluate_mac_addr (void *data __attribute__ ((unused))) {
 	return subBuffer;
 }
 
-PString& evaluate_ip_src (void *data __attribute__ ((unused))) {
+static PString& evaluate_ip_src (void *data __attribute__ ((unused))) {
 	if (netint.usingDHCP ())
 		subBuffer.print (F("DHCP"));
 	else
@@ -123,13 +123,13 @@ PString& evaluate_ip_src (void *data __attribute__ ((unused))) {
 	return subBuffer;
 }
 
-PString& evaluate_webbino_version (void *data __attribute__ ((unused))) {
+static PString& evaluate_webbino_version (void *data __attribute__ ((unused))) {
 	subBuffer.print (WEBBINO_VERSION);
 
 	return subBuffer;
 }
 
-PString& evaluate_uptime (void *data __attribute__ ((unused))) {
+static PString& evaluate_uptime (void *data __attribute__ ((unused))) {
 	unsigned long uptime = millis () / 1000;
 	byte d, h, m, s;
 
@@ -161,7 +161,7 @@ PString& evaluate_uptime (void *data __attribute__ ((unused))) {
   return subBuffer;
 }
 
-PString& evaluate_free_ram (void *data __attribute__ ((unused))) {
+static PString& evaluate_free_ram (void *data __attribute__ ((unused))) {
 	// This only works on AVRs
 #if defined (ARDUINO_ARCH_AVR)
 	extern int __heap_start, *__brkval;
@@ -176,24 +176,34 @@ PString& evaluate_free_ram (void *data __attribute__ ((unused))) {
 }
 
 
-EasyReplacementTag (tagMacAddr, NET_MAC, evaluate_mac_addr);
-EasyReplacementTag (tagIPAddress, NET_IP, evaluate_ip);
-EasyReplacementTag (tagNetmask, NET_MASK, evaluate_netmask);
-EasyReplacementTag (tagGateway, NET_GW, evaluate_gw);
-EasyReplacementTag (tagNetConfSrc, NET_CONF_SRC, evaluate_ip_src);
-EasyReplacementTag (tagWebbinoVer, WEBBINO_VER, evaluate_webbino_version);
-EasyReplacementTag (tagUptime, UPTIME, evaluate_uptime);
-EasyReplacementTag (tagFreeRAM, FREERAM, evaluate_free_ram);
+// Max length of these is MAX_TAG_LEN (24)
+static const char subMacAddrStr[] PROGMEM = "NET_MAC";
+static const char subIPAddressStr[] PROGMEM = "NET_IP";
+static const char subNetmaskStr[] PROGMEM = "NET_MASK";
+static const char subGatewayStr[] PROGMEM = "NET_GW";
+static const char subNetConfSrcStr[] PROGMEM = "NET_CONF_SRC";
+static const char subWebbinoVerStr[] PROGMEM = "WEBBINO_VER";
+static const char subUptimeStr[] PROGMEM = "UPTIME";
+static const char subFreeRAMStr[] PROGMEM = "FREERAM";
 
-EasyReplacementTagArray tags[] PROGMEM = {
-	&tagMacAddr,
-	&tagIPAddress,
-	&tagNetmask,
-	&tagGateway,
-	&tagNetConfSrc,
-	&tagWebbinoVer,
-	&tagUptime,
-	&tagFreeRAM,
+static const ReplacementTag subMacAddrVarSub PROGMEM = {subMacAddrStr, evaluate_mac_addr, NULL};
+static const ReplacementTag subIPAddressVarSub PROGMEM = {subIPAddressStr, evaluate_ip, NULL};
+static const ReplacementTag subNetmaskVarSub PROGMEM = {subNetmaskStr, evaluate_netmask, NULL};
+static const ReplacementTag subGatewayVarSub PROGMEM = {subGatewayStr, evaluate_gw, NULL};
+static const ReplacementTag subNetConfSrcVarSub PROGMEM = {subNetConfSrcStr, evaluate_ip_src, NULL};
+static const ReplacementTag subWebbinoVerVarSub PROGMEM = {subWebbinoVerStr, evaluate_webbino_version, NULL};
+static const ReplacementTag subUptimeVarSub PROGMEM = {subUptimeStr, evaluate_uptime, NULL};
+static const ReplacementTag subFreeRAMVarSub PROGMEM = {subFreeRAMStr, evaluate_free_ram, NULL};
+
+static const ReplacementTag * const substitutions[] PROGMEM = {
+	&subMacAddrVarSub,
+	&subIPAddressVarSub,
+	&subNetmaskVarSub,
+	&subGatewayVarSub,
+	&subNetConfSrcVarSub,
+	&subWebbinoVerVarSub,
+	&subUptimeVarSub,
+	&subFreeRAMVarSub,
 	NULL
 };
 
@@ -236,7 +246,7 @@ void setup () {
 		Serial.println (netint.getGateway ());
 
 		Serial.print (F("Initializing SD card..."));
-		if (!webserver.begin (netint, NULL, tags, SD_SS)) {
+		if (!webserver.begin (netint, NULL, substitutions, SD_SS)) {
 			Serial.println (F(" failed"));
 			while (42)
 				;
