@@ -45,7 +45,7 @@ private:
 
 class NetworkInterfaceENC28J60: public NetworkInterface {
 public:
-	static const unsigned int ETHERNET_BUFSIZE = 800;
+	static const unsigned int ETHERNET_BUFSIZE = 850;
 
 	static const byte DEFAULT_CS_PIN = 10;
 
