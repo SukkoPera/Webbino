@@ -23,21 +23,6 @@ To switch between the supported chipsets, and to configure various working aspec
 
 Included with Webbino are a lot of examples showing how to use all the different features.
 
-## Storing pages
-Web pages can be stored in Arduino's flash memory (where code is stored) and/or on an SD card.
-### Flash memory
-If you only need to serve one or a few pages, storing them together with the code is a great idea, as you will spare your SD card for some better job.
-
-Any file that must be available on the webserver can be converted to a C header file throught a Python script that is available in the "tools" directory. It will also produce some code that you need to include in your sketch. Please have a look at the examples if you need help.
-
-### SD card
-If flash space is an issue or if you just prefer to store your pages on an SD card (to make them easily editable, for instance), you are welcome to do so. You will need to enable SD support by uncommenting one of two #defines in _webbino_config.h_:
-- WEBBINO_ENABLE_SD: This will use Arduino's SD library, which only allows DOS-style (i.e. 8+3 characters) file names. This implies that you will have to name your pages with a _.htm_ extension, instead of _.html_.
-- WEBBINO_ENABLE_SDFAT: This will use the [SDFat library](https://github.com/greiman/SdFat), which allows access to files with long names (LFNs), if properly configured (see _SdFatConfig.h_ in the library sources).
-
-## Replacement Tags
-(Coming soon...)
-
 ## Supported boards
 ### WizNet W5100
 Support for this chip is included in the standard distribution of the Arduino IDE, so it can be used stright away.
@@ -57,6 +42,22 @@ ESP8266 boards can also be used stand-alone, but this is not yet supported. It i
 
 ### WINC1500
 WINC1500 support is obtained through the WiFi101 library that can be installed through the Library Manager.
+
+## Storing pages
+Web pages can be stored in Arduino's flash memory (where code is stored) and/or on an SD card.
+
+### Flash memory
+If you only need to serve one or a few pages, storing them together with the code is a great idea, as you will spare your SD card for some better job.
+
+Any file that must be available on the webserver can be converted to a C header file throught a Python script that is available in the "tools" directory. It will also produce some code that you need to include in your sketch. Please have a look at the examples if you need help.
+
+### SD card
+If flash space is an issue or if you just prefer to store your pages on an SD card (to make them easily editable, for instance), you are welcome to do so. You will need to enable SD support by uncommenting one of two #defines in _webbino_config.h_:
+- WEBBINO_ENABLE_SD: This will use Arduino's SD library, which only allows DOS-style (i.e. 8+3 characters) file names. This implies that you will have to name your pages with a _.htm_ extension, instead of _.html_.
+- WEBBINO_ENABLE_SDFAT: This will use the [SDFat library](https://github.com/greiman/SdFat), which allows access to files with long names (LFNs), if properly configured (see _SdFatConfig.h_ in the library sources).
+
+## Replacement Tags
+Webbino allows easy embedding of small pieces of dynamic content in webpages. If, for instance, all you have to do is show some instant weather data in an otherwise static page, just use the Tag feature: put placeholders like _#TEMPERATURE#_, _#HUMIDITY#_ and such in your HTML page, and have Webbino replace them with actual data measured when the page is loaded! Have a look at the _ReplacementTags_ example to get started.
 
 ## License
 Webbino is free software: you can redistribute it and/or modify
