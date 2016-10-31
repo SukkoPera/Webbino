@@ -77,21 +77,21 @@ static char replaceBuffer[REP_BUFFER_LEN];
 PString subBuffer (replaceBuffer, REP_BUFFER_LEN);
 
 static PString& evaluate_ip (void *data __attribute__ ((unused))) {
-   subBuffer.print (netint.getIP ());
+	 subBuffer.print (netint.getIP ());
 
-  return subBuffer;
+	return subBuffer;
 }
 
 static PString& evaluate_netmask (void *data __attribute__ ((unused))) {
-  subBuffer.print (netint.getNetmask ());
+	subBuffer.print (netint.getNetmask ());
 
-  return subBuffer;
+	return subBuffer;
 }
 
 static PString& evaluate_gw (void *data __attribute__ ((unused))) {
-  subBuffer.print (netint.getGateway ());
+	subBuffer.print (netint.getGateway ());
 
-  return subBuffer;
+	return subBuffer;
 }
 
 static PString& evaluate_mac_addr (void *data __attribute__ ((unused))) {
@@ -136,24 +136,24 @@ static PString& evaluate_uptime (void *data __attribute__ ((unused))) {
 	uptime %= 60;
 	s = uptime;
 
-  if (d > 0) {
-    subBuffer.print (d);
-    subBuffer.print (d == 1 ? F(" day, ") : F(" days, "));
-  }
+	if (d > 0) {
+		subBuffer.print (d);
+		subBuffer.print (d == 1 ? F(" day, ") : F(" days, "));
+	}
 
-  if (h < 10)
-    subBuffer.print ('0');
-  subBuffer.print (h);
-  subBuffer.print (':');
-  if (m < 10)
-    subBuffer.print ('0');
-  subBuffer.print (m);
-  subBuffer.print (':');
-  if (s < 10)
-    subBuffer.print ('0');
-  subBuffer.print (s);
+	if (h < 10)
+		subBuffer.print ('0');
+	subBuffer.print (h);
+	subBuffer.print (':');
+	if (m < 10)
+		subBuffer.print ('0');
+	subBuffer.print (m);
+	subBuffer.print (':');
+	if (s < 10)
+		subBuffer.print ('0');
+	subBuffer.print (s);
 
-  return subBuffer;
+	return subBuffer;
 }
 
 static PString& evaluate_free_ram (void *data __attribute__ ((unused))) {
