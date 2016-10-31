@@ -12,7 +12,7 @@ import argparse
 parser = argparse.ArgumentParser (description = 'Convert a website to be put into flash memory for use with Webbino')
 parser.add_argument ('webroot', metavar = "WEBROOT", help = "Path to website root directory")
 parser.add_argument ('--nostrip', "-n", action = 'store_true', default = False,
-                     help = "Do not strip CR/LF")
+                     help = "Do not strip CR/LF/TABs")
 
 args = parser.parse_args ()
 
@@ -53,7 +53,7 @@ def process_file (filename):
 			i = 0
 			b = fp.read (1)
 			while b:
-				if args.nostrip or (b != '\n' and b != '\r'):
+				if args.nostrip or (b != '\n' and b != '\r' and b != '\t'):
 					if i % 8 == 0:
 						print "\t",
 					print "0x%02x, " % ord (b),
