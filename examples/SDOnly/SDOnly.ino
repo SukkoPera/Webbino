@@ -18,7 +18,6 @@
  ***************************************************************************/
 
 #include <Webbino.h>
-#include <avr/pgmspace.h>
 
 /* SS pin for the SD card reader. Pin 4 is used for the reader included
  * on most WIZ5100-based Ethernet shields
