@@ -22,10 +22,16 @@
 
 #include <webbino_config.h>
 
-#if defined (WEBBINO_USE_WIFI101) || defined (WEBBINO_USE_ESP8266) || defined (WEBBINO_USE_ESP8266_STANDALONE)
+#if defined (WEBBINO_USE_WIFI) || defined (WEBBINO_USE_WIFI101) || \
+	  defined (WEBBINO_USE_ESP8266) || defined (WEBBINO_USE_ESP8266_STANDALONE)
 
-#if defined (WEBBINO_USE_WIFI101)
-//~ #include <SPI.h>
+#if defined (WEBBINO_USE_WIFI)
+#include <WiFi.h>
+
+typedef WiFiClient InternalClient;
+typedef WiFiServer InternalServer;
+
+#elif defined (WEBBINO_USE_WIFI101)
 #include <WiFi101.h>
 
 typedef WiFiClient InternalClient;
@@ -82,7 +88,8 @@ private:
 public:
 	NetworkInterfaceWiFi ();
 
-#if defined (WEBBINO_USE_WIFI101) || defined (WEBBINO_USE_ESP8266_STANDALONE)
+#if defined (WEBBINO_USE_WIFI) || defined (WEBBINO_USE_WIFI101) || \
+      defined (WEBBINO_USE_ESP8266_STANDALONE)
 	boolean begin (const char *_ssid, const char *_password);
 #elif defined (WEBBINO_USE_ESP8266)
 	boolean begin (Stream& _serial, const char *_ssid, const char *_password);
