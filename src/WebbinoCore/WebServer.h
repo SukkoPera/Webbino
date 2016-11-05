@@ -47,15 +47,15 @@ struct Page {
 	PageFunction function;
 
 	// Methods that (try to) hide the complexity of accessing PROGMEM data
-	PGM_P getName () {
+	PGM_P getName () const {
 		return reinterpret_cast<PGM_P> (pgm_read_ptr (&(this -> name)));
 	}
 
-	PageFunction getFunction () {
+	PageFunction getFunction () const {
 		return reinterpret_cast<PageFunction> (pgm_read_ptr (&(this -> function)));
 	}
 
-	PGM_P getContent () {
+	PGM_P getContent () const {
 		return reinterpret_cast<PGM_P> (pgm_read_ptr (&(this -> content)));
 	}
 };
@@ -77,7 +77,7 @@ private:
 	PGM_P next;
 
 public:
-	FlashContent (Page* p);
+	FlashContent (const Page* p);
 
 	char getNextByte () override;
 };
@@ -113,16 +113,16 @@ struct ReplacementTag {
 	void *data;
 
 	// Methods that (try to) hide the complexity of accessing PROGMEM data
-	PGM_P getName () {
+	PGM_P getName () const {
 		return reinterpret_cast<PGM_P> (pgm_read_ptr (&(this -> name)));
 	}
 
-	TagEvaluateFn getFunction () {
+	TagEvaluateFn getFunction () const {
 		return reinterpret_cast<TagEvaluateFn> (pgm_read_ptr (&(this -> function)));
 	}
 
-	void *getData () {
-		return reinterpret_cast<void *> (pgm_read_ptr (&(this -> data)));
+	void *getData () const {
+		return reinterpret_cast<void *> (const_cast<void *> (pgm_read_ptr (&(this -> data))));
 	}
 };
 
@@ -165,10 +165,10 @@ private:
 
 	void sendContent (WebClient* client, PageContent* content);
 
-	Page *getPage (const char* name);
+	const Page *getPage (const char* name) const;
 
 #ifdef ENABLE_TAGS
-	PString* findSubstitutionTag (const char* tag);
+	PString* findSubstitutionTag (const char* tag) const;
 
 	char *findSubstitutionTagGetParameter (HTTPRequestParser& request, const char* tag);
 #endif

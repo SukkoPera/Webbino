@@ -28,7 +28,7 @@ static SdFat SD;
 
 /******************************************************************************/
 
-FlashContent::FlashContent (Page* p): page (*p), next (p -> getContent ()) {
+FlashContent::FlashContent (const Page* p): page (*p), next (p -> getContent ()) {
 }
 
 char FlashContent::getNextByte () {
@@ -84,8 +84,8 @@ boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 
 #ifndef WEBBINO_NDEBUG
 	DPRINTLN (F("Pages available in flash memory:"));
-	Page *p = NULL;
-	for (byte i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_ptr (&pages[i]))); i++) {
+	const Page *p = NULL;
+	for (byte i = 0; pages && (p = reinterpret_cast<const Page *> (pgm_read_ptr (&pages[i]))); i++) {
 		DPRINT (i);
 		DPRINT (F(". "));
 		DPRINTLN (PSTR_TO_F (p -> getName ()));
@@ -97,8 +97,8 @@ boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 
 #ifndef WEBBINO_NDEBUG
 	DPRINTLN (F("Tags available:"));
-	ReplacementTag* sub;
-	for (byte i = 0; substitutions && (sub = reinterpret_cast<ReplacementTag *> (pgm_read_ptr (&substitutions[i]))); i++) {
+	const ReplacementTag* sub;
+	for (byte i = 0; substitutions && (sub = reinterpret_cast<const ReplacementTag *> (pgm_read_ptr (&substitutions[i]))); i++) {
 		DPRINT (i);
 		DPRINT (F(". "));
 		DPRINTLN (PSTR_TO_F (sub -> getName ()));
@@ -121,11 +121,11 @@ boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 	return ret;
 }
 
-Page *WebServer::getPage (const char* name) {
-	Page *p = NULL;
+const Page* WebServer::getPage (const char* name) const {
+	const Page *p = NULL;
 
 	// For some reason, if we make i a byte here, the code uses 8 more bytes, so don't!
-	for (unsigned int i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_ptr (&pages[i]))); i++) {
+	for (unsigned int i = 0; pages && (p = reinterpret_cast<const Page *> (pgm_read_ptr (&pages[i]))); i++) {
 		if (strcmp_P (name, p -> getName ()) == 0)
 			break;
 	}
@@ -150,7 +150,7 @@ void WebServer::sendPage (WebClient* client) {
 			client -> print (client -> request.url);
 		client -> print (F(REDIRECT_ROOT_PAGE HEADER_END));
 	} else {
-		Page *page;
+		const Page *page;
 		char *pagename = client -> request.get_basename ();
 
 #if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
@@ -183,11 +183,11 @@ void WebServer::sendPage (WebClient* client) {
 }
 
 #ifdef ENABLE_TAGS
-PString* WebServer::findSubstitutionTag (const char *tag) {
-	ReplacementTag *sub;
+PString* WebServer::findSubstitutionTag (const char *tag) const {
+	const ReplacementTag *sub;
 	PString* ret = NULL;
 
-	for (byte i = 0; !ret && (sub = reinterpret_cast<ReplacementTag *> (pgm_read_ptr (&substitutions[i]))); i++) {
+	for (byte i = 0; !ret && (sub = reinterpret_cast<const ReplacementTag *> (pgm_read_ptr (&substitutions[i]))); i++) {
 		if (strcmp_P (tag, sub -> getName ()) == 0) {
 			PString& pb = (sub -> getFunction ()) (sub -> getData ());
 			ret = &pb;
