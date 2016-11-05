@@ -17,7 +17,7 @@
  *   along with Webbino. If not, see <http://www.gnu.org/licenses/>.       *
  ***************************************************************************/
 
-#include "WiFi.h"
+#include "AllWiFi.h"
 
 #if defined (WEBBINO_USE_WIFI101) || defined (WEBBINO_USE_ESP8266) || defined (WEBBINO_USE_ESP8266_STANDALONE)
 

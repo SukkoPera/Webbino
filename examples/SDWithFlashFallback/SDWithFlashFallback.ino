@@ -35,7 +35,7 @@ WebServer webserver;
 	#include <WebbinoInterfaces/WIZ5x00.h>
 	NetworkInterfaceWIZ5x00 netint;
 #elif defined (WEBBINO_USE_ESP8266)
-	#include <WebbinoInterfaces/WiFi.h>
+	#include <WebbinoInterfaces/AllWiFi.h>
 
 	#include <SoftwareSerial.h>
 	SoftwareSerial swSerial (7, 8);
@@ -46,7 +46,7 @@ WebServer webserver;
 
 	NetworkInterfaceWiFi netint;
 #elif defined (WEBBINO_USE_WIFI101) || defined (WEBBINO_USE_ESP8266_STANDALONE)
-	#include <WebbinoInterfaces/WiFi.h>
+	#include <WebbinoInterfaces/AllWiFi.h>
 
 	// Wi-Fi parameters
 	#define WIFI_SSID        "ssid"
