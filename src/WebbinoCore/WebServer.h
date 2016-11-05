@@ -48,15 +48,15 @@ struct Page {
 
 	// Methods that (try to) hide the complexity of accessing PROGMEM data
 	PGM_P getName () {
-		return reinterpret_cast<PGM_P> (pgm_read_word (&(this -> name)));
+		return reinterpret_cast<PGM_P> (pgm_read_ptr (&(this -> name)));
 	}
 
 	PageFunction getFunction () {
-		return reinterpret_cast<PageFunction> (pgm_read_word (&(this -> function)));
+		return reinterpret_cast<PageFunction> (pgm_read_ptr (&(this -> function)));
 	}
 
 	PGM_P getContent () {
-		return reinterpret_cast<PGM_P> (pgm_read_word (&(this -> content)));
+		return reinterpret_cast<PGM_P> (pgm_read_ptr (&(this -> content)));
 	}
 };
 
@@ -114,15 +114,15 @@ struct ReplacementTag {
 
 	// Methods that (try to) hide the complexity of accessing PROGMEM data
 	PGM_P getName () {
-		return reinterpret_cast<PGM_P> (pgm_read_word (&(this -> name)));
+		return reinterpret_cast<PGM_P> (pgm_read_ptr (&(this -> name)));
 	}
 
 	TagEvaluateFn getFunction () {
-		return reinterpret_cast<TagEvaluateFn> (pgm_read_word (&(this -> function)));
+		return reinterpret_cast<TagEvaluateFn> (pgm_read_ptr (&(this -> function)));
 	}
 
 	void *getData () {
-		return reinterpret_cast<void *> (pgm_read_word (&(this -> data)));
+		return reinterpret_cast<void *> (pgm_read_ptr (&(this -> data)));
 	}
 };
 

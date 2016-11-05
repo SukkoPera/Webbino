@@ -85,7 +85,7 @@ boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 #ifndef WEBBINO_NDEBUG
 	DPRINTLN (F("Pages available in flash memory:"));
 	Page *p = NULL;
-	for (byte i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
+	for (byte i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_ptr (&pages[i]))); i++) {
 		DPRINT (i);
 		DPRINT (F(". "));
 		DPRINTLN (PSTR_TO_F (p -> getName ()));
@@ -98,7 +98,7 @@ boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 #ifndef WEBBINO_NDEBUG
 	DPRINTLN (F("Tags available:"));
 	ReplacementTag* sub;
-	for (byte i = 0; substitutions && (sub = reinterpret_cast<ReplacementTag *> (pgm_read_word (&substitutions[i]))); i++) {
+	for (byte i = 0; substitutions && (sub = reinterpret_cast<ReplacementTag *> (pgm_read_ptr (&substitutions[i]))); i++) {
 		DPRINT (i);
 		DPRINT (F(". "));
 		DPRINTLN (PSTR_TO_F (sub -> getName ()));
@@ -125,7 +125,7 @@ Page *WebServer::getPage (const char* name) {
 	Page *p = NULL;
 
 	// For some reason, if we make i a byte here, the code uses 8 more bytes, so don't!
-	for (unsigned int i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_word (&pages[i]))); i++) {
+	for (unsigned int i = 0; pages && (p = reinterpret_cast<Page *> (pgm_read_ptr (&pages[i]))); i++) {
 		if (strcmp_P (name, p -> getName ()) == 0)
 			break;
 	}
@@ -187,7 +187,7 @@ PString* WebServer::findSubstitutionTag (const char *tag) {
 	ReplacementTag *sub;
 	PString* ret = NULL;
 
-	for (byte i = 0; !ret && (sub = reinterpret_cast<ReplacementTag *> (pgm_read_word (&substitutions[i]))); i++) {
+	for (byte i = 0; !ret && (sub = reinterpret_cast<ReplacementTag *> (pgm_read_ptr (&substitutions[i]))); i++) {
 		if (strcmp_P (tag, sub -> getName ()) == 0) {
 			PString& pb = (sub -> getFunction ()) (sub -> getData ());
 			ret = &pb;
