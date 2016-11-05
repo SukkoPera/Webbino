@@ -19,7 +19,7 @@
 
 #include "WiFi.h"
 
-#if defined (WEBBINO_USE_WIFI101) || defined (WEBBINO_USE_ESP8266)
+#if defined (WEBBINO_USE_WIFI101) || defined (WEBBINO_USE_ESP8266) || defined (WEBBINO_USE_ESP8266_STANDALONE)
 
 #include <webbino_debug.h>
 
@@ -45,7 +45,8 @@ void WebClientWifi::flushBuffer () {
 		//~ DPRINT (avail);
 		//~ DPRINTLN (F(" bytes to client"));
 
-		internalClient.write (buf, avail);
+		// The cast is needed on ESP8266 standalone, byt shouldn't hurt anywhere
+		internalClient.write ((const uint8_t *) buf, avail);
 		avail = 0;
 	}
 }
@@ -65,7 +66,7 @@ byte NetworkInterfaceWiFi::retBuffer[6];
 NetworkInterfaceWiFi::NetworkInterfaceWiFi (): server (80) {
 }
 
-#if defined (WEBBINO_USE_WIFI101)
+#if defined (WEBBINO_USE_WIFI101) || defined (WEBBINO_USE_ESP8266_STANDALONE)
 boolean NetworkInterfaceWiFi::begin (const char *_ssid, const char *_password) {
 #elif defined (WEBBINO_USE_ESP8266)
 boolean NetworkInterfaceWiFi::begin (Stream& _serial, const char *_ssid, const char *_password) {
@@ -82,13 +83,13 @@ boolean NetworkInterfaceWiFi::begin (Stream& _serial, const char *_ssid, const c
 	DPRINTLN (WiFi.firmwareVersion ());
 
 	// Attempt to connect to WiFi network
-	int status;
-	do {
-		DPRINT (F("Connecting to AP: "));
-		DPRINTLN (_ssid);
-		status = WiFi.begin (const_cast<char *> (_ssid), _password);
-	} while (status != WL_CONNECTED);
-
+	// FIXME: Maybe only allow a finite number of attempts
+	DPRINT (F("Connecting to AP: "));
+	DPRINTLN (_ssid);
+	WiFi.begin (const_cast<char *> (_ssid), _password);
+	while (WiFi.status () != WL_CONNECTED) {
+		delay (500);
+	};
 	DPRINT (F("Joined AP, local IP address: "));
 	DPRINTLN (WiFi.localIP ());
 

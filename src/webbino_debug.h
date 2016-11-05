@@ -35,7 +35,9 @@
 // FIXME: This should probably be moved somewhere else
 #ifdef ENABLE_FLASH_STRINGS
 
+#if defined (ARDUINO_ARCH_AVR)
 #include <avr/pgmspace.h>
+#endif
 
 #define PSTR_TO_F(s) reinterpret_cast<const __FlashStringHelper *> (s)
 #define F_TO_PSTR(s) reinterpret_cast<PGM_P> (s)

@@ -46,7 +46,7 @@ WebServer webserver;
 	#define WIFI_PASSWORD    "password"
 
 	NetworkInterfaceWiFi netint;
-#elif defined (WEBBINO_USE_WIFI101)
+#elif defined (WEBBINO_USE_WIFI101) || defined (WEBBINO_USE_ESP8266_STANDALONE)
 	#include <WebbinoInterfaces/WiFi.h>
 
 	// Wi-Fi parameters
@@ -205,7 +205,7 @@ void setup () {
 #elif defined (WEBBINO_USE_ESP8266)
 	swSerial.begin (9600);
 	bool ok = netint.begin (swSerial, WIFI_SSID, WIFI_PASSWORD);
-#elif defined (WEBBINO_USE_WIFI101)
+#elif defined (WEBBINO_USE_WIFI101) || defined (WEBBINO_USE_ESP8266_STANDALONE)
 	bool ok = netint.begin (WIFI_SSID, WIFI_PASSWORD);
 #endif
 

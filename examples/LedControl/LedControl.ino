@@ -40,7 +40,7 @@ WebServer webserver;
 	#define WIFI_PASSWORD    "password"
 
 	NetworkInterfaceWiFi netint;
-#elif defined (WEBBINO_USE_WIFI101)
+#elif defined (WEBBINO_USE_WIFI101) || defined (WEBBINO_USE_ESP8266_STANDALONE)
 	#include <WebbinoInterfaces/WiFi.h>
 
 	// Wi-Fi parameters
@@ -53,7 +53,7 @@ WebServer webserver;
 	NetworkInterfaceDigiFi netint;
 #endif
 
-// Pin to control
+// Pin to control, make sure this makes sense (i.e.: Use D0 on NodeMCU)!
 const byte ledPin = 7;
 
 // Pin state (True -> ON)
@@ -145,7 +145,7 @@ void setup () {
 #elif defined (WEBBINO_USE_ESP8266)
 	swSerial.begin (9600);
 	bool ok = netint.begin (swSerial, WIFI_SSID, WIFI_PASSWORD);
-#elif defined (WEBBINO_USE_WIFI101)
+#elif defined (WEBBINO_USE_WIFI101) || defined (WEBBINO_USE_ESP8266_STANDALONE)
 	bool ok = netint.begin (WIFI_SSID, WIFI_PASSWORD);
 #elif defined (WEBBINO_USE_DIGIFI)
 	bool ok = netint.begin ();
