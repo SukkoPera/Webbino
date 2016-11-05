@@ -23,9 +23,9 @@
 /* Network device selection: please enable *only one* of the following,
  * corresponding to the network device you will be using
  */
-//~ #define WEBBINO_USE_WIZ5100
+#define WEBBINO_USE_WIZ5100
 //~ #define WEBBINO_USE_WIZ5500
-#define WEBBINO_USE_ENC28J60
+//~ #define WEBBINO_USE_ENC28J60
 //~ #define WEBBINO_USE_ESP8266
 //~ #define WEBBINO_USE_WIFI101
 //~ #define WEBBINO_USE_DIGIFI
