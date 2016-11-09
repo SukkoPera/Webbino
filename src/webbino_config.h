@@ -99,6 +99,6 @@
 //~ #define VERBOSE_REQUEST_PARSER
 
 // Don't touch :)
-#define WEBBINO_VERSION "20161031"
+#define WEBBINO_VERSION "0.9.0"
 
 #endif
