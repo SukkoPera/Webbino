@@ -76,7 +76,7 @@
  * NOTE: Port 80 can not be used with DigiFi
  * NOTE: Currently changing this will have no effect with most cards, FIXME
  */
-#define SERVER_PORT 8000
+#define SERVER_PORT 80
 
 /* Name of the index page, i.e. the page requests for / get redirected to.
  */
