@@ -70,7 +70,7 @@
 #define strncmp_P strncmp
 
 #undef pgm_read_ptr
-#define pgm_read_ptr(p) (*p)
+#define pgm_read_ptr(p) (*(p))
 
 #endif
 
