@@ -27,17 +27,8 @@
 // http://arduiniana.org/libraries/pstring/
 #include <PString.h>
 
-#if defined (WEBBINO_ENABLE_SD)
-#include <SD.h>
-#elif defined (WEBBINO_ENABLE_SDFAT)
-#include <SdFat.h>
-#endif
-
-
 class WebClient;
-
-
-/******************************************************************************/
+class PageContent;
 
 typedef void (*PageFunction) (HTTPRequestParser& request);
 
@@ -59,46 +50,6 @@ struct Page {
 		return reinterpret_cast<PGM_P> (pgm_read_ptr (&(this -> content)));
 	}
 };
-
-/******************************************************************************/
-
-
-class PageContent {
-public:
-	virtual char getNextByte () = 0;
-};
-
-/******************************************************************************/
-
-
-class FlashContent: public PageContent {
-private:
-	const Page& page;
-	PGM_P next;
-
-public:
-	FlashContent (const Page* p);
-
-	char getNextByte () override;
-};
-
-/******************************************************************************/
-
-
-#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
-
-struct SDContent: public PageContent {
-private:
-	File file;
-
-public:
-	SDContent (const char* filename);
-	~SDContent ();
-
-	char getNextByte () override;
-};
-
-#endif
 
 /******************************************************************************/
 

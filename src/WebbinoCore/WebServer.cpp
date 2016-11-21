@@ -19,45 +19,8 @@
 
 #include "WebServer.h"
 #include "WebClient.h"
+#include "Content.h"
 #include <webbino_debug.h>
-
-#if defined (WEBBINO_ENABLE_SDFAT)
-static SdFat SD;
-#endif
-
-
-/******************************************************************************/
-
-FlashContent::FlashContent (const Page* p): page (*p), next (p -> getContent ()) {
-}
-
-char FlashContent::getNextByte () {
-	return pgm_read_byte (next++);
-}
-
-/******************************************************************************/
-
-#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
-
-SDContent::SDContent (const char* filename) {
-	file = SD.open (filename);
-}
-
-SDContent::~SDContent () {
-	file.close ();
-}
-
-char SDContent::getNextByte () {
-	if (file.available ()) {
-		return file.read ();
-	} else {
-		return '\0';
-	}
-}
-
-#endif
-
-/******************************************************************************/
 
 
 #define HEADER_START "HTTP/1.0 "
