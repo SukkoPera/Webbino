@@ -82,6 +82,12 @@
  */
 #define REDIRECT_ROOT_PAGE "index.html"
 
+/* Size of output buffer. This speeds up transmission, by sending clients more
+ * than one character at a time. Size it appropriately according to available
+ * RAM. Theoretically it could be reduced to 1, but this has not been tested.
+ */
+#define CLIENT_BUFSIZE 64
+
 /* Define this to store strings in flash memory. This saves RAM on smaller MCUs,
  * recommended on AVRs, works fine on ESP8266 standalone, probably not supported
  * on other targets.

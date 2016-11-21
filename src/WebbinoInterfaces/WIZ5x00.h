@@ -39,9 +39,9 @@ private:
 	EthernetClient internalClient;
 
 public:
-	void init (EthernetClient& c, char* req);
+	void begin (EthernetClient& c, char* req);
 
-	size_t write (uint8_t c) override;
+	size_t doWrite (const uint8_t *buf, size_t n) override;
 
 	void sendReply () override;
 };

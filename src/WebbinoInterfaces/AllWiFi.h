@@ -56,20 +56,14 @@ typedef WiFiServer InternalServer;
 #include "WebbinoCore/WebServer.h"
 
 
-#define CLIENT_BUFSIZE 256
-
 class WebClientWifi: public WebClient {
 private:
 	InternalClient internalClient;
-	byte buf[CLIENT_BUFSIZE];
-	int avail;
-
-	void flushBuffer ();
 
 public:
-	void init (InternalClient& c, char* req);
+	void begin (InternalClient& c, char* req);
 
-	size_t write (uint8_t c) override;
+	size_t doWrite (const uint8_t *buf, size_t n) override;
 
 	void sendReply () override;
 };

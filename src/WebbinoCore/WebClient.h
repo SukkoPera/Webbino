@@ -21,20 +21,55 @@
 #define _WEBCLIENT_H_
 
 #include <Arduino.h>
+#include <webbino_config.h>
 #include "HTTPRequestParser.h"
 
 
 class WebClient: public Print {
+protected:
+	byte buf[CLIENT_BUFSIZE];
+	size_t avail;
+
+	void flushBuffer () {
+		if (avail > 0) {
+			//~ DPRINT (F("Flushing "));
+			//~ DPRINT (avail);
+			//~ DPRINTLN (F(" bytes to client"));
+
+			doWrite ((const uint8_t *) buf, avail);
+			avail = 0;
+		}
+
+	}
+
+	/* Override this to implement the actual sending of the buffer contents to
+	 * the client
+	 */
+	virtual size_t doWrite (const uint8_t *buf, size_t n) {
+		return 0;
+	}
+
 public:
 	HTTPRequestParser request;
 
-	WebClient ();
+	virtual void begin (char* req) {
+		request.parse (req);
+		avail = 0;
+	}
 
-	virtual void initReply ();
+	virtual size_t write (uint8_t c) override {
+		buf[avail++] = c;
 
-	virtual size_t write (uint8_t c) = 0;
+		if (avail >= CLIENT_BUFSIZE) {
+			flushBuffer ();
+		}
 
-	virtual void sendReply ();
+		return 1;
+	}
+
+	virtual void sendReply () {
+		flushBuffer ();
+	}
 };
 
 #endif

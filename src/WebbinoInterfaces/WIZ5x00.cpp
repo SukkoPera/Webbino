@@ -24,16 +24,17 @@
 #include <webbino_debug.h>
 
 
-void WebClientWIZ5x00::init (EthernetClient& c, char* req) {
+void WebClientWIZ5x00::begin (EthernetClient& c, char* req) {
+	WebClient::begin (req);
 	internalClient = c;
-	request.parse (req);
 }
 
-size_t WebClientWIZ5x00::write (uint8_t c) {
-	return internalClient.write (c);
+size_t WebClientWIZ5x00::doWrite (const uint8_t *buf, size_t n) {
+	return internalClient.write (buf, n);
 }
 
 void WebClientWIZ5x00::sendReply () {
+	WebClient::sendReply ();
 	internalClient.stop ();
 	DPRINTLN (F("Client disconnected"));
 }
@@ -105,7 +106,7 @@ WebClient* NetworkInterfaceWIZ5x00::processPacket () {
 				// If you've gotten to the end of the line (received a newline
 				// character) and the line is blank, the http request has ended,
 				if (c == '\n' && currentLineIsBlank) {
-					webClient.init (client, (char *) ethernetBuffer);
+					webClient.begin (client, (char *) ethernetBuffer);
 					ret = &webClient;
 					break;
 				}

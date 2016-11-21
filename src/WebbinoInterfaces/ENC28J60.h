@@ -32,11 +32,11 @@
 
 class WebClientENC28J60: public WebClient {
 public:
-	void initReply ();
+	void begin (char* req) override;
 
-	void sendReply ();
+	size_t doWrite (const uint8_t *buf, size_t n) override;
 
-	size_t write (uint8_t c);
+	void sendReply () override;
 
 private:
 	BufferFiller bfill;

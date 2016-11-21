@@ -24,36 +24,19 @@
 
 #include <webbino_debug.h>
 
-void WebClientWifi::init (InternalClient& c, char* req) {
+void WebClientWifi::begin (InternalClient& c, char* req) {
+	WebClient::begin (req);
+
 	internalClient = c;
-	request.parse (req);
-	avail = 0;
 }
 
-size_t WebClientWifi::write (uint8_t c) {
-	buf[avail++] = c;
-
-	if (avail >= CLIENT_BUFSIZE) {
-		flushBuffer ();
-	}
-
-	return 1;
-}
-
-void WebClientWifi::flushBuffer () {
-	if (avail > 0) {
-		//~ DPRINT (F("Flushing "));
-		//~ DPRINT (avail);
-		//~ DPRINTLN (F(" bytes to client"));
-
-		// The cast is needed on ESP8266 standalone, byt shouldn't hurt anywhere
-		internalClient.write ((const uint8_t *) buf, avail);
-		avail = 0;
-	}
+size_t WebClientWifi::doWrite (const uint8_t *buf, size_t n) {
+	return internalClient.write (buf, n);
 }
 
 void WebClientWifi::sendReply () {
-	flushBuffer ();
+	WebClient::sendReply ();
+
 	internalClient.stop ();
 	DPRINTLN (F("Client disconnected"));
 }
@@ -127,7 +110,7 @@ WebClient* NetworkInterfaceWiFi::processPacket () {
 				// If you've gotten to the end of the line (received a newline
 				// character) and the line is blank, the http request has ended
 				if (c == '\n' && currentLineIsBlank) {
-					webClient.init (client, (char *) ethernetBuffer);
+					webClient.begin (client, (char *) ethernetBuffer);
 					ret = &webClient;
 					break;
 				}
