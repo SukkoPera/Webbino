@@ -54,7 +54,7 @@ public:
 		file.close ();
 	}
 
-	char SDContent::getNextByte () override {
+	char getNextByte () override {
 		if (file.available ()) {
 			return file.read ();
 		} else {
