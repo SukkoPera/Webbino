@@ -42,12 +42,17 @@ size_t WebClientWifi::write (uint8_t c) {
 
 void WebClientWifi::flushBuffer () {
 	if (avail > 0) {
-		//~ DPRINT (F("Flushing "));
-		//~ DPRINT (avail);
-		//~ DPRINTLN (F(" bytes to client"));
+		DPRINT (F("Flushing "));
+		DPRINT (avail);
+		DPRINTLN (F(" bytes to client"));
 
-		// The cast is needed on ESP8266 standalone, byt shouldn't hurt anywhere
+#ifndef WEBBINO_NDEBUG
+		size_t written =
+#endif
 		internalClient.write ((const uint8_t *) buf, avail);
+		DPRINT (F("Actually flushed: "));
+		DPRINT (written);
+		DPRINTLN (F(" bytes"));
 		avail = 0;
 	}
 }
