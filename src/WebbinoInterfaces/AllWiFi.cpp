@@ -64,8 +64,10 @@ boolean NetworkInterfaceWiFi::begin (Stream& _serial, const char *_ssid, const c
 		return false;
 	}
 
+#ifndef WEBBINO_USE_ESP8266_STANDALONE
 	DPRINT (F("FW Version: "));
 	DPRINTLN (WiFi.firmwareVersion ());
+#endif
 
 	// Attempt to connect to WiFi network
 	// FIXME: Maybe only allow a finite number of attempts
