@@ -36,10 +36,12 @@ protected:
 			//~ DPRINT (avail);
 			//~ DPRINTLN (F(" bytes to client"));
 
-			doWrite ((const uint8_t *) buf, avail);
-			avail = 0;
+			size_t written _UNUSED = doWrite ((const uint8_t *) buf, avail);
+			//~ DPRINT (F("Actually flushed: "));
+			//~ DPRINT (written);
+			//~ DPRINTLN (F(" bytes"));
+			avail = 0;		// FIXME: What if written < avail?
 		}
-
 	}
 
 	/* Override this to implement the actual sending of the buffer contents to
