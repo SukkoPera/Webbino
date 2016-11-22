@@ -57,6 +57,10 @@ WebServer webserver;
 // Pin to control, make sure this makes sense (i.e.: Use D0 on NodeMCU)!
 const byte ledPin = 7;
 
+// Logic level turns the led on: on NodeMCU and with most relays, this should
+// be LOW
+const byte LED_ACTIVE_LEVEL = HIGH;
+
 // Pin state (True -> ON)
 boolean ledState = false;
 
@@ -72,10 +76,10 @@ void ledToggle (HTTPRequestParser& request) {
 	if (strlen (param) > 0) {
 		if (strcmp_P (param, PSTR ("on")) == 0) {
 			ledState = true;
-			digitalWrite (ledPin, HIGH);
+			digitalWrite (ledPin, LED_ACTIVE_LEVEL);
 		} else {
 			ledState = false;
-			digitalWrite (ledPin, LOW);
+			digitalWrite (ledPin, !LED_ACTIVE_LEVEL);
 		}
 	}
 }
@@ -173,6 +177,7 @@ void setup () {
 	}
 
 	// Prepare pin
+	digitalWrite (ledPin, !LED_ACTIVE_LEVEL);		// Off
 	pinMode (ledPin, OUTPUT);
 }
 

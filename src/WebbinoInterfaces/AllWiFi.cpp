@@ -24,41 +24,19 @@
 
 #include <webbino_debug.h>
 
-void WebClientWifi::init (InternalClient& c, char* req) {
+void WebClientWifi::begin (InternalClient& c, char* req) {
+	WebClient::begin (req);
+
 	internalClient = c;
-	request.parse (req);
-	avail = 0;
 }
 
-size_t WebClientWifi::write (uint8_t c) {
-	buf[avail++] = c;
-
-	if (avail >= CLIENT_BUFSIZE) {
-		flushBuffer ();
-	}
-
-	return 1;
-}
-
-void WebClientWifi::flushBuffer () {
-	if (avail > 0) {
-		DPRINT (F("Flushing "));
-		DPRINT (avail);
-		DPRINTLN (F(" bytes to client"));
-
-#ifndef WEBBINO_NDEBUG
-		size_t written =
-#endif
-		internalClient.write ((const uint8_t *) buf, avail);
-		DPRINT (F("Actually flushed: "));
-		DPRINT (written);
-		DPRINTLN (F(" bytes"));
-		avail = 0;
-	}
+size_t WebClientWifi::doWrite (const uint8_t *buf, size_t n) {
+	return internalClient.write (buf, n);
 }
 
 void WebClientWifi::sendReply () {
-	flushBuffer ();
+	WebClient::sendReply ();
+
 	internalClient.stop ();
 	DPRINTLN (F("Client disconnected"));
 }
@@ -134,7 +112,7 @@ WebClient* NetworkInterfaceWiFi::processPacket () {
 				// If you've gotten to the end of the line (received a newline
 				// character) and the line is blank, the http request has ended
 				if (c == '\n' && currentLineIsBlank) {
-					webClient.init (client, (char *) ethernetBuffer);
+					webClient.begin (client, reinterpret_cast<char *> (ethernetBuffer));
 					ret = &webClient;
 					break;
 				}
@@ -143,6 +121,7 @@ WebClient* NetworkInterfaceWiFi::processPacket () {
 					// See if we got the URL line
 					if (strncmp_P ((char *) ethernetBuffer, PSTR ("GET "), 4) == 0) {
 						// Yes, ignore the rest
+						// FIXME: Avoid buffer underflow
 						ethernetBuffer[ethernetBufferSize - 1] = '\0';
 						copy = false;
 					} else {

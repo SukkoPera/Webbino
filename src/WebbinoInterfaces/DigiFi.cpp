@@ -27,7 +27,7 @@
 WebClientDigiFi::WebClientDigiFi (DigiFi& _wifi): wifi (_wifi) {
 }
 
-void WebClientDigiFi:: initReply (char* req) {
+void WebClientDigiFi::begin (char* req) {
 	request.parse (req);
 
 	bufUsed = 0;
@@ -178,7 +178,7 @@ WebClient* NetworkInterfaceDigiFi::processPacket () {
 				// If you've gotten to the end of the line (received a newline
 				// character) and the line is blank, the http request has ended,
 				if (c == '\n' && currentLineIsBlank) {
-					webClient.initReply (reinterpret_cast<char *> (ethernetBuffer));
+					webClient.begin (reinterpret_cast<char *> (ethernetBuffer));
 					ret = &webClient;
 				}
 
@@ -202,8 +202,9 @@ WebClient* NetworkInterfaceDigiFi::processPacket () {
 			}
 		}
 
-		if (!ret)
+		if (!ret) {
 			DPRINTLN (F("Request timeout"));
+		}
 
 		// If we are not returning a client, close the connection
 		//~ if (!ret) {

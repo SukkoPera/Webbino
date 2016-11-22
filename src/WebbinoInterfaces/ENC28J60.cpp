@@ -27,20 +27,19 @@
 byte Ethernet::buffer[NetworkInterfaceENC28J60::ETHERNET_BUFSIZE];
 
 
-void WebClientENC28J60::initReply () {
+void WebClientENC28J60::begin (char* req) {
+	WebClient::begin (req);
 	bfill = ether.tcpOffset ();
 }
 
-void WebClientENC28J60::sendReply () {
-	ether.httpServerReply (bfill.position ());
+size_t WebClientENC28J60::doWrite (const uint8_t *buf, size_t n) {
+	bfill.emit_raw (reinterpret_cast<const char*> (buf), n);
+	return n;
 }
 
-size_t WebClientENC28J60::write (uint8_t c) {
-	//uint8_t tmp[2] = {c, '\0'};
-	//bfill.emit_p (PSTR ("$S"), tmp);
-	bfill.emit_raw ((const char *) &c, 1);
-
-	return 1;
+void WebClientENC28J60::sendReply () {
+	WebClient::sendReply ();
+	ether.httpServerReply (bfill.position ());
 }
 
 /****************************************************************************/
@@ -80,7 +79,7 @@ WebClient *NetworkInterfaceENC28J60::processPacket () {
 
 	if (pos) {
 		// Got a packet
-		client.request.parse ((char *) Ethernet::buffer + pos);
+		client.begin (reinterpret_cast<char *> (Ethernet::buffer + pos));
 		//DPRINTLN ((char *) Ethernet::buffer + pos);
 		ret = &client;
 	}

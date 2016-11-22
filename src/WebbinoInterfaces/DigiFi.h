@@ -49,6 +49,10 @@
  *
  * Data sheet of wifi chip is at
  * http://digistump.com/wiki/_media/digix/tutorials/usr-wifi232-g_en.pdf.
+ *
+ * This class does not use the buffering feature of WebClient, but rather
+ * reimplements the entire buffering system so that it can count bytes as
+ * needed.
  */
 class WebClientDigiFi: public WebClient {
 private:
@@ -66,7 +70,7 @@ private:
 public:
 	WebClientDigiFi (DigiFi& wifi);
 
-	void initReply (char* req);
+	void begin (char* req);
 
 	size_t write (uint8_t c) override;
 

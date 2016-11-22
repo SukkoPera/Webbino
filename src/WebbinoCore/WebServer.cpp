@@ -97,8 +97,6 @@ const Page* WebServer::getPage (const char* name) const {
 }
 
 void WebServer::sendPage (WebClient* client) {
-	client -> initReply ();
-
 	unsigned int l = strlen (client -> request.url);
 	if (l == 0 || client -> request.url[l - 1] == '/') {
 		// Request for "/", redirect
