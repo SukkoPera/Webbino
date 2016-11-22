@@ -8,7 +8,7 @@ time:
   - WizNet W5100: [Ethernet Shield](https://www.arduino.cc/en/Main/ArduinoEthernetShield)
   - WizNet W5500: [Ethernet Shield 2](http://www.arduino.org/products/shields/arduino-ethernet-shield-2)
   - ENC28J60: [KMTronic DINo](http://sigma-shop.com/product/72/web-internet-ethernet-controlled-relay-board-arduino-compatible-rs485-usb.html) (first version)
-  - WINC1500 (Wi-Fi): [WiFi Shield 101](https://www.arduino.cc/en/Main/ArduinoWiFiShield101), [MKR1000](https://www.arduino.cc/en/Main/ArduinoMKR1000)
+  - WINC1500 (Wi-Fi): [WiFi Shield 101](https://www.arduino.cc/en/Main/ArduinoWiFiShield101), [MKR1000](https://www.arduino.cc/en/Main/ArduinoMKR1000) - EXPERIMENTAL, MIGHT NOT WORK!
   - ESP8266 (Wi-Fi): Either as an add-on to Arduino, like the [MLT shield](http://www.mlt-group.com/Products/Wifi-Wireless-Modules/ESP8266-WIFI-Shield-with-ESP-01-ESP-07-ESP-12-for-Arduino), or standalone like [NodeMCU](http://www.nodemcu.com), [WeMos D1](https://www.wemos.cc/product/d1.html)/[D1 Mini](https://www.wemos.cc/product/d1-mini.html), etc...
 - HTML pages and other data can be embedded in the code. This avoids the need of
   an SD card for simple sites.
