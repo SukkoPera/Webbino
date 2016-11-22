@@ -46,6 +46,10 @@ protected:
 	 * the client
 	 */
 	virtual size_t doWrite (const uint8_t *buf, size_t n) {
+		// Avoid "unused variable" warnings
+		(void) buf;
+		(void) n;
+
 		return 0;
 	}
 
