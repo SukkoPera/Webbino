@@ -57,7 +57,7 @@ WebServer webserver;
 // Pin to control, make sure this makes sense (i.e.: Use D0 on NodeMCU)!
 const byte ledPin = 7;
 
-// Logic level turns the led on: on NodeMCU amd with most relays, this should
+// Logic level turns the led on: on NodeMCU and with most relays, this should
 // be LOW
 const byte LED_ACTIVE_LEVEL = HIGH;
 
