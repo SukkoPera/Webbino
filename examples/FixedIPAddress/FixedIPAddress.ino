@@ -80,6 +80,9 @@ const Page* const pages[] PROGMEM = {
 
 void setup () {
 	Serial.begin (9600);
+	while (!Serial)
+		;
+
 	Serial.println (F("Webbino " WEBBINO_VERSION));
 
 	IPAddress ip (IP_ADDRESS);

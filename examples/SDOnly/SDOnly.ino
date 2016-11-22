@@ -196,6 +196,9 @@ EasyReplacementTagArray tags[] PROGMEM = {
 
 void setup () {
 	Serial.begin (9600);
+	while (!Serial)
+		;
+
 	Serial.println (F("Using Webbino " WEBBINO_VERSION));
 
 	Serial.println (F("Trying to get an IP address through DHCP"));
