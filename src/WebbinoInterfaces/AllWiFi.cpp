@@ -112,7 +112,7 @@ WebClient* NetworkInterfaceWiFi::processPacket () {
 				// If you've gotten to the end of the line (received a newline
 				// character) and the line is blank, the http request has ended
 				if (c == '\n' && currentLineIsBlank) {
-					webClient.begin (client, (char *) ethernetBuffer);
+					webClient.begin (client, reinterpret_cast<char *> (ethernetBuffer));
 					ret = &webClient;
 					break;
 				}
@@ -121,6 +121,7 @@ WebClient* NetworkInterfaceWiFi::processPacket () {
 					// See if we got the URL line
 					if (strncmp_P ((char *) ethernetBuffer, PSTR ("GET "), 4) == 0) {
 						// Yes, ignore the rest
+						// FIXME: Avoid buffer underflow
 						ethernetBuffer[ethernetBufferSize - 1] = '\0';
 						copy = false;
 					} else {
