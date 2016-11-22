@@ -33,7 +33,7 @@ WebServer webserver;
 	#include <WebbinoInterfaces/AllWiFi.h>
 
 	#include <SoftwareSerial.h>
-	SoftwareSerial swSerial (7, 8);
+	SoftwareSerial swSerial (6, 7);
 
 	// Wi-Fi parameters
 	#define WIFI_SSID        "ssid"
