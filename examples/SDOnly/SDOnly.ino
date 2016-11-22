@@ -55,7 +55,7 @@ WebServer webserver;
 
 	NetworkInterfaceWiFi netint;
 #elif defined (WEBBINO_USE_DIGIFI)
-	#include <WebServer_DigiFi.h>
+	#include <WebbinoInterfaces/DigiFi.h>
 	NetworkInterfaceDigiFi netint;
 #endif
 
