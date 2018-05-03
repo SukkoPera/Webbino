@@ -7,21 +7,9 @@
 
 import os
 import sys
-import argparse
-
-parser = argparse.ArgumentParser (description = 'Convert a website to be put into flash memory for use with Webbino')
-parser.add_argument ('webroot', metavar = "WEBROOT", help = "Path to website root directory")
-parser.add_argument ('--nostrip', "-n", action = 'store_true', default = False,
-                     help = "Do not strip CR/LF/TABs")
-
-args = parser.parse_args ()
-
-# The above will raise an error if webroot was not specified, so we can
-# assume it was
-os.chdir (args.webroot)
 
 # https://www.safaribooksonline.com/library/view/python-cookbook/0596001673/ch04s16.html
-def splitall(path):
+def splitall (path):
     allparts = []
     while 1:
         parts = os.path.split(path)
@@ -36,7 +24,7 @@ def splitall(path):
             allparts.insert(0, parts[1])
     return allparts
 
-def process_file (filename):
+def process_file (filename, nostrip = False):
 	print >> sys.stderr, "Processing file: %s" % filename
 
 	try:
@@ -53,7 +41,7 @@ def process_file (filename):
 			i = 0
 			b = fp.read (1)
 			while b:
-				if args.nostrip or (b != '\n' and b != '\r' and b != '\t'):
+				if nostrip or (b != '\n' and b != '\r' and b != '\t'):
 					if i % 8 == 0:
 						print "\t",
 					print "0x%02x, " % ord (b),
@@ -73,17 +61,17 @@ def process_file (filename):
 
 	return code
 
-def process_dir (dirpath):
+def process_dir (dirpath, nostrip = False):
 	print >> sys.stderr, "Processing directory: %s" % dirpath
 	idents = []
 	for filename in sorted (os.listdir (dirpath)):
 		fullfile = os.path.join (dirpath, filename)
 		if os.path.isfile (fullfile):
-			ident = process_file (fullfile)
+			ident = process_file (fullfile, nostrip)
 			if ident is not None:
 				idents.append (ident)
 		elif os.path.isdir (fullfile):
-			idents.extends (process_dir (fullfile))
+			idents.extends (process_dir (fullfile, nostrip))
 		else:
 			print "Skipping %s" % filename
 	return idents
@@ -91,26 +79,39 @@ def process_dir (dirpath):
 
 ### MAIN ###
 
-idents = process_dir (".")
-n_pages = len (idents)
+if __name__ == "__main__":
+	import argparse
 
-print >> sys.stderr, "Total files processed: %d" % n_pages
+	parser = argparse.ArgumentParser (description = 'Convert a website to be put into flash memory for use with Webbino')
+	parser.add_argument ('webroot', metavar = "WEBROOT", help = "Path to website root directory")
+	parser.add_argument ('--nostrip', "-n", action = 'store_true', default = False,
+						 help = "Do not strip CR/LF/TABs")
 
-if n_pages > 0:
-	# Help with code to be put in sketch
-	print >> sys.stderr
-	print >> sys.stderr, "Put the following in your sketch:"
-	print >> sys.stderr
-	print >> sys.stderr, '#include "html.h"'
-	print >> sys.stderr
-	for n, ident in enumerate (idents):
-		print >> sys.stderr, "const Page page%02d PROGMEM = {%s_name, %s, NULL};" % (n + 1, ident, ident)
+	args = parser.parse_args ()
 
-	print >> sys.stderr
+	# The above will raise an error if webroot was not specified, so we can
+	# assume it was
+	os.chdir (args.webroot)
+	idents = process_dir (".", args.nostrip)
+	n_pages = len (idents)
 
-	print >> sys.stderr, "const Page* const pages[] PROGMEM = {"
-	for n in xrange (1, n_pages + 1):
-		print >> sys.stderr, "\t&page%02d," % n
+	print >> sys.stderr, "Total files processed: %d" % n_pages
 
-	print >> sys.stderr, "\tNULL"
-	print >> sys.stderr, "};"
+	if n_pages > 0:
+		# Help with code to be put in sketch
+		print >> sys.stderr
+		print >> sys.stderr, "Put the following in your sketch:"
+		print >> sys.stderr
+		print >> sys.stderr, '#include "html.h"'
+		print >> sys.stderr
+		for n, ident in enumerate (idents):
+			print >> sys.stderr, "const Page page%02d PROGMEM = {%s_name, %s, NULL};" % (n + 1, ident, ident)
+
+		print >> sys.stderr
+
+		print >> sys.stderr, "const Page* const pages[] PROGMEM = {"
+		for n in xrange (1, n_pages + 1):
+			print >> sys.stderr, "\t&page%02d," % n
+
+		print >> sys.stderr, "\tNULL"
+		print >> sys.stderr, "};"
