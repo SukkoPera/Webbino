@@ -19,7 +19,7 @@
 
 #include "WIZ5x00.h"
 
-#if defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500)
+#if defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500) || defined (WEBBINO_USE_ENC28J60_UIP)
 
 #include <webbino_debug.h>
 
@@ -50,7 +50,11 @@ NetworkInterfaceWIZ5x00::NetworkInterfaceWIZ5x00 (): server (SERVER_PORT) {
 boolean NetworkInterfaceWIZ5x00::begin (byte *mac) {
 	boolean ret;
 
+#if defined (WEBBINO_USE_ENC28J60_UIP)
+	DPRINTLN (F("Using UIP Ethernet library"));
+#else
 	DPRINTLN (F("Using Arduino Ethernet library"));
+#endif
 
 	memcpy (macAddress, mac, 6);
 	if ((ret = Ethernet.begin (mac))) {
@@ -67,7 +71,11 @@ boolean NetworkInterfaceWIZ5x00::begin (byte *mac) {
 }
 
 boolean NetworkInterfaceWIZ5x00::begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask) {
+#if defined (WEBBINO_USE_ENC28J60_UIP)
+	DPRINTLN (F("Using UIP Ethernet library"));
+#else
 	DPRINTLN (F("Using Arduino Ethernet library"));
+#endif
 
 	memcpy (macAddress, mac, 6);
 	Ethernet.begin (mac, ip, dns, gw, mask);
