@@ -58,6 +58,10 @@ boolean NetworkInterfaceWiFi::begin (Stream& _serial, const char *_ssid, const c
 	WiFi.init (&_serial);
 #endif
 
+/* It seems that these two API calls do not work as expected on ESP32, so let's
+ * just skip them.
+ */
+#ifndef ARDUINO_ARCH_ESP32
 	// Check for the presence of the WiFi interface
 	if (WiFi.status () == WL_NO_SHIELD) {
 		DPRINTLN (F("WiFi interface not found"));
@@ -67,6 +71,7 @@ boolean NetworkInterfaceWiFi::begin (Stream& _serial, const char *_ssid, const c
 #ifndef WEBBINO_USE_ESP8266_STANDALONE
 	DPRINT (F("FW Version: "));
 	DPRINTLN (WiFi.firmwareVersion ());
+#endif
 #endif
 
 	// Attempt to connect to WiFi network
