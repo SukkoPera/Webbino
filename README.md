@@ -10,6 +10,7 @@ time:
   - ENC28J60: [KMTronic DINo](http://sigma-shop.com/product/72/web-internet-ethernet-controlled-relay-board-arduino-compatible-rs485-usb.html) (first version)
   - WINC1500 (Wi-Fi): [WiFi Shield 101](https://www.arduino.cc/en/Main/ArduinoWiFiShield101), [MKR1000](https://www.arduino.cc/en/Main/ArduinoMKR1000) - EXPERIMENTAL, MIGHT NOT WORK!
   - ESP8266 (Wi-Fi): Either as an add-on to Arduino, like the [MLT shield](http://www.mlt-group.com/Products/Wifi-Wireless-Modules/ESP8266-WIFI-Shield-with-ESP-01-ESP-07-ESP-12-for-Arduino), or standalone like [NodeMCU](http://www.nodemcu.com), [WeMos D1](https://www.wemos.cc/product/d1.html)/[D1 Mini](https://www.wemos.cc/product/d1-mini.html), etc...
+  - ESP32
 - HTML pages and other data can be embedded in the code. This avoids the need of
   an SD card for simple sites.
 - If you prefer, HTML pages can also be stored on an SD card (long file names are
@@ -19,29 +20,44 @@ time:
 - Arbitrary functions can be associated to a page, to perform any needed
   actions.
 
-To switch between the supported chipsets, and to configure various working aspects of the webserver, have a look at the _webbino_config.h_ file: the _WEBBINO_USE\_*_ #defines will enable support for the chosen network interface.
-
 Included with Webbino are a lot of examples showing how to use all the different features.
 
 ## Supported boards
+To switch between the supported chipsets, and to configure various working aspects of the webserver, have a look at the _webbino_config.h_ file: the _WEBBINO_USE\_*_ #defines will enable support for the chosen network interface.
+
 ### WizNet W5100
+#### &#8594; WEBBINO_USE_WIZ5100
 Support for this chip is included in the standard distribution of the Arduino IDE, so it can be used stright away.
 
 ### WizNet W5500
-This chip is used on the Ethernet Shield 2 by arduino.org. It is supported through the Ethernet 2 library which (I suppose, as I don't use it) is included in the standard distribution of the arduino.org IDE (1.7.x), but it can also be installed through the Library Manager in the arduino.cc IDE (1.6.x).
+#### &#8594; WEBBINO_USE_WIZ5500
+This chip is used on the Ethernet Shield 2, originally released by arduino.org. It is supported through the *Ethernet 2* library which can be installed through the Library Manager in the Arduino IDE.
 
 ### ENC28J60
-The ENC28J60 Ethernet Controller is supported it through the [EtherCard library](https://github.com/jcw/ethercard/).
+The ENC28J60 Ethernet Controller is supported either through the [EtherCard library](https://github.com/jcw/ethercard/) or through the [UIPEthernet library](https://github.com/ntruchsess/arduino_uip).
 
-When ENC28J60 support is enabled, a lot of RAM is used for the packet buffer, as EtherCard currently needs it to be allocated in the main RAM. It is currently set at 800 bytes, which include TCP/IP headers, leaving about 750 bytes for data to be sent to the client. Since the library also forces all communications to be single-packet, about 750 bytes is the maximum size of any data that is exchanged between server and client (i.e.: of webpages).
+#### &#8594; WEBBINO_USE_ENC28J60
+The former has some limitations and is recommended on microcontrollers/boards with limited resources, such as the Uno. It uses a lot of RAM for the packet buffer, which is currently set at 800 bytes including TCP/IP headers, leaving about 750 bytes for data to be sent to the client. Since the library also forces all communications to be single-packet, about 750 bytes is the maximum size of any data that is exchanged between server and client (i.e.: of webpages).
+
+#### &#8594; WEBBINO_USE_ENC28J60_UIP
+The latter library is more complete but even heavier on resource usage, so it is only recommended on more powerful platforms, such as the Arduino Mega, Due or on boards based on STM32 microcontrollers. 
 
 ### WINC1500
-WINC1500 support is obtained through the WiFi101 library that can be installed through the Library Manager.
+#### &#8594; WEBBINO_USE_WIFI101
+WINC1500 support is obtained through the WiFi101 library that can be installed through the Library Manager. This is currently experimental and might not work.
 
 ### ESP8266
 ESP8266 is supported either as an add-on to Arduino or standalone:
-- In the former case, you will need Bruno Portaluri's WiFiEsp library available in the Library Manager or at https://github.com/bportaluri/WiFiEsp.
-- In the latter case you will need to install the ESP8266 core, available at https://github.com/esp8266/Arduino.
+
+#### &#8594; WEBBINO_USE_ESP8266
+In the former case, you will need Bruno Portaluri's WiFiEsp library available in the Library Manager or at https://github.com/bportaluri/WiFiEsp.
+
+#### &#8594; WEBBINO_USE_ESP8266_STANDALONE
+In the latter case you will need to install the ESP8266 core, available at https://github.com/esp8266/Arduino.
+
+### ESP32
+#### &#8594; WEBBINO_USE_WIFI
+ESP32 is only supported as a standalone board through the [ESP32 core](https://github.com/espressif/arduino-esp32).
 
 ## Storing pages
 Web pages can be stored in Arduino's flash memory (where code is stored) and/or on an SD card.
