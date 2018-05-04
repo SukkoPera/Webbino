@@ -27,7 +27,7 @@ To switch between the supported chipsets, and to configure various working aspec
 
 ### WizNet W5100
 #### &#8594; WEBBINO_USE_WIZ5100
-Support for this chip is included in the standard distribution of the Arduino IDE, so it can be used stright away.
+This is the chip that was used on the original Ethernet Shield. Support for it is included in the standard distribution of the Arduino IDE, so it can be used stright away.
 
 ### WizNet W5500
 #### &#8594; WEBBINO_USE_WIZ5500
@@ -58,6 +58,10 @@ In the latter case you will need to install the ESP8266 core, available at https
 ### ESP32
 #### &#8594; WEBBINO_USE_WIFI
 ESP32 is only supported as a standalone board through the [ESP32 core](https://github.com/espressif/arduino-esp32).
+
+### Digistump DigiX
+#### &#8594; WEBBINO_USE_DIGIFI
+The [DigiX](http://digistump.com/products/50) is an Arduino Due clone by US company Digistump. Among various improvements, it features a WiFi module, which is supported.
 
 ## Storing pages
 Web pages can be stored in Arduino's flash memory (where code is stored) and/or on an SD card.
