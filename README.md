@@ -79,6 +79,9 @@ If flash space is an issue or if you just prefer to store your pages on an SD ca
 ## Replacement Tags
 Webbino allows easy embedding of small pieces of dynamic content in webpages. If, for instance, all you have to do is show some instant weather data in an otherwise static page, just use the Tag feature: put placeholders like _#TEMPERATURE#_, _#HUMIDITY#_ and such in your HTML page, and have Webbino replace them with actual data measured when the page is loaded! Have a look at the _ReplacementTags_ example to get started.
 
+## Dependencies
+Apart from the various networking libraries mentioned above, Webbino requires the [PString library](http://arduiniana.org/libraries/pstring/) to be installed.
+
 ## License
 Webbino is free software: you can redistribute it and/or modify
 it under the terms of version 3 of the GNU General Public License as published by the Free Software Foundation.
