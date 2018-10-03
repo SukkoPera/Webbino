@@ -34,7 +34,8 @@ typedef void (*PageFunction) (HTTPRequestParser& request);
 
 struct Page {
 	PGM_P name;
-	PGM_P content;
+	const byte* content;		// This is actually a PGM_P
+	unsigned int length;
 	PageFunction function;
 
 	// Methods that (try to) hide the complexity of accessing PROGMEM data
@@ -42,12 +43,16 @@ struct Page {
 		return reinterpret_cast<PGM_P> (pgm_read_ptr (&(this -> name)));
 	}
 
-	PageFunction getFunction () const {
-		return reinterpret_cast<PageFunction> (pgm_read_ptr (&(this -> function)));
-	}
-
 	PGM_P getContent () const {
 		return reinterpret_cast<PGM_P> (pgm_read_ptr (&(this -> content)));
+	}
+
+	unsigned int getLength () const {
+		return length;
+	}
+
+	PageFunction getFunction () const {
+		return reinterpret_cast<PageFunction> (pgm_read_ptr (&(this -> function)));
 	}
 };
 
@@ -116,9 +121,13 @@ private:
 
 	void sendContent (WebClient* client, PageContent* content);
 
+	PGM_P getContentType (const char* filename);
+
 	const Page *getPage (const char* name) const;
 
 #ifdef ENABLE_TAGS
+	boolean shallReplace (PGM_P contType);
+
 	PString* findSubstitutionTag (const char* tag) const;
 
 	char *findSubstitutionTagGetParameter (HTTPRequestParser& request, const char* tag);

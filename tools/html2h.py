@@ -24,36 +24,50 @@ def splitall (path):
             allparts.insert(0, parts[1])
     return allparts
 
+def shallStrip (filename):
+	name, ext = os.path.splitext (filename)
+	if len (ext) > 1:
+		ext = ext[1:]
+	ext = ext.lower ()
+	return ext == "htm" or ext == "html"
+
 def process_file (filename, nostrip = False):
 	print >> sys.stderr, "Processing file: %s" % filename
 
+	if not nostrip and not shallStrip (filename):
+		print >> sys.stderr, "- File will not be stripped"
+		nostrip = True
+
 	try:
-		with open (filename, 'r') as fp:
+		with open (filename, 'rb') as fp:
 			# Make up a unique ID for every file to use in C identifiers
 			parts = splitall (filename[2:])
 			parts = [parts[0]] + [x.capitalize () for x in parts[1:]]
 			code = "".join (parts)
 			code = code.replace ('.', '_')
+			pagename = filename[1:]
 
-			print "const char %s_name[] PROGMEM = \"%s\";" % (code, filename[1:])
+			# Convert Windows slashes to Posix slashes
+			pagename = pagename.replace ('\\', '/')
+
+			print "const char %s_name[] PROGMEM = \"%s\";" % (code, pagename)
 			print
-			print "const char %s[] PROGMEM = {" % code
+			print "const byte %s[] PROGMEM = {" % code
 			i = 0
 			b = fp.read (1)
-			while b:
+			while len (b) > 0:
 				if nostrip or (b != '\n' and b != '\r' and b != '\t'):
 					if i % 8 == 0:
 						print "\t",
 					print "0x%02x, " % ord (b),
-					i = i + 1
+					i += 1
 					if i % 8 == 0:
 						print ""
 				b = fp.read (1)
 
-			print "0x00"
-			print "};"
+			print "\n};"
 			print
-			print "// unsigned int %s_len = %u;" % (code, i + 1)
+			print "unsigned int %s_len = %u;" % (code, i)
 			print
 	except IOError as ex:
 		print "Cannot open file %s: %s" % (filename, str (ex))
@@ -76,6 +90,23 @@ def process_dir (dirpath, nostrip = False):
 			print "Skipping %s" % filename
 	return idents
 
+def make_include_code (idents):
+	ret = ""
+
+	for n, ident in enumerate (idents):
+		ret += "const Page page%02d PROGMEM = {%s_name, %s, %s_len, NULL};\n" % (n + 1, ident, ident, ident)
+
+	ret += "\n"
+
+	ret += "const Page* const pages[] PROGMEM = {\n"
+	for n in xrange (1, n_pages + 1):
+		ret += "\t&page%02d,\n" % n
+
+	ret += "\tNULL\n"
+	ret += "};"
+
+	return ret
+
 
 ### MAIN ###
 
@@ -95,6 +126,10 @@ if __name__ == "__main__":
 	idents = process_dir (".", args.nostrip)
 	n_pages = len (idents)
 
+	print "/*** CODE TO INCLUDE IN SKETCH ***\n"
+	print make_include_code (idents)
+	print "\n***/"
+
 	print >> sys.stderr, "Total files processed: %d" % n_pages
 
 	if n_pages > 0:
@@ -104,14 +139,4 @@ if __name__ == "__main__":
 		print >> sys.stderr
 		print >> sys.stderr, '#include "html.h"'
 		print >> sys.stderr
-		for n, ident in enumerate (idents):
-			print >> sys.stderr, "const Page page%02d PROGMEM = {%s_name, %s, NULL};" % (n + 1, ident, ident)
-
-		print >> sys.stderr
-
-		print >> sys.stderr, "const Page* const pages[] PROGMEM = {"
-		for n in xrange (1, n_pages + 1):
-			print >> sys.stderr, "\t&page%02d," % n
-
-		print >> sys.stderr, "\tNULL"
-		print >> sys.stderr, "};"
+		print >> sys.stderr, make_include_code (idents)

@@ -20,7 +20,7 @@
 #include "WebServer.h"
 #include "WebClient.h"
 #include "Content.h"
-#include "webbino_config.h"
+#include "MimeTypes.h"
 #include "webbino_debug.h"
 
 #ifdef WEBBINO_ENABLE_SPIFFS
@@ -33,7 +33,8 @@
 
 #define HEADER_START "HTTP/1.0 "
 #define REDIRECT_HEADER "301 Moved Permanently\r\nLocation: "
-#define OK_HEADER "200 OK\r\nContent-Type: text/html"		// \r\nPragma: no-cache"
+#define OK_HEADER "200 OK\r\n"		// \r\nPragma: no-cache
+#define CONT_TYPE_HEADER "Content-Type: "
 #define NOT_FOUND_HEADER "404 Not Found\r\nContent-Type: text/html"
 #define HEADER_END "\r\n\r\n"
 
@@ -103,11 +104,32 @@ boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 	return ret;
 }
 
+PGM_P WebServer::getContentType (const char* filename) {
+	const MimeType* mt = NULL;
+
+	char* ext = strrchr (filename, '.');
+	if (ext) {
+		++ext;	// Now points to actual extension
+		DPRINT (F("Extension is: "));
+		DPRINTLN (ext);
+
+		for (byte i = 0; (mt = reinterpret_cast<const MimeType*> (pgm_read_ptr (&mimeTypes[i]))); ++i) {
+			if (strcmp_P (ext, mt -> getExtension ()) == 0)
+				break;
+		}
+	}
+
+	DPRINT (F("Content type is "));
+	DPRINTLN (mt ? mt -> getType () : FALLBACK_MIMETYPE);
+
+	return mt ? mt -> getType () : FALLBACK_MIMETYPE;
+}
+
 const Page* WebServer::getPage (const char* name) const {
 	const Page *p = NULL;
 
 	// For some reason, if we make i a byte here, the code uses 8 more bytes, so don't!
-	for (unsigned int i = 0; pages && (p = reinterpret_cast<const Page *> (pgm_read_ptr (&pages[i]))); i++) {
+	for (unsigned int i = 0; pages && (p = reinterpret_cast<const Page*> (pgm_read_ptr (&pages[i]))); ++i) {
 		if (strcmp_P (name, p -> getName ()) == 0)
 			break;
 	}
@@ -172,6 +194,14 @@ void WebServer::sendPage (WebClient* client) {
 }
 
 #ifdef ENABLE_TAGS
+boolean WebServer::shallReplace (PGM_P contType) {
+	// Well, we must compare two strings in program space ^___^
+	char tmp[4];
+	strncpy_P (tmp, contType, 4);
+	//~ tmp[4] = '\0';
+	return strncmp_P (tmp, PSTR("text"), 4) == 0;
+}
+
 PString* WebServer::findSubstitutionTag (const char *tag) const {
 	const ReplacementTag *sub;
 	PString* ret = NULL;
@@ -194,76 +224,86 @@ char *WebServer::findSubstitutionTagGetParameter (HTTPRequestParser& request, co
 // Read the page, perform tag substitutions and send it over
 // FIXME: Handle unterminated tags
 void WebServer::sendContent (WebClient* client, PageContent* content) {
-	// Send headers
-	client -> print (F(HEADER_START OK_HEADER HEADER_END));
+	PGM_P contType = getContentType (content -> getFilename ());
 
-	char c;
+	// Send headers
+	client -> print (F(HEADER_START OK_HEADER));
+	client -> print (F(CONT_TYPE_HEADER));
+	client -> print (contType);
+	client -> print (F(HEADER_END));
+
 #ifdef ENABLE_TAGS
 	char tag[MAX_TAG_LEN];
 	int8_t tagLen = -1;			// If >= 0 we are inside a tag
 #endif
-	while ((c = content -> getNextByte ())) {
+	while (content -> available ()) {
+		char c = content -> getNextByte ();
+
 #ifdef ENABLE_TAGS
-		if (tagLen >= 0) {
-			if (c == TAG_CHAR) {
-				DPRINT (F("Processing replacement tag: \""));
-				DPRINT (tag);
-				DPRINTLN (F("\""));
+		if (shallReplace (contType)) {
+			if (tagLen >= 0) {
+				if (c == TAG_CHAR) {
+					DPRINT (F("Processing replacement tag: \""));
+					DPRINT (tag);
+					DPRINTLN (F("\""));
 
-				boolean found = false;
-				if (strncmp_P (tag, PSTR ("GETP_"), 5) == 0) {
-					char* rep = findSubstitutionTagGetParameter (client -> request, tag + 5);
-					if (rep) {
-						DPRINT (F("Replacement is: \""));
-						DPRINT (rep);
-						DPRINTLN (F("\""));
+					boolean found = false;
+					if (strncmp_P (tag, PSTR ("GETP_"), 5) == 0) {
+						char* rep = findSubstitutionTagGetParameter (client -> request, tag + 5);
+						if (rep) {
+							DPRINT (F("Replacement is: \""));
+							DPRINT (rep);
+							DPRINTLN (F("\""));
 
-						client -> print (rep);
-						found = true;
+							client -> print (rep);
+							found = true;
+						}
+					} else {
+						PString* pstr = findSubstitutionTag (tag);
+						if (pstr) {
+							DPRINT (F("Replacement is: \""));
+							DPRINT (*pstr);
+							DPRINTLN (F("\""));
+
+							client -> print (*pstr);
+							pstr -> begin ();		// Reset for next usage
+							found = true;
+						}
 					}
+
+					if (!found) {
+						// Tag not found, emit it
+						DPRINTLN (F("Tag not found"));
+
+						client -> print (TAG_CHAR);
+						client -> print (tag);
+						client -> print (TAG_CHAR);
+					}
+
+					// Tag complete
+					tagLen = -1;
+				} else if (tagLen < MAX_TAG_LEN - 1) {
+					tag[tagLen++] = c;
+					tag[tagLen] = '\0';
 				} else {
-					PString* pstr = findSubstitutionTag (tag);
-					if (pstr) {
-						DPRINT (F("Replacement is: \""));
-						DPRINT (*pstr);
-						DPRINTLN (F("\""));
-
-						client -> print (*pstr);
-						pstr -> begin ();		// Reset for next usage
-						found = true;
-					}
-				}
-
-				if (!found) {
-					// Tag not found, emit it
-					DPRINTLN (F("Tag not found"));
-
+					// Tag too long, emit what we got so far
+					// FIXME: This will detect a fake tag at the closing TAG_CHAR
 					client -> print (TAG_CHAR);
 					client -> print (tag);
-					client -> print (TAG_CHAR);
+					client -> print (c);
+					tagLen = -1;
 				}
-
-				// Tag complete
-				tagLen = -1;
-			} else if (tagLen < MAX_TAG_LEN - 1) {
-				tag[tagLen++] = c;
-				tag[tagLen] = '\0';
 			} else {
-				// Tag too long, emit what we got so far
-				// FIXME: This will detect a fake tag at the closing TAG_CHAR
-				client -> print (TAG_CHAR);
-				client -> print (tag);
-				client -> print (c);
-				tagLen = -1;
+				if (c == TAG_CHAR) {
+					// Check if we have a tag to be replaced
+					tag[0] = '\0';
+					tagLen = 0;
+				} else {
+					client -> print (c);
+				}
 			}
 		} else {
-			if (c == TAG_CHAR) {
-				// Check if we have a tag to be replaced
-				tag[0] = '\0';
-				tagLen = 0;
-			} else {
-				client -> print (c);
-			}
+			client -> print (c);
 		}
 #else
 		client -> print (c);

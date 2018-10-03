@@ -23,10 +23,23 @@
 #include <webbino_config.h>
 #include <webbino_debug.h>
 
-//20440 1357
-
+/* Note that filename is NOT copied, so it must be kept pointing to a valid
+ * string during the usage of the object.
+ */
 class PageContent {
+protected:
+	const char* filename;
+	
+	PageContent (const char* _filename) {
+		filename = _filename;
+	}
+	
 public:
+	virtual const char* getFilename () const {
+		return filename;
+	}
+	
+	virtual boolean available () = 0;
 	virtual char getNextByte () = 0;
 };
 
@@ -37,12 +50,19 @@ class FlashContent: public PageContent {
 private:
 	const Page& page;
 	PGM_P next;
+	unsigned int offset;
 
 public:
-	FlashContent (const Page* p): page (*p), next (p -> getContent ()) {
+	FlashContent (const Page* p): PageContent (p -> getName ()), page (*p),
+		next (p -> getContent ()), offset (0) {
+	}
+	
+	boolean available () override {
+		return offset < page.getLength ();
 	}
 
 	char getNextByte () override {
+		++offset;
 		return pgm_read_byte (next++);
 	}
 };
@@ -65,20 +85,20 @@ private:
 	File file;
 
 public:
-	SDContent (const char* filename) {
+	SDContent (const char* filename): PageContent (filename) {
 		file = SD.open (filename);
 	}
 
 	~SDContent () {
 		file.close ();
 	}
+	
+	boolean available () override {
+		return file.available ();
+	}
 
 	char getNextByte () override {
-		if (file.available ()) {
-			return file.read ();
-		} else {
-			return '\0';
-		}
+		return file.read ();
 	}
 };
 
@@ -96,20 +116,20 @@ private:
 	File file;
 
 public:
-	SPIFFSContent (const char* filename) {
+	SPIFFSContent (const char* filename): PageContent (filename) {
 		file = SPIFFS.open (filename, "r");
 	}
 
 	~SPIFFSContent () {
 		file.close ();
 	}
+	
+	boolean available () override {
+		return file.available ();
+	}
 
 	char getNextByte () override {
-		if (file.available ()) {
-			return file.read ();
-		} else {
-			return '\0';
-		}
+		return file.read ();
 	}
 };
 

@@ -55,6 +55,16 @@
 #define WEBBINO_ENABLE_SPIFFS
 #endif
 
+/* By default, only MIME types for html, css, js, png, jpeg, gif and ico files
+ * are enabled. Define this to enable some extra types, namely xml, pdf, zip and
+ * gz files.
+ */
+//~ #define ENABLE_EXTRA_MIMETYPES
+
+/* MIME type to be used for files that do not match any known extension
+ */
+#define WEBBINO_FALLBACK_MIMETYPE "application/octet-stream"
+
 /* Define to enable support for tag substitutions, i.e.: replace #TAGS#
  * in served pages
  */
