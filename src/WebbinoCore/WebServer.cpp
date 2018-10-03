@@ -157,7 +157,7 @@ void WebServer::sendPage (WebClient* client) {
 			if (func)
 				func (client -> request);
 
-			FlashContent content = FlashContent (page);
+			FlashContent content (page);
 			sendContent (client, &content);
 		} else {
 			client -> print (F(HEADER_START NOT_FOUND_HEADER HEADER_END));
