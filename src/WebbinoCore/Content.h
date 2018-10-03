@@ -84,5 +84,35 @@ public:
 
 #endif
 
+/******************************************************************************/
+
+
+#ifdef WEBBINO_ENABLE_SPIFFS
+
+#include <FS.h>
+
+struct SPIFFSContent: public PageContent {
+private:
+	File file;
+
+public:
+	SPIFFSContent (const char* filename) {
+		file = SPIFFS.open (filename, "r");
+	}
+
+	~SPIFFSContent () {
+		file.close ();
+	}
+
+	char getNextByte () override {
+		if (file.available ()) {
+			return file.read ();
+		} else {
+			return '\0';
+		}
+	}
+};
+
+#endif
 
 #endif

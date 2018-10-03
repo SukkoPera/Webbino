@@ -20,7 +20,15 @@
 #include "WebServer.h"
 #include "WebClient.h"
 #include "Content.h"
-#include <webbino_debug.h>
+#include "webbino_config.h"
+#include "webbino_debug.h"
+
+#ifdef WEBBINO_ENABLE_SPIFFS
+#ifndef WEBBINO_USE_ESP8266_STANDALONE
+#error "SPIFFS can only be enabled on ESP8266 standalone"
+#endif
+#include <FS.h>
+#endif
 
 
 #define HEADER_START "HTTP/1.0 "
@@ -81,6 +89,17 @@ boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
 	}
 #endif
 
+#ifdef WEBBINO_ENABLE_SPIFFS
+	SPIFFS.begin ();
+	DPRINTLN (F("Pages available in SPIFFS:"));
+	Dir dir = SPIFFS.openDir ("/");
+	for (byte i = 0; dir.next (); i++) {
+		DPRINT (i);
+		DPRINT (F(". "));
+		DPRINTLN (dir.fileName());
+	}
+#endif
+
 	return ret;
 }
 
@@ -119,7 +138,16 @@ void WebServer::sendPage (WebClient* client) {
 			DPRINT (F("Sending page from SD file "));
 			DPRINTLN (pagename);
 
-			SDContent content = SDContent (pagename);
+			SDContent content (pagename);
+			sendContent (client, &content);
+		} else
+#endif
+#ifdef WEBBINO_ENABLE_SPIFFS
+		if (SPIFFS.exists (pagename)) {
+			DPRINT (F("Sending page from SPIFFS file "));
+			DPRINTLN (pagename);
+
+			SPIFFSContent content (pagename);
 			sendContent (client, &content);
 		} else
 #endif

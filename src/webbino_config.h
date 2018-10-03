@@ -47,6 +47,14 @@
  */
 //~ #define WEBBINO_ENABLE_SDFAT
 
+/* Define to enable serving webpages from the ESP8266 integrated filesystem on
+ * flash (SPIFFS). By default this is always enabled if compiling for ESP8266
+ * standalone.
+ */
+#ifdef WEBBINO_USE_ESP8266_STANDALONE
+#define WEBBINO_ENABLE_SPIFFS
+#endif
+
 /* Define to enable support for tag substitutions, i.e.: replace #TAGS#
  * in served pages
  */
