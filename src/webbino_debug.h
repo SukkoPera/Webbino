@@ -41,7 +41,7 @@
 
 #define PSTR_TO_F(s) reinterpret_cast<const __FlashStringHelper *> (s)
 #define F_TO_PSTR(s) reinterpret_cast<PGM_P> (s)
-#define FlashString const __FlashStringHelper *
+#define WebbinoFStr const __FlashStringHelper *
 
 #else
 
@@ -56,7 +56,7 @@
 #define PSTR_TO_F(s) s
 #define F_TO_PSTR(s) s
 
-#define FlashString const char *
+#define WebbinoFStr const char *
 
 #undef strlen_P
 #define strlen_P strlen

@@ -17,31 +17,59 @@
  *   along with Webbino. If not, see <http://www.gnu.org/licenses/>.       *
  ***************************************************************************/
 
-#ifndef _HTTPREQUESTPARSER_H_
-#define _HTTPREQUESTPARSER_H_
+#ifndef _WEBSERVER8266_H_
+#define _WEBSERVER8266_H_
 
 #include <webbino_config.h>
-#include <webbino_debug.h>
+
+#ifdef WEBBINO_USE_FISHINO
+
+#include <Fishino.h>
+#include "WebbinoCore/WebClient.h"
+#include "WebbinoCore/WebServer.h"
 
 
-class HTTPRequestParser {
+class FishinoWebClient: public WebClient {
 private:
-	char buffer[BUF_LEN];
+	FishinoClient internalClient;
 
 public:
-	HTTPRequestParser ();
+	void begin (FishinoClient& c, char* req);
 
-	char url[MAX_URL_LEN];
+	size_t doWrite (const uint8_t *buf, size_t n) override;
 
-	void parse (char *request);
-
-	char *get_basename ();
-
-	char *get_parameter (const char param[]);
-
-#ifdef ENABLE_FLASH_STRINGS
-	char *get_parameter (WebbinoFStr param);
-#endif
+	void sendReply () override;
 };
+
+
+class FishinoInterface: public NetworkInterface {
+private:
+	static byte retBuffer[6];
+
+	FishinoServer server;
+	byte ethernetBuffer[MAX_URL_LEN + 16];			// MAX_URL_LEN + X is enough, since we only store the "GET <url> HTTP/1.x" request line
+	unsigned int ethernetBufferSize;
+
+	FishinoWebClient webClient;
+
+public:
+	FishinoInterface ();
+
+	boolean begin (const char *_ssid, const char *_password);
+
+	WebClient* processPacket () override;
+
+	boolean usingDHCP () override;
+
+	byte *getMAC () override;
+
+	IPAddress getIP () override;
+
+	IPAddress getNetmask () override;
+
+	IPAddress getGateway () override;
+};
+
+#endif
 
 #endif
