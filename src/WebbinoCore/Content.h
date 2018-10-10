@@ -24,7 +24,7 @@
 #include <webbino_debug.h>
 
 /* Note that filename is NOT copied, so it must be kept pointing to a valid
- * string during the usage of the object.
+ * string during the life of the object.
  */
 class PageContent {
 protected:
