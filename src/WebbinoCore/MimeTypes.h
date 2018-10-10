@@ -38,12 +38,12 @@ struct MimeType {
 #define MT_STR(s) #s
 #define MT_EXTVAR(ext) _mtExt_ ## ext
 #define MT_TYPE(type, subtype) #type "/" #subtype
-#define MT_TYPEVAR(ext, type, subtype) _mtType_ ## ext
+#define MT_TYPEVAR(ext) _mtType_ ## ext
 
 #define MimeTypeEntry(var, ext, type, subtype) \
                 const char MT_EXTVAR(ext)[] PROGMEM = MT_STR(ext); \
-                const char MT_TYPEVAR(ext, type, subtype)[] PROGMEM = MT_TYPE(type, subtype); \
-                const MimeType var PROGMEM = {MT_EXTVAR(ext), MT_TYPEVAR(ext, type, subtype)}
+                const char MT_TYPEVAR(ext)[] PROGMEM = MT_TYPE(type, subtype); \
+                const MimeType var PROGMEM = {MT_EXTVAR(ext), MT_TYPEVAR(ext)}
 
 // "Fallback" mimetype, to be used for files with unknown extensions
 const char FALLBACK_MIMETYPE[] PROGMEM = WEBBINO_FALLBACK_MIMETYPE;
