@@ -23,41 +23,13 @@
 #include <webbino_config.h>
 #include "NetworkInterface.h"
 #include "HTTPRequestParser.h"
+#include "Storage.h"
 
 // http://arduiniana.org/libraries/pstring/
 #include <PString.h>
 
 class WebClient;
-class PageContent;
-
-typedef void (*PageFunction) (HTTPRequestParser& request);
-
-struct Page {
-	PGM_P name;
-	const byte* content;		// This is actually a PGM_P
-	unsigned int length;
-	PageFunction function;
-
-	// Methods that (try to) hide the complexity of accessing PROGMEM data
-	PGM_P getName () const {
-		return reinterpret_cast<PGM_P> (pgm_read_ptr (&(this -> name)));
-	}
-
-	PGM_P getContent () const {
-		return reinterpret_cast<PGM_P> (pgm_read_ptr (&(this -> content)));
-	}
-
-	unsigned int getLength () const {
-		return length;
-	}
-
-	PageFunction getFunction () const {
-		return reinterpret_cast<PageFunction> (pgm_read_ptr (&(this -> function)));
-	}
-};
-
-/******************************************************************************/
-
+class Content;
 
 #ifdef ENABLE_TAGS
 
@@ -106,24 +78,24 @@ typedef const ReplacementTag* const EasyReplacementTagArray;
 
 /******************************************************************************/
 
+const byte MAX_STORAGES = 3;
 
 class WebServer {
 private:
 	NetworkInterface* netint;
-
-	const Page* const *pages;
+	
+	Storage* storages[MAX_STORAGES];
+	byte nStorage;
 
 #ifdef ENABLE_TAGS
 	const ReplacementTag* const * substitutions;
 #endif
 
-	void sendPage (WebClient* client);
+	void handleClient (WebClient& client);
 
-	void sendContent (WebClient* client, PageContent* content);
+	void sendContent (WebClient& client, Content& content);
 
 	PGM_P getContentType (const char* filename);
-
-	const Page *getPage (const char* name) const;
 
 #ifdef ENABLE_TAGS
 	boolean shallReplace (PGM_P contType);
@@ -134,15 +106,13 @@ private:
 #endif
 
 public:
-	// Return value here is only meaningful if using SD
-	boolean begin (NetworkInterface& _netint, const Page* const _pages[] = NULL
+	boolean begin (NetworkInterface& _netint);
+	
+	boolean addStorage (Storage& storage);
+	
 #ifdef ENABLE_TAGS
-		, const ReplacementTag* const _substitutions[] = NULL
+	void enableReplacementTags (const ReplacementTag* const _substitutions[]);
 #endif
-#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
-		, int8_t pin = -1
-#endif
-	);
 
 	boolean loop ();
 };

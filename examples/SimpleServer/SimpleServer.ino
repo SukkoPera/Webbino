@@ -19,8 +19,11 @@
 
 #include <Webbino.h>
 
+// 22828
+
 // Instantiate the WebServer
 WebServer webserver;
+FlashStorage flashStorage;
 
 // Instantiate the network interface defined in the Webbino headers
 #if defined (WEBBINO_USE_ENC28J60)
@@ -109,7 +112,10 @@ void setup () {
 		Serial.print (F("- Default Gateway: "));
 		Serial.println (netint.getGateway ());
 
-		webserver.begin (netint, pages);
+		webserver.begin (netint);
+		
+		flashStorage.begin (pages);
+		webserver.addStorage (flashStorage);
 	}
 }
 

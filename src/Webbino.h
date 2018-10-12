@@ -19,3 +19,7 @@
 
 #include "webbino_config.h"
 #include "WebbinoCore/WebServer.h"
+
+#include "WebbinoCore/FlashStorage.h"
+#include "WebbinoCore/SdStorage.h"
+#include "WebbinoCore/SpiffsStorage.h"

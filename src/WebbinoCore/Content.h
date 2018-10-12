@@ -23,116 +23,35 @@
 #include <webbino_config.h>
 #include <webbino_debug.h>
 
+class HTTPRequestParser;
+
 /* Note that filename is NOT copied, so it must be kept pointing to a valid
  * string during the life of the object.
  */
-class PageContent {
+class Content {
 protected:
 	const char* filename;
-	
-	PageContent (const char* _filename) {
-		filename = _filename;
-	}
-	
+
 public:
+	Content (): filename (nullptr) {
+	}
+
+	Content (const char* _filename): filename (_filename) {
+	}
+
 	virtual const char* getFilename () const {
 		return filename;
 	}
-	
+
+	// Please override
 	virtual boolean available () = 0;
-	virtual char getNextByte () = 0;
-};
 
-/******************************************************************************/
+	// Please override
+	virtual byte getNextByte () = 0;
 
-
-class FlashContent: public PageContent {
-private:
-	const Page& page;
-	PGM_P next;
-	unsigned int offset;
-
-public:
-	FlashContent (const Page* p): PageContent (p -> getName ()), page (*p),
-		next (p -> getContent ()), offset (0) {
-	}
-	
-	boolean available () override {
-		return offset < page.getLength ();
-	}
-
-	char getNextByte () override {
-		++offset;
-		return pgm_read_byte (next++);
+	// Override if needed
+	virtual void runFunction (HTTPRequestParser& request) {
 	}
 };
-
-/******************************************************************************/
-
-
-#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
-
-#if defined (WEBBINO_ENABLE_SD)
-#include <SD.h>
-#elif defined (WEBBINO_ENABLE_SDFAT)
-#include <SdFat.h>
-
-static SdFat SD;
-#endif
-
-struct SDContent: public PageContent {
-private:
-	File file;
-
-public:
-	SDContent (const char* filename): PageContent (filename) {
-		file = SD.open (filename);
-	}
-
-	~SDContent () {
-		file.close ();
-	}
-	
-	boolean available () override {
-		return file.available ();
-	}
-
-	char getNextByte () override {
-		return file.read ();
-	}
-};
-
-#endif
-
-/******************************************************************************/
-
-
-#ifdef WEBBINO_ENABLE_SPIFFS
-
-#include <FS.h>
-
-struct SPIFFSContent: public PageContent {
-private:
-	File file;
-
-public:
-	SPIFFSContent (const char* filename): PageContent (filename) {
-		file = SPIFFS.open (filename, "r");
-	}
-
-	~SPIFFSContent () {
-		file.close ();
-	}
-	
-	boolean available () override {
-		return file.available ();
-	}
-
-	char getNextByte () override {
-		return file.read ();
-	}
-};
-
-#endif
 
 #endif

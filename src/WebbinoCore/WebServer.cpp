@@ -23,12 +23,7 @@
 #include "MimeTypes.h"
 #include "webbino_debug.h"
 
-#ifdef WEBBINO_ENABLE_SPIFFS
-#ifndef WEBBINO_USE_ESP8266_STANDALONE
-#error "SPIFFS can only be enabled on ESP8266 standalone"
-#endif
-#include <FS.h>
-#endif
+
 
 
 #define HEADER_START "HTTP/1.0 "
@@ -39,73 +34,47 @@
 #define HEADER_END "\r\n\r\n"
 
 
-boolean WebServer::begin (NetworkInterface& _netint, const Page* const _pages[]
-#ifdef ENABLE_TAGS
-		, const ReplacementTag* const _substitutions[]
-#endif
-#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
-		, int8_t pin
-#endif
-		) {
-
-	boolean ret = true;
-
+boolean WebServer::begin (NetworkInterface& _netint) {
+	nStorage = 0;
 	netint = &_netint;
 
-	pages = _pages;
-
-#ifndef WEBBINO_NDEBUG
-	DPRINTLN (F("Pages available in flash memory:"));
-	const Page *p = NULL;
-	for (byte i = 0; pages && (p = reinterpret_cast<const Page *> (pgm_read_ptr (&pages[i]))); i++) {
-		DPRINT (i);
-		DPRINT (F(". "));
-		DPRINTLN (PSTR_TO_F (p -> getName ()));
-	}
-#endif
+	return true;
+}
 
 #ifdef ENABLE_TAGS
+void WebServer::enableReplacementTags (const ReplacementTag* const _substitutions[]) {
 	substitutions = _substitutions;
 
 #ifndef WEBBINO_NDEBUG
 	DPRINTLN (F("Tags available:"));
 	const ReplacementTag* sub;
-	for (byte i = 0; substitutions && (sub = reinterpret_cast<const ReplacementTag *> (pgm_read_ptr (&substitutions[i]))); i++) {
+	for (byte i = 0; substitutions && (sub = reinterpret_cast<const ReplacementTag*> (pgm_read_ptr (&substitutions[i]))); i++) {
 		DPRINT (i);
 		DPRINT (F(". "));
 		DPRINTLN (PSTR_TO_F (sub -> getName ()));
 	}
 #endif
-
+}
 #endif
 
-#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
-	if (pin >= 0) {
-		DPRINT (F("Initializing SD card..."));
-		if (!SD.begin (pin)) {
-			DPRINTLN (F(" failed"));
-			ret = false;
-		}
-		DPRINTLN (F(" done"));
+boolean WebServer::addStorage (Storage& storage) {
+	boolean ret = false;
+
+	if (nStorage < MAX_STORAGES) {
+		storages[nStorage++] = &storage;
 	}
-#endif
-
-#ifdef WEBBINO_ENABLE_SPIFFS
-	SPIFFS.begin ();
-	DPRINTLN (F("Pages available in SPIFFS:"));
-	Dir dir = SPIFFS.openDir ("/");
-	for (byte i = 0; dir.next (); i++) {
-		DPRINT (i);
-		DPRINT (F(". "));
-		DPRINTLN (dir.fileName());
-	}
-#endif
 
 	return ret;
 }
 
 PGM_P WebServer::getContentType (const char* filename) {
 	const MimeType* mt = NULL;
+
+#ifndef WEBBINO_NDEBUG
+	if (!filename) {
+		DPRINTLN (F("WARNING: getContentType() called with NULL filename!"));
+	} else {
+#endif
 
 	char* ext = strrchr (filename, '.');
 	if (ext) {
@@ -119,78 +88,62 @@ PGM_P WebServer::getContentType (const char* filename) {
 		}
 	}
 
+#ifndef WEBBINO_NDEBUG
+	}
+#endif
+
 	DPRINT (F("Content type is "));
 	DPRINTLN (mt ? mt -> getType () : FALLBACK_MIMETYPE);
 
 	return mt ? mt -> getType () : FALLBACK_MIMETYPE;
 }
 
-const Page* WebServer::getPage (const char* name) const {
-	const Page *p = NULL;
-
-	// For some reason, if we make i a byte here, the code uses 8 more bytes, so don't!
-	for (unsigned int i = 0; pages && (p = reinterpret_cast<const Page*> (pgm_read_ptr (&pages[i]))); ++i) {
-		if (strcmp_P (name, p -> getName ()) == 0)
-			break;
-	}
-
-	return p;
-}
-
-void WebServer::sendPage (WebClient* client) {
-	unsigned int l = strlen (client -> request.url);
-	if (l == 0 || client -> request.url[l - 1] == '/') {
+void WebServer::handleClient (WebClient& client) {
+	unsigned int l = strlen (client.request.url);
+	if (l == 0 || client.request.url[l - 1] == '/') {
 		// Request for "/", redirect
 		DPRINT (F("Redirecting to "));
-		DPRINT (client -> request.url);
+		DPRINT (client.request.url);
 		DPRINTLN (F(REDIRECT_ROOT_PAGE));
 
-		client -> print (F(HEADER_START REDIRECT_HEADER));
+		client.print (F(HEADER_START REDIRECT_HEADER));
 		if (l == 0)
-			client -> print ('/');
+			client.print ((byte) '/');
 		else
-			client -> print (client -> request.url);
-		client -> print (F(REDIRECT_ROOT_PAGE HEADER_END));
+			client.print (client.request.url);
+		client.print (F(REDIRECT_ROOT_PAGE HEADER_END));
 	} else {
-		const Page *page;
-		char *pagename = client -> request.get_basename ();
+		const char *pagename = client.request.get_basename ();
 
-#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
-		if (SD.exists (pagename)) {
-			DPRINT (F("Sending page from SD file "));
-			DPRINTLN (pagename);
+		byte i;
+		for (i = 0; i < nStorage; ++i) {
+			Storage& stor = *storages[i];
 
-			SDContent content (pagename);
-			sendContent (client, &content);
-		} else
-#endif
-#ifdef WEBBINO_ENABLE_SPIFFS
-		if (SPIFFS.exists (pagename)) {
-			DPRINT (F("Sending page from SPIFFS file "));
-			DPRINTLN (pagename);
+			if (stor.exists (pagename)) {
+				DPRINT (F("Page found on storage "));
+				DPRINTLN (i);
+				Content& content = stor.get (pagename);
 
-			SPIFFSContent content (pagename);
-			sendContent (client, &content);
-		} else
-#endif
-		if ((page = getPage (pagename))) {
-			// Call page function
-			PageFunction func = page -> getFunction ();
-			if (func)
-				func (client -> request);
+				// Call page function
+				content.runFunction (client.request);
 
-			FlashContent content (page);
-			sendContent (client, &content);
-		} else {
-			client -> print (F(HEADER_START NOT_FOUND_HEADER HEADER_END));
+				sendContent (client, content);
+				stor.release (content);
+				break;
+			}
+		}
 
-			client -> print (F("<html><body><h3>No such page: \""));
-			client -> print (pagename);
-			client -> print (F("\"</h3></body></html>"));
+		if (i >= nStorage) {
+			// Page not found
+			client.print (F(HEADER_START NOT_FOUND_HEADER HEADER_END));
+
+			client.print (F("<html><body><h3>No such page: \""));
+			client.print (pagename);
+			client.print (F("\"</h3></body></html>"));
 		}
 	}
 
-	client -> sendReply ();
+	client.sendReply ();
 }
 
 #ifdef ENABLE_TAGS
@@ -203,10 +156,10 @@ boolean WebServer::shallReplace (PGM_P contType) {
 }
 
 PString* WebServer::findSubstitutionTag (const char *tag) const {
-	const ReplacementTag *sub;
-	PString* ret = NULL;
+	const ReplacementTag* sub;
+	PString* ret = nullptr;
 
-	for (byte i = 0; !ret && (sub = reinterpret_cast<const ReplacementTag *> (pgm_read_ptr (&substitutions[i]))); i++) {
+	for (byte i = 0; !ret && (sub = reinterpret_cast<const ReplacementTag*> (pgm_read_ptr (&substitutions[i]))); i++) {
 		if (strcmp_P (tag, sub -> getName ()) == 0) {
 			PString& pb = (sub -> getFunction ()) (sub -> getData ());
 			ret = &pb;
@@ -223,39 +176,46 @@ char *WebServer::findSubstitutionTagGetParameter (HTTPRequestParser& request, co
 
 // Read the page, perform tag substitutions and send it over
 // FIXME: Handle unterminated tags
-void WebServer::sendContent (WebClient* client, PageContent* content) {
-	PGM_P contType = getContentType (content -> getFilename ());
+void WebServer::sendContent (WebClient& client, Content& content) {
+	PGM_P contType = getContentType (content.getFilename ());
 
 	// Send headers
-	client -> print (F(HEADER_START OK_HEADER));
-	client -> print (F(CONT_TYPE_HEADER));
-	client -> print (contType);
-	client -> print (F(HEADER_END));
+	client.print (F(HEADER_START OK_HEADER CONT_TYPE_HEADER));
+	client.print (contType);
+	client.print (F(HEADER_END));
 
 #ifdef ENABLE_TAGS
 	char tag[MAX_TAG_LEN];
 	int8_t tagLen = -1;			// If >= 0 we are inside a tag
 #endif
-	while (content -> available ()) {
-		char c = content -> getNextByte ();
+	while (content.available ()) {
+		byte c = content.getNextByte ();
 
 #ifdef ENABLE_TAGS
-		if (shallReplace (contType)) {
+		if (shallReplace (contType)) {		// We only want to do replacements on "text" MIME Types
 			if (tagLen >= 0) {
+				// A tag is in progress
 				if (c == TAG_CHAR) {
+					// End of tag
 					DPRINT (F("Processing replacement tag: \""));
 					DPRINT (tag);
 					DPRINTLN (F("\""));
 
+					if (tagLen >= MAX_TAG_LEN - 1) {
+						DPRINT (F("WARNING: Tag was truncated (Max length is "));
+						DPRINT (MAX_TAG_LEN - 1);
+						DPRINTLN ((byte) ')');
+					}
+
 					boolean found = false;
 					if (strncmp_P (tag, PSTR ("GETP_"), 5) == 0) {
-						char* rep = findSubstitutionTagGetParameter (client -> request, tag + 5);
+						char* rep = findSubstitutionTagGetParameter (client.request, tag + 5);
 						if (rep) {
 							DPRINT (F("Replacement is: \""));
 							DPRINT (rep);
 							DPRINTLN (F("\""));
 
-							client -> print (rep);
+							client.print (rep);
 							found = true;
 						}
 					} else {
@@ -265,7 +225,7 @@ void WebServer::sendContent (WebClient* client, PageContent* content) {
 							DPRINT (*pstr);
 							DPRINTLN (F("\""));
 
-							client -> print (*pstr);
+							client.print (*pstr);
 							pstr -> begin ();		// Reset for next usage
 							found = true;
 						}
@@ -275,52 +235,49 @@ void WebServer::sendContent (WebClient* client, PageContent* content) {
 						// Tag not found, emit it
 						DPRINTLN (F("Tag not found"));
 
-						client -> print (TAG_CHAR);
-						client -> print (tag);
-						client -> print (TAG_CHAR);
+						client.print (TAG_CHAR);
+						client.print (tag);
+						client.print (TAG_CHAR);
 					}
 
-					// Tag complete
+					// Prepare for next tag
 					tagLen = -1;
 				} else if (tagLen < MAX_TAG_LEN - 1) {
+					// Tag continues
 					tag[tagLen++] = c;
 					tag[tagLen] = '\0';
 				} else {
-					// Tag too long, emit what we got so far
-					// FIXME: This will detect a fake tag at the closing TAG_CHAR
-					client -> print (TAG_CHAR);
-					client -> print (tag);
-					client -> print (c);
-					tagLen = -1;
+					// Tag too long, just count for debugging purposes
+					++tagLen;
 				}
 			} else {
 				if (c == TAG_CHAR) {
-					// Check if we have a tag to be replaced
+					// (Possible) New tag
 					tag[0] = '\0';
 					tagLen = 0;
 				} else {
-					client -> print (c);
+					client.write (c);		// c is a raw byte
 				}
 			}
 		} else {
-			client -> print (c);
+			client.write (c);
 		}
 #else
-		client -> print (c);
+		client.write (c);
 #endif
 	}
 }
 
 boolean WebServer::loop () {
-	WebClient *c = netint -> processPacket ();
-	if (c != NULL) {
+	WebClient *client = netint -> processPacket ();
+	if (client != NULL) {
 		// Got a client with a request, process it
 		DPRINT (F("Request for \""));
-		DPRINT (c -> request.url);
+		DPRINT (client -> request.url);
 		DPRINTLN (F("\""));
 
-		sendPage (c);
+		handleClient (*client);
 	}
 
-	return c != NULL;
+	return client != NULL;
 }
