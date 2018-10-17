@@ -38,6 +38,18 @@ boolean WebServer::begin (NetworkInterface& _netint) {
 	nStorage = 0;
 	netint = &_netint;
 
+#ifndef WEBBINO_NDEBUG
+	DPRINTLN (F("MIME Types available:"));
+	const MimeType* mt;
+	for (byte i = 0; (mt = reinterpret_cast<const MimeType*> (pgm_read_ptr (&mimeTypes[i]))); ++i) {
+		DPRINT (i);
+		DPRINT (F(". "));
+		DPRINT (PSTR_TO_F (mt -> getExtension ()));
+		DPRINT (F(" -> "));
+		DPRINTLN (PSTR_TO_F (mt -> getType ()));
+	}
+#endif
+
 	return true;
 }
 
@@ -76,6 +88,9 @@ PGM_P WebServer::getContentType (const char* filename) {
 	} else {
 #endif
 
+	DPRINT (F("Filename is: "));
+	DPRINTLN (filename);
+
 	char* ext = strrchr (filename, '.');
 	if (ext) {
 		++ext;	// Now points to actual extension
@@ -93,7 +108,7 @@ PGM_P WebServer::getContentType (const char* filename) {
 #endif
 
 	DPRINT (F("Content type is "));
-	DPRINTLN (mt ? mt -> getType () : FALLBACK_MIMETYPE);
+	DPRINTLN (PSTR_TO_F (mt ? mt -> getType () : FALLBACK_MIMETYPE));
 
 	return mt ? mt -> getType () : FALLBACK_MIMETYPE;
 }
