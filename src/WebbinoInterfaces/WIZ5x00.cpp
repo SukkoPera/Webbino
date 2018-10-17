@@ -17,6 +17,7 @@
  *   along with Webbino. If not, see <http://www.gnu.org/licenses/>.       *
  ***************************************************************************/
 
+#include <Arduino.h>		// See https://github.com/arduino-libraries/Ethernet/issues/72
 #include "WIZ5x00.h"
 
 #if defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500) || defined (WEBBINO_USE_ENC28J60_UIP)
@@ -65,8 +66,6 @@ boolean NetworkInterfaceWIZ5x00::begin (byte *mac) {
  		DPRINTLN (Ethernet.localIP ());
 	}
 
-	//realIp = Ethernet.localIP ();
-
 	return ret;
 }
 
@@ -93,7 +92,8 @@ WebClient* NetworkInterfaceWIZ5x00::processPacket () {
 
 	EthernetClient client = server.available ();
 	if (client) {
-		DPRINTLN (F("New client"));
+		DPRINT (F("New client from "));
+		DPRINTLN (client.remoteIP ());
 
 		// An http request ends with a blank line
 		boolean currentLineIsBlank = true;
