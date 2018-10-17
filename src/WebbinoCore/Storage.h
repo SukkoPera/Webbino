@@ -25,10 +25,11 @@ class Content;
 class Storage {
 public:
 	virtual boolean exists (const char* filename) = 0;
-	
+
 	virtual Content& get (const char* filename) = 0;
-	
+
 	virtual void release (Content& content) {
+		(void) content;
 	}
 };
 

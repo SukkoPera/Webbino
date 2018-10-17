@@ -51,6 +51,7 @@ public:
 
 	// Override if needed
 	virtual void runFunction (HTTPRequestParser& request) {
+		(void) request;
 	}
 };
 
