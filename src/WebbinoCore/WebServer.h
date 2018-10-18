@@ -83,12 +83,12 @@ const byte MAX_STORAGES = 3;
 class WebServer {
 private:
 	NetworkInterface* netint;
-	
+
 	Storage* storages[MAX_STORAGES];
 	byte nStorage;
 
 #ifdef ENABLE_TAGS
-	const ReplacementTag* const * substitutions;
+	const ReplacementTag* const * substitutions = nullptr;
 #endif
 
 	void handleClient (WebClient& client);
@@ -107,9 +107,9 @@ private:
 
 public:
 	boolean begin (NetworkInterface& _netint);
-	
+
 	boolean addStorage (Storage& storage);
-	
+
 #ifdef ENABLE_TAGS
 	void enableReplacementTags (const ReplacementTag* const _substitutions[]);
 #endif
