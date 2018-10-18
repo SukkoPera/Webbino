@@ -74,6 +74,7 @@ boolean WebServer::addStorage (Storage& storage) {
 
 	if (nStorage < MAX_STORAGES) {
 		storages[nStorage++] = &storage;
+		ret = true;
 	}
 
 	return ret;
@@ -250,9 +251,9 @@ void WebServer::sendContent (WebClient& client, Content& content) {
 						// Tag not found, emit it
 						DPRINTLN (F("Tag not found"));
 
-						client.print (TAG_CHAR);
+						client.write (TAG_CHAR);
 						client.print (tag);
-						client.print (TAG_CHAR);
+						client.write (TAG_CHAR);
 					}
 
 					// Prepare for next tag
