@@ -38,17 +38,17 @@ private:
 public:
 	SdContent () {
 	}
-	
+
 	SdContent (const char* filename): Content (filename) {
 		file = SD.open (filename);
 	}
 
-	SdContent (const SdContent& o) {
+	SdContent (const SdContent& o): Content (*this) {
 		file = o.file;
 	}
-	
+
 	SdContent& operator= (SdContent o) {
-		swap (*this, o);
+		mystd::swap (*this, o);
 		return *this;
 	}
 
@@ -56,7 +56,7 @@ public:
 		if (file)
 			file.close ();
 	}
-	
+
 	boolean available () override {
 		return file.available ();
 	}
@@ -72,11 +72,11 @@ public:
 class SdStorage: public Storage {
 private:
 	SdContent content;
-	
+
 public:
 	boolean begin (int8_t pin) {
 		boolean ret = false;
-		
+
 		DPRINT (F("Initializing SD card..."));
 		if (!SD.begin (pin)) {
 			DPRINTLN (F(" failed"));
@@ -87,13 +87,15 @@ public:
 
 		return ret;
 	}
-	
+
 	boolean exists (const char* filename) override {
 		return SD.exists (filename);
 	}
-	
+
 	Content& get (const char* filename) override {
 		content = SdContent (filename);
+
+		return content;
 	}
 };
 
