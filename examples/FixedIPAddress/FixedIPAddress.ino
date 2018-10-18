@@ -19,8 +19,9 @@
 
 #include <Webbino.h>
 
-// Instantiate the WebServer
+// Instantiate the WebServer and page storage
 WebServer webserver;
+FlashStorage flashStorage;
 
 // Instantiate the network interface defined in the Webbino headers
 #if defined (WEBBINO_USE_ENC28J60)
@@ -66,10 +67,10 @@ WebServer webserver;
 
 #include "html.h"
 
-const Page indexPage PROGMEM = {index_html_name, index_html, NULL};
+const Page page01 PROGMEM = {index_html_name, index_html, index_html_len, NULL};
 
 const Page* const pages[] PROGMEM = {
-	&indexPage,
+	&page01,
  	NULL
 };
 
@@ -113,7 +114,10 @@ void setup () {
 		Serial.print (F("- Default Gateway: "));
 		Serial.println (netint.getGateway ());
 
-		webserver.begin (netint, pages);
+		webserver.begin (netint);
+
+		flashStorage.begin (pages);
+		webserver.addStorage (flashStorage);
 	}
 }
 

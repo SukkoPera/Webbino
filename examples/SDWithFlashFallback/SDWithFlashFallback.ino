@@ -24,7 +24,7 @@
  */
 #define SD_SS 4
 
-// Instantiate the WebServer
+// Instantiate the WebServer and page storages
 WebServer webserver;
 FlashStorage flashStorage;
 SdStorage sdStorage;
@@ -68,7 +68,7 @@ SdStorage sdStorage;
 
 #include "html.h"
 
-const Page page01 PROGMEM = {index_htm_name, index_htm, NULL};
+const Page page01 PROGMEM = {index_htm_name, index_htm, index_htm_len, NULL};
 
 const Page* const pages[] PROGMEM = {
 	&page01,

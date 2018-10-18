@@ -19,9 +19,7 @@
 
 #include <Webbino.h>
 
-// 22828
-
-// Instantiate the WebServer
+// Instantiate the WebServer and page storage
 WebServer webserver;
 FlashStorage flashStorage;
 
@@ -113,7 +111,7 @@ void setup () {
 		Serial.println (netint.getGateway ());
 
 		webserver.begin (netint);
-		
+
 		flashStorage.begin (pages);
 		webserver.addStorage (flashStorage);
 	}

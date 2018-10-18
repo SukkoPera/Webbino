@@ -24,8 +24,10 @@
  */
 #define SD_SS 4
 
-// Instantiate the WebServer
+// Instantiate the WebServer and page storages
 WebServer webserver;
+FlashStorage flashStorage;
+SdStorage sdStorage;
 
 // Instantiate the network interface defined in the Webbino headers
 #if defined (WEBBINO_USE_ENC28J60)
@@ -226,12 +228,15 @@ void setup () {
 		Serial.print (F("- Default Gateway: "));
 		Serial.println (netint.getGateway ());
 
+		webserver.begin (netint);
+
 		Serial.print (F("Initializing SD card..."));
-		if (!webserver.begin (netint, NULL, tags, SD_SS)) {
+		if (!sdStorage.begin (SD_SS)) {
 			Serial.println (F(" failed"));
 			while (42)
 				;
 		}
+		webserver.addStorage (sdStorage);
 		Serial.println (F(" done"));
 	}
 }

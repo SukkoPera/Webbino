@@ -19,8 +19,9 @@
 
 #include <Webbino.h>
 
-// Instantiate the WebServer
+// Instantiate the WebServer and page storage
 WebServer webserver;
+FlashStorage flashStorage;
 
 // Instantiate the network interface defined in the Webbino headers
 #if defined (WEBBINO_USE_ENC28J60)
@@ -54,7 +55,12 @@ WebServer webserver;
 	NetworkInterfaceDigiFi netint;
 #endif
 
-// Pin to control, make sure this makes sense (i.e.: Use D0 on NodeMCU)!
+/* Pin to control, make sure this makes sense:
+ * - If using an Uno with the Ethernet shield, remember that it is driven
+ *   through SPI, which means that pin 13 (i.e. the pin for LED_BUILTIN) is used
+ *   by the SPI clock line, so put a led on a different pin.
+ * - Use D0 on NodeMCU!
+ */
 const byte ledPin = 7;
 
 // Logic level turns the led on: on NodeMCU and with most relays, this should
@@ -91,7 +97,7 @@ void ledToggle (HTTPRequestParser& request) {
 
 #include "html.h"
 
-const Page page01 PROGMEM = {index_html_name, index_html, ledToggle};
+const Page page01 PROGMEM = {index_html_name, index_html, index_html_len, ledToggle};
 
 const Page* const pages[] PROGMEM = {
 	&page01,
@@ -173,7 +179,11 @@ void setup () {
 		Serial.print (F("- Default Gateway: "));
 		Serial.println (netint.getGateway ());
 
-		webserver.begin (netint, pages, tags);
+		webserver.begin (netint);
+		webserver.enableReplacementTags (tags);
+
+		flashStorage.begin (pages);
+		webserver.addStorage (flashStorage);
 	}
 
 	// Prepare pin
