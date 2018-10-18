@@ -52,22 +52,30 @@ struct Page {
 /******************************************************************************/
 
 
+
 class FlashContent: public Content {
 private:
 	const Page* page;
 	PGM_BYTES_P next;
 	unsigned int offset;
+	char filenameRam[MAX_FLASH_FNLEN];
 
 public:
 	FlashContent (): page (nullptr), next (nullptr), offset (-1) {
+		filenameRam[0] = '\0';
 	}
 
-	FlashContent (const Page* p): Content (p -> getName ()), page (p),
+	FlashContent (const Page* p): Content (nullptr), page (p),
 		next (p -> getContent ()), offset (0) {
+		strncpy_P (filenameRam, p -> getName (), MAX_FLASH_FNLEN - 1);
+		filenameRam[MAX_FLASH_FNLEN - 1] = '\0';
 	}
 
 	FlashContent (const FlashContent& o): Content (*this), page (o.page),
 		next (o.next), offset (o.offset) {
+
+		strncpy (filenameRam, o.filenameRam, MAX_FLASH_FNLEN - 1);
+		filenameRam[MAX_FLASH_FNLEN - 1] = '\0';
 	}
 
 	FlashContent& operator= (const FlashContent& o) {
@@ -77,7 +85,17 @@ public:
 		next = o.next;
 		offset = o.offset;
 
+		strncpy (filenameRam, o.filenameRam, MAX_FLASH_FNLEN - 1);
+		filenameRam[MAX_FLASH_FNLEN - 1] = '\0';
+
 		return *this;
+	}
+
+	/* This needs to be overridden because page -> getFilename () is in flash
+	 * memory :(.
+	 */
+	const char* getFilename () const override {
+		return filenameRam;
 	}
 
 	//~ FlashContent& operator= (FlashContent o) {

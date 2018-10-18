@@ -78,6 +78,10 @@
  */
 #define MAX_TAG_LEN 24
 
+/* Maximum length of a filename in the Flash storage
+ */
+#define MAX_FLASH_FNLEN 16
+
 /* Maximum length of a get parameter name and value
  */
 #define BUF_LEN 32
