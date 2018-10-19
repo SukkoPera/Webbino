@@ -73,7 +73,7 @@ char *HTTPRequestParser::get_parameter (const char param[]) {
 
 #ifdef VERBOSE_REQUEST_PARSER
 	/* Print this now, because if we got called by
-	 * get_parameter(const __FlashStringHelper *), param is actually stored in
+	 * get_parameter(WebbinoFStr), param is actually stored in
 	 * buffer and will be overwritten.
 	 */
 	DPRINT (F("Extracting GET parameter: \""));
@@ -106,7 +106,7 @@ char *HTTPRequestParser::get_parameter (const char param[]) {
 }
 
 #ifdef ENABLE_FLASH_STRINGS
-char *HTTPRequestParser::get_parameter (FlashString param) {
+char *HTTPRequestParser::get_parameter (WebbinoFStr param) {
 	strncpy_P (buffer, F_TO_PSTR (param), BUF_LEN);
 	return get_parameter (buffer);
 }
