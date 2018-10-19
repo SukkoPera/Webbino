@@ -234,6 +234,7 @@ void setup () {
 		Serial.println (netint.getGateway ());
 
 		webserver.begin (netint);
+		webserver.enableReplacementTags (tags);
 
 		flashStorage.begin (pages);
 		webserver.addStorage (flashStorage);
