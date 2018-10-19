@@ -45,7 +45,6 @@ void FishinoWebClient::sendReply () {
 
 byte FishinoInterface::retBuffer[6];
 
-// FIXME
 FishinoInterface::FishinoInterface (): server (SERVER_PORT) {
 }
 
@@ -78,7 +77,7 @@ boolean FishinoInterface::begin (const char *_ssid, const char *_password) {
 
 	// Wait till connection is established
 	DPRINTLN (F("Waiting for IP..."));
-	while (Fishino.status() != STATION_GOT_IP) {
+	while (Fishino.status () != STATION_GOT_IP) {
 		delay (500);
 	}
 	DPRINT (F("Local IP address: "));
