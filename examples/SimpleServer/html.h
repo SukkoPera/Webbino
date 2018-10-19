@@ -63,7 +63,7 @@ const byte index_html[] PROGMEM = {
 
 };
 
-unsigned int index_html_len = 472;
+const unsigned int index_html_len PROGMEM = 472;
 
 const char logo_gif_name[] PROGMEM = "/logo.gif";
 
@@ -595,7 +595,7 @@ const byte logo_gif[] PROGMEM = {
 	0x00,  0x3b,  
 };
 
-unsigned int logo_gif_len = 4194;
+const unsigned int logo_gif_len PROGMEM = 4194;
 
 /*** CODE TO INCLUDE IN SKETCH ***
 

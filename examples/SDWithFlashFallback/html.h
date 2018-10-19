@@ -85,7 +85,7 @@ const byte index_htm[] PROGMEM = {
 	0x3c,  0x2f,  0x68,  0x74,  0x6d,  0x6c,  0x3e,  
 };
 
-unsigned int index_htm_len = 655;
+const unsigned int index_htm_len PROGMEM = 655;
 
 /*** CODE TO INCLUDE IN SKETCH ***
 

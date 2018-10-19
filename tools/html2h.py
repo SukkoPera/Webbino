@@ -67,7 +67,7 @@ def process_file (filename, nostrip = False):
 
 			print "\n};"
 			print
-			print "unsigned int %s_len = %u;" % (code, i)
+			print "const unsigned int %s_len PROGMEM = %u;" % (code, i)
 			print
 	except IOError as ex:
 		print "Cannot open file %s: %s" % (filename, str (ex))

@@ -90,7 +90,7 @@ const byte index_html[] PROGMEM = {
 	0x3e,  
 };
 
-unsigned int index_html_len = 689;
+const unsigned int index_html_len PROGMEM = 689;
 
 /*** CODE TO INCLUDE IN SKETCH ***
 

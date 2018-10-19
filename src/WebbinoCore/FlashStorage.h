@@ -41,7 +41,7 @@ struct Page {
 	}
 
 	unsigned int getLength () const {
-		return length;
+		return pgm_read_word (&(this -> length));
 	}
 
 	PageFunction getFunction () const {
