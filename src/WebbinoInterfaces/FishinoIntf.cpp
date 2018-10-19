@@ -83,6 +83,8 @@ boolean FishinoInterface::begin (const char *_ssid, const char *_password) {
 	}
 	DPRINT (F("Local IP address: "));
 	DPRINTLN (Fishino.localIP ());
+	
+	server.begin ();
 
 	return true;
 
