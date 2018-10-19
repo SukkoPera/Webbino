@@ -46,7 +46,7 @@ void FishinoWebClient::sendReply () {
 byte FishinoInterface::retBuffer[6];
 
 // FIXME
-FishinoInterface::FishinoInterface (): server (80) {
+FishinoInterface::FishinoInterface (): server (SERVER_PORT) {
 }
 
 boolean FishinoInterface::begin (const char *_ssid, const char *_password) {
