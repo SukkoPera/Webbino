@@ -197,7 +197,7 @@ void WebServer::sendContent (WebClient& client, Content& content) {
 
 	// Send headers
 	client.print (F(HEADER_START OK_HEADER CONT_TYPE_HEADER));
-	client.print (contType);
+	client.print (PSTR_TO_F (contType));
 	client.print (F(HEADER_END));
 
 #ifdef ENABLE_TAGS
