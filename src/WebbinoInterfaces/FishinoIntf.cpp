@@ -68,25 +68,56 @@ boolean FishinoInterface::begin (const char *_ssid, const char *_password) {
 	}
 	DPRINT (F("Joined AP"));
 
-	// setup IP or start DHCP client
-//~ #ifdef IPADDR
-	//~ Fishino.config(ip, gw, nm);
-//~ #else
+	// Start DHCP client
 	Fishino.staStartDHCP ();
-//~ #endif
 
 	// Wait till connection is established
 	DPRINTLN (F("Waiting for IP..."));
 	while (Fishino.status () != STATION_GOT_IP) {
 		delay (500);
 	}
-	DPRINT (F("Local IP address: "));
+	DPRINT (F("Server is at "));
 	DPRINTLN (Fishino.localIP ());
-	
+	dhcp = true;
+
 	server.begin ();
 
 	return true;
+}
 
+boolean FishinoInterface::begin (const char *_ssid, const char *_password,
+	  IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask) {
+
+	// Reset and test WiFi module
+	while (!Fishino.reset ())
+		DPRINTLN (F("Fishino RESET FAILED, RETRYING"));
+	DPRINTLN (F("Fishino WiFi RESET OK"));
+
+	// Setup PHY mode -- some AP don't like 11B mode
+	Fishino.setPhyMode (PHY_MODE_11G);
+
+	// Go into station mode
+	Fishino.setMode (STATION_MODE);
+
+	// Try forever to connect to AP
+	DPRINT (F("Connecting to AP: "));
+	DPRINTLN (_ssid);
+	while (!Fishino.begin (_ssid, _password)) {
+		delay (500);
+	}
+	DPRINT (F("Joined AP"));
+
+	// Configure IP address
+	Fishino.config (ip, gw, mask, dns);
+
+	dhcp = false;
+
+	server.begin ();
+
+	DPRINT (F("Server is at "));
+	DPRINTLN (Ethernet.localIP ());
+
+	return true;
 }
 
 WebClient* FishinoInterface::processPacket () {
@@ -156,8 +187,7 @@ WebClient* FishinoInterface::processPacket () {
 }
 
 boolean FishinoInterface::usingDHCP () {
-	// FIXME
-	return true;
+	return dhcp;
 }
 
 byte *FishinoInterface::getMAC () {

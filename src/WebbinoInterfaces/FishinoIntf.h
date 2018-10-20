@@ -46,6 +46,7 @@ class FishinoInterface: public NetworkInterface {
 private:
 	static byte retBuffer[6];
 
+	boolean dhcp;
 	FishinoServer server;
 	byte ethernetBuffer[MAX_URL_LEN + 16];			// MAX_URL_LEN + X is enough, since we only store the "GET <url> HTTP/1.x" request line
 	unsigned int ethernetBufferSize;
@@ -56,6 +57,9 @@ public:
 	FishinoInterface ();
 
 	boolean begin (const char *_ssid, const char *_password);
+
+	boolean begin (const char *_ssid, const char *_password, IPAddress ip,
+		IPAddress dns, IPAddress gw, IPAddress mask);
 
 	WebClient* processPacket () override;
 
