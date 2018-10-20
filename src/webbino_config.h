@@ -73,7 +73,7 @@
 
 /* Character that delimits tags
  */
-#define TAG_CHAR ((byte) '#')
+#define TAG_CHAR '#'
 
 /* Maximum length of a tag name
  */

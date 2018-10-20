@@ -193,6 +193,8 @@ char *WebServer::findSubstitutionTagGetParameter (HTTPRequestParser& request, co
 // Read the page, perform tag substitutions and send it over
 // FIXME: Handle unterminated tags
 void WebServer::sendContent (WebClient& client, Content& content) {
+	const byte tagChar = static_cast<byte> (TAG_CHAR);	// Make sure this is a byte and not a char
+
 	PGM_P contType = getContentType (content.getFilename ());
 
 	// Send headers
@@ -211,7 +213,7 @@ void WebServer::sendContent (WebClient& client, Content& content) {
 		if (shallReplace (contType)) {		// We only want to do replacements on "text" MIME Types
 			if (tagLen >= 0) {
 				// A tag is in progress
-				if (c == TAG_CHAR) {
+				if (c == tagChar) {
 					// End of tag
 					DPRINT (F("Processing replacement tag: \""));
 					DPRINT (tag);
@@ -251,9 +253,9 @@ void WebServer::sendContent (WebClient& client, Content& content) {
 						// Tag not found, emit it
 						DPRINTLN (F("Tag not found"));
 
-						client.write (TAG_CHAR);
+						client.write (tagChar);
 						client.print (tag);
-						client.write (TAG_CHAR);
+						client.write (tagChar);
 					}
 
 					// Prepare for next tag
@@ -267,7 +269,7 @@ void WebServer::sendContent (WebClient& client, Content& content) {
 					++tagLen;
 				}
 			} else {
-				if (c == TAG_CHAR) {
+				if (c == tagChar) {
 					// (Possible) New tag
 					tag[0] = '\0';
 					tagLen = 0;
