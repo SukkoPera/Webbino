@@ -82,7 +82,7 @@ boolean NetworkInterfaceWiFi::begin (Stream& _serial, const char *_ssid, const c
 	while (WiFi.status () != WL_CONNECTED) {
 		delay (500);
 	};
-	DPRINT (F("Joined AP, local IP address: "));
+	DPRINT (F("Joined AP, server is at "));
 	DPRINTLN (WiFi.localIP ());
 
 	server.begin ();
