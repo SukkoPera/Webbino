@@ -1,0 +1,27 @@
+<html>
+<body>
+
+<script>
+function updatePage() {
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			document.getElementById("uptime").innerHTML =
+			this.responseText;
+		}
+	};
+	xhttp.open("GET", "uptime.txt", true);
+	xhttp.send();
+}
+
+setInterval(updatePage, 1000);
+</script>
+
+<h2>Webbino #WEBBINO_VER#</h2>
+<h3><a href="https://github.com/SukkoPera/Webbino">https://github.com/SukkoPera/Webbino</a></h3>
+<h3>Copyright (C) 2012-2018 By <a href="mailto:software@sukkology.net">SukkoPera</a></h3>
+<h4>This program comes with ABSOLUTELY NO WARRANTY. This is free software, and you are welcome to redistribute it under certain conditions; <a href="http://www.gnu.org/licenses/gpl-3.0.html">click here</a> for details.</h4>
+<br/>
+<h5>System Uptime: <span id="uptime"/></h5>
+</body>
+</html>
