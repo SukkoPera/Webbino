@@ -52,6 +52,7 @@ MimeTypeEntry (mt_htm, htm, text, html);
 MimeTypeEntry (mt_html, html, text, html);
 MimeTypeEntry (mt_css, css, text, css);
 MimeTypeEntry (mt_js, js, application, javascript);
+MimeTypeEntry (mt_txt, txt, text, plain);
 MimeTypeEntry (mt_png, png, image, png);
 MimeTypeEntry (mt_gif, gif, image, gif);
 MimeTypeEntry (mt_jpg, jpg, image, jpeg);
@@ -70,6 +71,7 @@ const MimeTypeArray mimeTypes[] PROGMEM = {
 	&mt_html,
 	&mt_css,
 	&mt_js,
+	&mt_txt,
 	&mt_png,
 	&mt_gif,
 	&mt_jpg,
