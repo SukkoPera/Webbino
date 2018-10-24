@@ -66,7 +66,7 @@ boolean FishinoInterface::begin (const char *_ssid, const char *_password) {
 	while (!Fishino.begin (_ssid, _password)) {
 		delay (500);
 	}
-	DPRINT (F("Joined AP"));
+	DPRINTLN (F("Joined AP"));
 
 	// Start DHCP client
 	Fishino.staStartDHCP ();
@@ -115,7 +115,7 @@ boolean FishinoInterface::begin (const char *_ssid, const char *_password,
 	server.begin ();
 
 	DPRINT (F("Server is at "));
-	DPRINTLN (Ethernet.localIP ());
+	DPRINTLN (Fishino.localIP ());
 
 	return true;
 }
