@@ -19,8 +19,8 @@
 
 #include <Webbino.h>
 
-/* SS pin for the SD card reader. Pin 4 is used for the reader included
- * on most WIZ5100-based Ethernet shields
+/* SS pin for the SD card reader. Pin 4 is used by the reader included on most
+ * WIZ5100-based Ethernet shields and also by Fishino boards.
  */
 #define SD_SS 4
 
@@ -215,7 +215,7 @@ EasyReplacementTagArray tags[] PROGMEM = {
 
 // Avoid some bug reports :)
 #if !defined (WEBBINO_ENABLE_SD) && !defined (WEBBINO_ENABLE_SDFAT)
-#error Please enable WEBBINO_ENABLE_SD or WEBBINO_ENABLE_SDFAT in webbino_config.h
+//~ #error Please enable WEBBINO_ENABLE_SD or WEBBINO_ENABLE_SDFAT in webbino_config.h
 #endif
 
 void setup () {
@@ -252,17 +252,20 @@ void setup () {
 		Serial.println (netint.getGateway ());
 
 		webserver.begin (netint);
-		flashStorage.begin (pages);
-		webserver.addStorage (flashStorage);
+		webserver.enableReplacementTags (tags);
 
+		// Add SD storage first
 		Serial.print (F("Initializing SD card..."));
 		if (!sdStorage.begin (SD_SS)) {
 			Serial.println (F(" failed"));
-			while (42)
-				;
+		} else {
+			webserver.addStorage (sdStorage);
+			Serial.println (F(" done"));
 		}
-		webserver.addStorage (sdStorage);
-		Serial.println (F(" done"));
+
+		// Add flash storage last, so that it works as a fallback
+		flashStorage.begin (pages);
+		webserver.addStorage (flashStorage);
 	}
 }
 
