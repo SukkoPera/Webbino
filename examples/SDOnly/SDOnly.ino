@@ -19,8 +19,8 @@
 
 #include <Webbino.h>
 
-/* SS pin for the SD card reader. Pin 4 is used for the reader included
- * on most WIZ5100-based Ethernet shields
+/* SS pin for the SD card reader. Pin 4 is used by the reader included on most
+ * WIZ5100-based Ethernet shields and also by Fishino boards.
  */
 #define SD_SS 4
 
