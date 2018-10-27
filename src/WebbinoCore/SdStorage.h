@@ -48,7 +48,13 @@ public:
 	}
 
 	SdContent& operator= (SdContent o) {
-		mystd::swap (*this, o);
+		if (file)
+			file.close ();
+
+		Content::operator= (o);		// This must be called explicitly!!!
+
+		//~ mystd::swap (*this, o);
+		file = o.file;
 		return *this;
 	}
 
