@@ -100,6 +100,10 @@
 
 /* Name of the index page, i.e. the page requests for / get redirected to.
  */
+#ifdef WEBBINO_ENABLE_SD
+// Long File Names are not supported, cope with it
+#define REDIRECT_ROOT_PAGE "index.htm"
+#else
 #define REDIRECT_ROOT_PAGE "index.html"
 
 /* Size of output buffer. This speeds up transmission, by sending clients more
