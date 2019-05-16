@@ -29,7 +29,6 @@ struct Page {
 	PGM_P name;
 	PGM_BYTES_P content;
 	unsigned int length;
-	PageFunction function;
 
 	// Methods that (try to) hide the complexity of accessing PROGMEM data
 	PGM_P getName () const {
@@ -41,11 +40,10 @@ struct Page {
 	}
 
 	unsigned int getLength () const {
+		/* FIXME This gets truncated to 16 bits on platforms with wider ints,
+		 * see #5
+		 */
 		return pgm_read_word (&(this -> length));
-	}
-
-	PageFunction getFunction () const {
-		return reinterpret_cast<PageFunction> (pgm_read_ptr (&(this -> function)));
 	}
 };
 
@@ -122,15 +120,6 @@ public:
 	byte getNextByte () override {
 		++offset;
 		return pgm_read_byte (next++);
-	}
-
-	void runFunction (HTTPRequestParser& request) override {
-		// Call page function
-		if (page != nullptr) {
-			PageFunction func = page -> getFunction ();
-			if (func)
-				func (request);
-		}
 	}
 };
 

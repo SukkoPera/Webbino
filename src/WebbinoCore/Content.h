@@ -48,11 +48,6 @@ public:
 
 	// Please override
 	virtual byte getNextByte () = 0;
-
-	// Override if needed
-	virtual void runFunction (HTTPRequestParser& request) {
-		(void) request;
-	}
 };
 
 #endif

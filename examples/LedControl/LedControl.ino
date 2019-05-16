@@ -80,8 +80,26 @@ boolean ledState = false;
 
 
 /******************************************************************************
+ * DEFINITION OF PAGES                                                        *
+ ******************************************************************************/
+
+#include "html.h"
+
+const Page page01 PROGMEM = {index_html_name, index_html, index_html_len};
+
+const Page* const pages[] PROGMEM = {
+	&page01,
+	NULL
+};
+
+
+/******************************************************************************
  * PAGE FUNCTIONS                                                             *
  ******************************************************************************/
+
+#ifndef ENABLE_PAGE_FUNCTIONS
+#error Please define ENABLE_PAGE_FUNCTIONS in webbino_config.h
+#endif
 
 void ledToggle (HTTPRequestParser& request) {
 	char *param;
@@ -98,17 +116,10 @@ void ledToggle (HTTPRequestParser& request) {
 	}
 }
 
+FlashFileFuncAssoc (indexAss, index_html_name, ledToggle);
 
-/******************************************************************************
- * DEFINITION OF PAGES                                                        *
- ******************************************************************************/
-
-#include "html.h"
-
-const Page page01 PROGMEM = {index_html_name, index_html, index_html_len, ledToggle};
-
-const Page* const pages[] PROGMEM = {
-	&page01,
+FileFuncAssociationArray associations[] PROGMEM = {
+	&indexAss,
 	NULL
 };
 
@@ -179,21 +190,23 @@ void setup () {
 		Serial.println (F("Failed to get configuration from DHCP"));
 		while (42)
 			;
-	} else {
-		Serial.println (F("DHCP configuration done:"));
-		Serial.print (F("- IP: "));
-		Serial.println (netint.getIP ());
-		Serial.print (F("- Netmask: "));
-		Serial.println (netint.getNetmask ());
-		Serial.print (F("- Default Gateway: "));
-		Serial.println (netint.getGateway ());
-
-		webserver.begin (netint);
-		webserver.enableReplacementTags (tags);
-
-		flashStorage.begin (pages);
-		webserver.addStorage (flashStorage);
 	}
+
+
+	Serial.println (F("DHCP configuration done:"));
+	Serial.print (F("- IP: "));
+	Serial.println (netint.getIP ());
+	Serial.print (F("- Netmask: "));
+	Serial.println (netint.getNetmask ());
+	Serial.print (F("- Default Gateway: "));
+	Serial.println (netint.getGateway ());
+
+	webserver.begin (netint);
+	webserver.enableReplacementTags (tags);
+
+	flashStorage.begin (pages);
+	webserver.addStorage (flashStorage);
+	webserver.associateFunctions (associations);
 
 	// Prepare pin
 	digitalWrite (ledPin, !LED_ACTIVE_LEVEL);		// Off

@@ -78,6 +78,40 @@ typedef const ReplacementTag* const EasyReplacementTagArray;
 
 /******************************************************************************/
 
+#ifdef ENABLE_PAGE_FUNCTIONS
+typedef void (*PageFunction) (HTTPRequestParser& request);
+
+
+struct FileFuncAssociation {
+	PGM_P path;
+	PageFunction function;
+
+	// Methods that (try to) hide the complexity of accessing PROGMEM data
+	PGM_P getPath () const {
+		return reinterpret_cast<PGM_P> (pgm_read_ptr (&(this -> path)));
+	}
+
+	PageFunction getFunction () const {
+		return reinterpret_cast<PageFunction> (pgm_read_ptr (&(this -> function)));
+	}
+};
+
+#define REPTAG_FFA_VAR(var) _ffa_ ## var
+#define FileFuncAssoc(var, path, fn) \
+                const char REPTAG_FFA_VAR(var)[] PROGMEM = path; \
+const FileFuncAssociation var PROGMEM = {REPTAG_FFA_VAR(var), fn};
+
+/* Use this for pages in flash, where a PROGMEM variable with the filename is
+ * already available
+ */
+#define FlashFileFuncAssoc(var, path, fn) \
+	const FileFuncAssociation var PROGMEM = {path, fn};
+
+typedef const FileFuncAssociation* const FileFuncAssociationArray;
+#endif
+
+/******************************************************************************/
+
 const byte MAX_STORAGES = 3;
 
 class WebServer {
@@ -89,6 +123,10 @@ private:
 
 #ifdef ENABLE_TAGS
 	const ReplacementTag* const * substitutions = nullptr;
+#endif
+
+#ifdef ENABLE_PAGE_FUNCTIONS
+	FileFuncAssociationArray *associations = nullptr;
 #endif
 
 	void handleClient (WebClient& client);
@@ -112,6 +150,10 @@ public:
 
 #ifdef ENABLE_TAGS
 	void enableReplacementTags (const ReplacementTag* const _substitutions[]);
+#endif
+
+#ifdef ENABLE_PAGE_FUNCTIONS
+	void associateFunctions (FileFuncAssociationArray* _associations);
 #endif
 
 	boolean loop ();

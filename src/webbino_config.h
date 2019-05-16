@@ -48,6 +48,9 @@
  */
 //~ #define WEBBINO_ENABLE_SDFAT
 
+// Define to enable running functions upon request of certain pages
+#define ENABLE_PAGE_FUNCTIONS
+
 /* Define to enable serving webpages from the ESP8266 integrated filesystem on
  * flash (SPIFFS). By default this is always enabled if compiling for ESP8266
  * standalone.
@@ -105,6 +108,7 @@
 #define REDIRECT_ROOT_PAGE "index.htm"
 #else
 #define REDIRECT_ROOT_PAGE "index.html"
+#endif
 
 /* Size of output buffer. This speeds up transmission, by sending clients more
  * than one character at a time. Size it appropriately according to available

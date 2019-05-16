@@ -39,7 +39,7 @@ boolean WebServer::begin (NetworkInterface& _netint) {
 	netint = &_netint;
 
 #ifndef WEBBINO_NDEBUG
-	DPRINTLN (F("MIME Types available:"));
+	DPRINTLN (F("Available MIME Types:"));
 	const MimeType* mt;
 	for (byte i = 0; (mt = reinterpret_cast<const MimeType*> (pgm_read_ptr (&mimeTypes[i]))); ++i) {
 		DPRINT (i);
@@ -58,12 +58,31 @@ void WebServer::enableReplacementTags (const ReplacementTag* const _substitution
 	substitutions = _substitutions;
 
 #ifndef WEBBINO_NDEBUG
-	DPRINTLN (F("Tags available:"));
+	DPRINTLN (F("Available Tags:"));
 	const ReplacementTag* sub;
 	for (byte i = 0; substitutions && (sub = reinterpret_cast<const ReplacementTag*> (pgm_read_ptr (&substitutions[i]))); i++) {
 		DPRINT (i);
 		DPRINT (F(". "));
 		DPRINTLN (PSTR_TO_F (sub -> getName ()));
+	}
+#endif
+}
+#endif
+
+
+#ifdef ENABLE_PAGE_FUNCTIONS
+void WebServer::associateFunctions (FileFuncAssociationArray* _associations) {
+	associations = _associations;
+
+#ifndef WEBBINO_NDEBUG
+	DPRINTLN (F("Available Associations:"));
+	const FileFuncAssociation* ffa;
+	for (byte i = 0; associations && (ffa = reinterpret_cast<const FileFuncAssociation*> (pgm_read_ptr (&associations[i]))); i++) {
+		DPRINT (i);
+		DPRINT (F(". "));
+		DPRINT (PSTR_TO_F (ffa -> getPath ()));
+		DPRINT (F(" at 0x"));
+		DPRINTLN ((uint16_t) ffa -> getFunction (), HEX);
 	}
 #endif
 }
@@ -138,10 +157,28 @@ void WebServer::handleClient (WebClient& client) {
 			if (stor.exists (pagename)) {
 				DPRINT (F("Page found on storage "));
 				DPRINTLN (i);
+
+				/* Get the content NOW: pagename is stored in buffer, and the
+				 * PageFunction, if any, might call request.get_parameter()
+				 * which would overwrite the buffer and thus pagename. Not
+				 * pretty, but it works.
+				 */
 				Content& content = stor.get (pagename);
 
-				// Call page function
-				content.runFunction (client.request);
+#ifdef ENABLE_PAGE_FUNCTIONS
+				// Look up page function, if available
+				if (associations != nullptr) {
+					const FileFuncAssociation* ass;
+
+					for (byte i = 0; (ass = reinterpret_cast<const FileFuncAssociation*> (pgm_read_ptr (&associations[i]))); i++) {
+						if (strcmp_P (pagename, ass -> getPath ()) == 0) {
+							DPRINTLN (F("Page has an associated function"));
+							PageFunction func = ass -> getFunction ();
+							func (client.request);
+						}
+					}
+				}
+#endif
 
 				sendContent (client, content);
 				stor.release (content);
