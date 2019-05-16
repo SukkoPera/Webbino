@@ -85,7 +85,7 @@ def process_dir (dirpath, nostrip = False):
 			if ident is not None:
 				idents.append (ident)
 		elif os.path.isdir (fullfile):
-			idents.extends (process_dir (fullfile, nostrip))
+			idents += process_dir (fullfile, nostrip)
 		else:
 			print "Skipping %s" % filename
 	return idents
