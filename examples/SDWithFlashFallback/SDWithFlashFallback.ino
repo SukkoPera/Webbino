@@ -76,7 +76,7 @@ SdStorage sdStorage;
 
 #include "html.h"
 
-const Page page01 PROGMEM = {index_htm_name, index_htm, index_htm_len, NULL};
+const Page page01 PROGMEM = {index_htm_name, index_htm, index_htm_len};
 
 const Page* const pages[] PROGMEM = {
 	&page01,
