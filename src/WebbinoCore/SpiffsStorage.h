@@ -37,20 +37,20 @@ public:
 	SpiffsContent (const char* filename): Content (filename) {
 		file = SPIFFS.open (filename, "r");
 	}
-	
-	SpiffsContent (const SpiffsContent& o) {
+
+	SpiffsContent (const SpiffsContent& o): Content (*this) {
 		file = o.file;
 	}
-	
+
 	SpiffsContent& operator= (SpiffsContent o) {
-		swap (*this, o);
+		std::swap (*this, o);
 		return *this;
 	}
 
 	~SpiffsContent () {
 		file.close ();
 	}
-	
+
 	boolean available () override {
 		return file.available ();
 	}
@@ -66,7 +66,7 @@ public:
 class SpiffsStorage: public Storage {
 private:
 	SpiffsContent content;
-	
+
 public:
 	void begin () {
 		SPIFFS.begin ();
@@ -81,13 +81,15 @@ public:
 		}
 #endif
 	}
-	
+
 	boolean exists (const char* filename) override {
 		return SPIFFS.exists (filename);
 	}
-	
+
 	Content& get (const char* filename) override {
 		content = SpiffsContent (filename);
+
+		return content;
 	}
 };
 
