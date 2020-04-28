@@ -82,7 +82,14 @@ void WebServer::associateFunctions (FileFuncAssociationArray* _associations) {
 		DPRINT (F(". "));
 		DPRINT (PSTR_TO_F (ffa -> getPath ()));
 		DPRINT (F(" at 0x"));
+// I hate this, but well...
+#if __SIZEOF_POINTER__ == 2
 		DPRINTLN ((uint16_t) ffa -> getFunction (), HEX);
+#elif __SIZEOF_POINTER__ == 4
+		DPRINTLN ((uint32_t) ffa -> getFunction (), HEX);
+#else
+		#error "Mmmmh... Compiling on a weird architecture?"
+#endif
 	}
 #endif
 }
