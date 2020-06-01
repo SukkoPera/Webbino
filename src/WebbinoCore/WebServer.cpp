@@ -182,10 +182,20 @@ void WebServer::handleClient (WebClient& client) {
 							DPRINTLN (F("Page has an associated function"));
 							PageFunction func = ass -> getFunction ();
 							func (client.request);
+							break;
 						}
 					}
 				}
 #endif
+
+				/* content.getFilename() points to the buffer returned by
+				 * client.request.get_basename (), which might get modified if
+				 * the associated function called get_parameter(), thus let's
+				 * restore it so that it keeps pointing to what is should.
+				 *
+				 * I guess this is crap and should be a FIXME...
+				 */
+				client.request.get_basename ();
 
 				sendContent (client, content);
 				stor.release (content);
