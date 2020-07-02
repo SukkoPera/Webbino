@@ -219,7 +219,7 @@ EasyReplacementTagArray tags[] PROGMEM = {
 #endif
 
 void setup () {
-	Serial.begin (9600);
+	Serial.begin (115200);
 	while (!Serial)
 		;
 
