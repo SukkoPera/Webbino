@@ -2,7 +2,7 @@
 
 # This file is part of Webbino
 #
-# Copyright (C) 2012-2019 by SukkoPera
+# Copyright (C) 2012-2020 by SukkoPera
 #
 # Webbino is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -112,7 +112,7 @@ def make_include_code (idents):
 	ret = ""
 
 	for n, ident in enumerate (idents):
-		ret += "const Page page%02d PROGMEM = {%s_name, %s, %s_len, NULL};\n" % (n + 1, ident, ident, ident)
+		ret += "const Page page%02d PROGMEM = {%s_name, %s, %s_len};\n" % (n + 1, ident, ident, ident)
 
 	ret += "\n"
 
