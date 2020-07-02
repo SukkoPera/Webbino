@@ -70,7 +70,7 @@ FlashStorage flashStorage;
 
 #include "html.h"
 
-const Page page01 PROGMEM = {index_html_name, index_html, index_html_len, NULL};
+const Page page01 PROGMEM = {index_html_name, index_html, index_html_len};
 
 const Page* const pages[] PROGMEM = {
 	&page01,
