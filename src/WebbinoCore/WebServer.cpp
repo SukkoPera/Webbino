@@ -141,18 +141,18 @@ PGM_P WebServer::getContentType (const char* filename) {
 }
 
 void WebServer::handleClient (WebClient& client) {
-	unsigned int l = strlen (client.request.url);
-	if (l == 0 || client.request.url[l - 1] == '/') {
+	unsigned int l = strlen (client.request.uri);
+	if (l == 0 || client.request.uri[l - 1] == '/') {
 		// Request for "/", redirect
 		DPRINT (F("Redirecting to "));
-		DPRINT (client.request.url);
+		DPRINT (client.request.uri);
 		DPRINTLN (F(REDIRECT_ROOT_PAGE));
 
 		client.print (F(HEADER_START REDIRECT_HEADER));
 		if (l == 0)
-			client.print ((byte) '/');
+			client.print ('/');
 		else
-			client.print (client.request.url);
+			client.print (client.request.uri);
 		client.print (F(REDIRECT_ROOT_PAGE HEADER_END));
 	} else {
 		const char *pagename = client.request.get_basename ();
@@ -178,7 +178,8 @@ void WebServer::handleClient (WebClient& client) {
 					const FileFuncAssociation* ass;
 
 					for (byte i = 0; (ass = reinterpret_cast<const FileFuncAssociation*> (pgm_read_ptr (&associations[i]))); i++) {
-						if (strcmp_P (pagename, ass -> getPath ()) == 0) {
+						//~ if (strcmp_P (pagename, ass -> getPath ()) == 0) {
+						if (client.request.matchAssociation (ass -> getPath ())) {
 							DPRINTLN (F("Page has an associated function"));
 							PageFunction func = ass -> getFunction ();
 							func (client.request);
@@ -345,7 +346,7 @@ boolean WebServer::loop () {
 	if (client != NULL) {
 		// Got a client with a request, process it
 		DPRINT (F("Request for \""));
-		DPRINT (client -> request.url);
+		DPRINT (client -> request.uri);
 		DPRINTLN (F("\""));
 
 		handleClient (*client);

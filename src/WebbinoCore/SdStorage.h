@@ -79,6 +79,30 @@ class SdStorage: public Storage {
 private:
 	SdContent content;
 
+	void printDirectory (File dir, int numTabs = 0) {
+		while (true) {
+			File entry =  dir.openNextFile();
+			if (!entry) {
+				// no more files
+				break;
+			}
+
+			for (uint8_t i = 0; i < numTabs; i++) {
+				DPRINT ('\t');
+			}
+			DPRINT (entry.name());
+			if (entry.isDirectory()) {
+				DPRINTLN ("/");
+				printDirectory (entry, numTabs + 1);
+			} else {
+				// files have sizes, directories do not
+				DPRINT("\t\t");
+				DPRINTLN (entry.size (), DEC);
+			}
+			entry.close ();
+		}
+	}
+
 public:
 	boolean begin (int8_t pin) {
 		boolean ret = false;
@@ -89,6 +113,12 @@ public:
 		} else {
 			DPRINTLN (F(" done"));
 			ret = true;
+
+#ifndef WEBBINO_NDEBUG
+		DPRINTLN (F("Pages available on SD card:"));
+		File root = SD.open("/");
+		printDirectory (root);
+#endif
 		}
 
 		return ret;

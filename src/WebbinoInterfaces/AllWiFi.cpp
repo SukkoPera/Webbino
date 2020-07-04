@@ -101,47 +101,57 @@ WebClient* NetworkInterfaceWiFi::processPacket () {
 		// An http request ends with a blank line
 		boolean currentLineIsBlank = true;
 		ethernetBufferSize = 0;
-		boolean copy = true;
+		boolean firstLine = true;
 		while (client.connected ()) {
 			if (client.available ()) {
 				char c = client.read ();
-				if (copy) {
-					if (ethernetBufferSize < sizeof (ethernetBuffer)) {
+
+				/* We are only interested in the first line of the HTTP request
+				 * (i.e.: the one that contains the method and the URI), so if
+				 * we haven't seen an LF yet, let's append to our buffer
+				 */
+				if (firstLine) {
+					// Reserve one place for the terminator we'll append later
+					if (ethernetBufferSize < sizeof (ethernetBuffer) - 1) {
 						ethernetBuffer[ethernetBufferSize++] = c;
 					} else {
+						// No more space in buffer, ignore
 						DPRINTLN (F("Ethernet buffer overflow"));
+					}
+				}
+
+				if (c == '\n') {		// End of a line
+					if (currentLineIsBlank) {
+						/* We got to the end of the line and the line is blank,
+						 * this means the http request has ended
+						 */
+						if (!firstLine) {
+							webClient.begin (client, reinterpret_cast<char *> (ethernetBuffer));
+							ret = &webClient;
+						} else {
+							// Got an empty request, don't be fooled!
+						}
+
+						// In any case, let's get out
 						break;
-					}
-				}
+					} else if (firstLine) {
+						// Great, we have extracted the request line!
+						firstLine = false;
 
-				// If you've gotten to the end of the line (received a newline
-				// character) and the line is blank, the http request has ended
-				if (c == '\n' && currentLineIsBlank) {
-					webClient.begin (client, reinterpret_cast<char *> (ethernetBuffer));
-					ret = &webClient;
-					break;
-				}
-
-				if (c == '\n') {
-					// See if we got the URL line
-					if (strncmp_P ((char *) ethernetBuffer, PSTR ("GET "), 4) == 0) {
-						// Yes, ignore the rest
-						// FIXME: Avoid buffer underflow
-						ethernetBuffer[ethernetBufferSize - 1] = '\0';
-						copy = false;
+						/* Terminate the line. Note that this cannot underflow,
+						 * as at least one char was copied for sure
+						 */
+						ethernetBuffer[ethernetBufferSize - 1] = '\0';	// Terminate
 					} else {
-						// No, start over
-						DPRINT (F("Discarding header line: \""));
-						DPRINT (reinterpret_cast<char *> (ethernetBuffer));
-						DPRINTLN (F("\""));
-
-						ethernetBufferSize = 0;
+						/* This is a header line, at the moment we'll just
+						 * ignore it altogether
+						 */
 					}
 
-					// you're starting a new line
+					// A new line is starting
 					currentLineIsBlank = true;
 				} else if (c != '\r') {
-					// you've gotten a character on the current line
+					// Got a character on the current line
 					currentLineIsBlank = false;
 				}
 			}

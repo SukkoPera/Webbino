@@ -20,12 +20,31 @@
 #include <Arduino.h>
 #include "HTTPRequestParser.h"
 
+
+static const char METHOD_GET_STR[] PROGMEM = "GET";
+static const char METHOD_PUT_STR[] PROGMEM = "PUT";
+static const char METHOD_POST_STR[] PROGMEM = "POST";
+static const char METHOD_DELETE_STR[] PROGMEM = "DELETE";
+
+const byte N_METHODS = 4;
+
+// These must be in the same order as HttpMethod
+static const char * const HTTP_METHOD_STRINGS[N_METHODS] = {
+	METHOD_GET_STR,
+	METHOD_PUT_STR,
+	METHOD_POST_STR,
+	METHOD_DELETE_STR
+};
+
 HTTPRequestParser::HTTPRequestParser () {
-	url[0] = '\0';
+	uri[0] = '\0';
 }
 
-void HTTPRequestParser::parse (char *request) {
-	char *p, *q;
+/* Request syntax:
+ * METHOD URI HTTP/1.x
+ */
+boolean HTTPRequestParser::parse (const char *request) {
+	boolean ret = false;
 
 #ifdef VERBOSE_REQUEST_PARSER
 	DPRINT (F("Parsing request: \""));
@@ -33,30 +52,69 @@ void HTTPRequestParser::parse (char *request) {
 	DPRINTLN (F("\""));
 #endif
 
-	url[0] = '\0';
-	if ((p = strstr_P (request, PSTR ("GET ")))) {
-		if ((q = strchr (p + 4,  ' ')))
-			strlcpy (url, p + 4, q - p - 4 + 1 < MAX_URL_LEN ? q - p - 4 + 1 : MAX_URL_LEN);
-		else
-			strlcpy (url, p + 4, MAX_URL_LEN);
+	// Clear current data
+	uri[0] = '\0';
+	method = METHOD_UNKNOWN;
+
+	// Look for the first space in the request, which separates method and URI
+	const char* uriStart = strchr (request, ' ');
+	if (uriStart) {
+		// Find out what method was requested
+		const ptrdiff_t methodLen = uriStart - request;
+
+		for (byte i = 0; i < N_METHODS; ++i) {
+			PGM_P candidate = F_TO_PSTR (HTTP_METHOD_STRINGS[i]);
+			if (strlen_P (candidate) == methodLen && strncasecmp_P (request, candidate, methodLen) == 0) {
+				DPRINT (F("Method = "));
+				DPRINTLN (i);
+				method = static_cast<HttpMethod> (i);
+				break;
+			}
+		}
+
+		/* OK, we got the method, now find the first non-space character
+		 * after it and look for the first space after that, which marks the
+		 * end of the URI
+		 */
+		while (isSpace (*uriStart)) {
+			++uriStart;		// I find it odd I can increment a const variable...
+		}
+		const char *uriEnd = strchr (uriStart, ' ');
+		if (uriEnd) {
+			// Found another space
+			const ptrdiff_t uriLen = uriEnd - uriStart;
+			// The strlcpy() function copies up to size - 1 characters
+			strlcpy (uri, uriStart, uriLen + 1 < MAX_URL_LEN ? uriLen + 1: MAX_URL_LEN);
+		} else {
+			// No other space found, assume someone "forgot" the HTTP version...
+			strlcpy (uri, uriStart, MAX_URL_LEN);
+		}
 
 #ifdef VERBOSE_REQUEST_PARSER
 		DPRINT (F("Extracted URL: \""));
-		DPRINT (url);
+		DPRINT (uri);
 		DPRINTLN (F("\""));
 #endif
+
+		// Let's ignore the HTTP version, for the moment :)
+
+		ret = true;
 	} else {
+		// No space in request, can't do much
 		DPRINTLN (F("Cannot extract URL"));
 	}
+
+	return ret;
 }
 
 char *HTTPRequestParser::get_basename () {
 	buffer[0] = '\0';
-	char *qMark = strchr (url, '?');
-	if (qMark)
-		strlcpy (buffer, url, qMark - url + 1 < BUF_LEN ? qMark - url + 1 : BUF_LEN);
-	else
-		strlcpy (buffer, url, BUF_LEN);
+	char *qMark = strchr (uri, '?');
+	if (qMark) {
+		strlcpy (buffer, uri, qMark - uri + 1 < BUF_LEN ? qMark - uri + 1 : BUF_LEN);
+	} else {
+		strlcpy (buffer, uri, BUF_LEN);
+	}
 
 #ifdef VERBOSE_REQUEST_PARSER
 	DPRINT (F("Extracted basename: \""));
@@ -81,15 +139,16 @@ char *HTTPRequestParser::get_parameter (const char param[]) {
 	DPRINT (F("\": \""));
 #endif
 
-	for (start = strchr (url, '?'); !found && start; start = strchr (start + 1, '&')) {
+	for (start = strchr (uri, '?'); !found && start; start = strchr (start + 1, '&')) {
 		char *end = strchr (start, '=');
 		if (end && (end - start - 1) == (int) strlen (param) && strncmp (start + 1, param, end - start - 1) == 0) {
 			// Found!
 			char *x = strchr (end + 1, '&');
-			if (x)
+			if (x) {
 				strlcpy (buffer, end + 1, x - end < BUF_LEN ? x - end : BUF_LEN);
-			else
+			} else {
 				strlcpy (buffer, end + 1, BUF_LEN);
+			}
 			found = true;
 		}
 	}
@@ -111,3 +170,55 @@ char *HTTPRequestParser::get_parameter (WebbinoFStr param) {
 	return get_parameter (buffer);
 }
 #endif
+
+boolean HTTPRequestParser::parametricMatch (const char *str, const char *expr, MatchResult& result) {
+	result.nMatches = 0;
+
+	boolean matchOk = true;
+	byte i = 0, j = 0;
+	while (matchOk && i < strlen (expr)) {
+		if (expr[i] != str[j]) {
+			if (expr[i] == '*') {
+				// Capture
+				if (expr[i + 1] == '/') {		// Always safe
+					// Pattern goes on, there must be a slash in str
+					char *slash = strchr (str + j, '/');
+					if (slash) {
+						// Found, save capture and keep on matching
+						ptrdiff_t len = slash - (str + j);
+						result.matchPositions[result.nMatches] = j;
+						result.matchLengths[result.nMatches] = (int) len;
+						++(result.nMatches);
+						++i;
+						j += len;
+					} else {
+						matchOk = false;
+					}
+				} else {
+					// Capture char is last char or patter, there must be no slash in str
+					char *slash = strchr (str + j, '/');
+					if (!slash) {
+						// OK, save capture
+						result.matchPositions[result.nMatches] = j;
+						result.matchLengths[result.nMatches] = strlen (str) - j;
+						++(result.nMatches);
+						++i;
+					} else {
+						// String goes on, no match
+						matchOk = false;
+					}
+				}
+			} else {
+				matchOk = false;
+			}
+		} else {
+			++i, ++j;
+		}
+	}
+
+	return matchOk;
+}
+
+boolean HTTPRequestParser::matchAssociation (const char *assocPath) {
+	return HTTPRequestParser::parametricMatch (uri, assocPath, matchResult);
+}

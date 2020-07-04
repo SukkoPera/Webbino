@@ -21,85 +21,74 @@
 #include "Content.h"
 #include "webbino_common.h"
 
-#ifdef WEBBINO_ENABLE_SPIFFS
+struct DummyContent: public Content {
+	static const char content[];
 
-#ifndef WEBBINO_USE_ESP8266_STANDALONE
-#error "SPIFFS can only be enabled on ESP8266 standalone"
-#endif
-
-#include <FS.h>
-
-struct SpiffsContent: public Content {
-private:
-	File file;
+	byte pos;
 
 public:
-	SpiffsContent () {
+	DummyContent (): pos (0) {
 	}
 
-	SpiffsContent (const char* filename): Content (filename) {
-		file = SPIFFS.open (filename, "r");
+	//~ SdContent (const char* filename): Content (filename) {
+		//~ file = SD.open (filename);
+	//~ }
+
+	//~ SdContent (const SdContent& o): Content (*this) {
+		//~ file = o.file;
+	//~ }
+
+	void reset () {
+		pos = 0;
 	}
 
-	SpiffsContent (const SpiffsContent& o): Content (*this) {
-		file = o.file;
-	}
-
-	SpiffsContent& operator= (SpiffsContent o) {
-		if (file)
-			file.close ();
-
+	DummyContent& operator= (DummyContent o) {
 		Content::operator= (o);		// This must be called explicitly!!!
 
-		file = o.file;
+		pos = o.pos;
 		return *this;
 	}
 
-	~SpiffsContent () {
-		if (file)
-			file.close ();
+	//~ ~SdContent () {
+		//~ if (file)
+			//~ file.close ();
+	//~ }
+
+	const char* getFilename () const override {
+		return "a.html";
 	}
 
 	boolean available () override {
-		return file.available ();
+		return pos < strlen (content);
 	}
 
 	byte getNextByte () override {
-		return file.read ();
+		return content[pos++];
 	}
 };
+
+
+const char DummyContent::content[] = "#DUMMY#";
+
 
 /******************************************************************************/
 
 
-class SpiffsStorage: public Storage {
+class DummyStorage: public Storage {
 private:
-	SpiffsContent content;
+	DummyContent content;
 
 public:
-	void begin () {
-		SPIFFS.begin ();
-
-#ifndef WEBBINO_NDEBUG
-		DPRINTLN (F("Pages available in SPIFFS:"));
-		Dir dir = SPIFFS.openDir ("/");
-		for (byte i = 0; dir.next (); i++) {
-			DPRINT (i);
-			DPRINT (F(". "));
-			DPRINTLN (dir.fileName());
-		}
-#endif
+	boolean begin () {
+		return true;
 	}
 
 	boolean exists (const char* filename) override {
-		return SPIFFS.exists (filename);
+		return true;
 	}
 
 	Content& get (const char* filename) override {
-		content = SpiffsContent (filename);
-
+		content.reset ();
 		return content;
 	}
 };
-
-#endif

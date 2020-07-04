@@ -25,15 +25,32 @@
 
 
 class HTTPRequestParser {
-private:
-	char buffer[BUF_LEN];
-
 public:
+	static const byte MAX_MATCHES = 4;
+
+	struct MatchResult {
+		byte matchPositions[MAX_MATCHES];
+		byte matchLengths[MAX_MATCHES];
+		byte nMatches;
+	};
+
+	enum HttpMethod {
+		METHOD_GET,
+		METHOD_PUT,
+		METHOD_POST,
+		METHOD_DELETE,
+		METHOD_UNKNOWN		// Keep at end, not supported ATM
+	};
+
+	MatchResult matchResult;
+
+	HttpMethod method;
+
 	HTTPRequestParser ();
 
-	char url[MAX_URL_LEN];
+	char uri[MAX_URL_LEN];
 
-	void parse (char *request);
+	boolean parse (const char *request);
 
 	char *get_basename ();
 
@@ -42,6 +59,13 @@ public:
 #ifdef ENABLE_FLASH_STRINGS
 	char *get_parameter (WebbinoFStr param);
 #endif
+
+	boolean matchAssociation (const char *assocPath);
+
+private:
+	char buffer[BUF_LEN];
+
+	static boolean parametricMatch (const char *str, const char *expr, MatchResult& result);
 };
 
 #endif
