@@ -63,6 +63,7 @@ def process_file (filename, nostrip = False):
 			parts = [parts[0]] + [x.capitalize () for x in parts[1:]]
 			code = "".join (parts)
 			code = code.replace ('.', '_')
+			code = code.replace ('-', '_')
 			pagename = filename[1:]
 
 			# Convert Windows slashes to Posix slashes
