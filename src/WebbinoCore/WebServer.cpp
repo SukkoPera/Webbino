@@ -31,12 +31,21 @@
 #define OK_HEADER "200 OK\r\n"		// \r\nPragma: no-cache
 #define CONT_TYPE_HEADER "Content-Type: "
 #define NOT_FOUND_HEADER "404 Not Found\r\nContent-Type: text/html"
-#define HEADER_END "\r\n\r\n"
+#define HEADER_END "\r\n"
 
+#ifdef ENABLE_HTTPAUTH
+#define AUTH_HEADER "WWW-Authenticate: Basic realm="
+#define UNAUTHORIZED_HEADER "401 Unauthorized"
+#endif
 
 boolean WebServer::begin (NetworkInterface& _netint) {
 	nStorage = 0;
 	netint = &_netint;
+
+#ifdef ENABLE_HTTPAUTH
+	realm = NULL;
+	authorizeFunc = NULL;
+#endif
 
 #ifndef WEBBINO_NDEBUG
 	DPRINTLN (F("Available MIME Types:"));
@@ -153,7 +162,7 @@ void WebServer::handleClient (WebClient& client) {
 			client.print ('/');
 		else
 			client.print (client.request.uri);
-		client.print (F(REDIRECT_ROOT_PAGE HEADER_END));
+		client.print (F(REDIRECT_ROOT_PAGE HEADER_END HEADER_END));
 	} else {
 		const char *pagename = client.request.get_basename ();
 
@@ -206,7 +215,7 @@ void WebServer::handleClient (WebClient& client) {
 
 		if (i >= nStorage) {
 			// Page not found
-			client.print (F(HEADER_START NOT_FOUND_HEADER HEADER_END));
+			client.print (F(HEADER_START NOT_FOUND_HEADER HEADER_END HEADER_END));
 
 			client.print (F("<html><body><h3>No such page: \""));
 			client.print (pagename);
@@ -248,95 +257,125 @@ char *WebServer::findSubstitutionTagGetParameter (HTTPRequestParser& request, co
 // Read the page, perform tag substitutions and send it over
 // FIXME: Handle unterminated tags
 void WebServer::sendContent (WebClient& client, Content& content) {
+	boolean authOk = false;
 	const byte tagChar = static_cast<byte> (TAG_CHAR);	// Make sure this is a byte and not a char
 
 	PGM_P contType = getContentType (content.getFilename ());
 
 	// Send headers
-	client.print (F(HEADER_START OK_HEADER CONT_TYPE_HEADER));
-	client.print (PSTR_TO_F (contType));
-	client.print (F(HEADER_END));
-
-#ifdef ENABLE_TAGS
-	char tag[MAX_TAG_LEN];
-	int8_t tagLen = -1;			// If >= 0 we are inside a tag
+#ifdef ENABLE_HTTPAUTH
+	if (realm != NULL) {
+		// Auth required
+		if (client.request.username == NULL || client.request.password == NULL) {
+			// Auth data not provided
+		} else if (authorizeFunc != NULL) {
+			// Browser sent username/passwd, check them
+			authOk = authorizeFunc (client.request.username, client.request.password);
+		} else {
+			// Browser sent username/password but user did not set an auth func
+			DPRINTLN (F("Auth requested but no authorization function set"));
+		}
+	}
+#else
+	authOk = true;
 #endif
-	while (content.available ()) {
-		byte c = content.getNextByte ();
+
+	if (authOk) {
+		client.print (F(HEADER_START OK_HEADER CONT_TYPE_HEADER));
+		client.print (PSTR_TO_F (contType));
+		client.print (F(HEADER_END));
+
+		client.print (F(HEADER_END));
 
 #ifdef ENABLE_TAGS
-		if (shallReplace (contType)) {		// We only want to do replacements on "text" MIME Types
-			if (tagLen >= 0) {
-				// A tag is in progress
-				if (c == tagChar) {
-					// End of tag
-					DPRINT (F("Processing replacement tag: \""));
-					DPRINT (tag);
-					DPRINTLN (F("\""));
+		char tag[MAX_TAG_LEN];
+		int8_t tagLen = -1;			// If >= 0 we are inside a tag
+#endif
+		while (content.available ()) {
+			byte c = content.getNextByte ();
 
-					if (tagLen >= MAX_TAG_LEN - 1) {
-						DPRINT (F("WARNING: Tag was truncated (Max length is "));
-						DPRINT (MAX_TAG_LEN - 1);
-						DPRINTLN ((byte) ')');
-					}
+#ifdef ENABLE_TAGS
+			if (shallReplace (contType)) {		// We only want to do replacements on "text" MIME Types
+				if (tagLen >= 0) {
+					// A tag is in progress
+					if (c == tagChar) {
+						// End of tag
+						DPRINT (F("Processing replacement tag: \""));
+						DPRINT (tag);
+						DPRINTLN (F("\""));
 
-					boolean found = false;
-					if (strncmp_P (tag, PSTR ("GETP_"), 5) == 0) {
-						char* rep = findSubstitutionTagGetParameter (client.request, tag + 5);
-						if (rep) {
-							DPRINT (F("Replacement is: \""));
-							DPRINT (rep);
-							DPRINTLN (F("\""));
-
-							client.print (rep);
-							found = true;
+						if (tagLen >= MAX_TAG_LEN - 1) {
+							DPRINT (F("WARNING: Tag was truncated (Max length is "));
+							DPRINT (MAX_TAG_LEN - 1);
+							DPRINTLN ((byte) ')');
 						}
+
+						boolean found = false;
+						if (strncmp_P (tag, PSTR ("GETP_"), 5) == 0) {
+							char* rep = findSubstitutionTagGetParameter (client.request, tag + 5);
+							if (rep) {
+								DPRINT (F("Replacement is: \""));
+								DPRINT (rep);
+								DPRINTLN (F("\""));
+
+								client.print (rep);
+								found = true;
+							}
+						} else {
+							PString* pstr = findSubstitutionTag (tag);
+							if (pstr) {
+								DPRINT (F("Replacement is: \""));
+								DPRINT (*pstr);
+								DPRINTLN (F("\""));
+
+								client.print (*pstr);
+								pstr -> begin ();		// Reset for next usage
+								found = true;
+							}
+						}
+
+						if (!found) {
+							// Tag not found, emit it
+							DPRINTLN (F("Tag not found"));
+
+							client.write (tagChar);
+							client.print (tag);
+							client.write (tagChar);
+						}
+
+						// Prepare for next tag
+						tagLen = -1;
+					} else if (tagLen < MAX_TAG_LEN - 1) {
+						// Tag continues
+						tag[tagLen++] = c;
+						tag[tagLen] = '\0';
 					} else {
-						PString* pstr = findSubstitutionTag (tag);
-						if (pstr) {
-							DPRINT (F("Replacement is: \""));
-							DPRINT (*pstr);
-							DPRINTLN (F("\""));
-
-							client.print (*pstr);
-							pstr -> begin ();		// Reset for next usage
-							found = true;
-						}
+						// Tag too long, just count for debugging purposes
+						++tagLen;
 					}
-
-					if (!found) {
-						// Tag not found, emit it
-						DPRINTLN (F("Tag not found"));
-
-						client.write (tagChar);
-						client.print (tag);
-						client.write (tagChar);
-					}
-
-					// Prepare for next tag
-					tagLen = -1;
-				} else if (tagLen < MAX_TAG_LEN - 1) {
-					// Tag continues
-					tag[tagLen++] = c;
-					tag[tagLen] = '\0';
 				} else {
-					// Tag too long, just count for debugging purposes
-					++tagLen;
+					if (c == tagChar) {
+						// (Possible) New tag
+						tag[0] = '\0';
+						tagLen = 0;
+					} else {
+						client.write (c);		// c is a raw byte
+					}
 				}
 			} else {
-				if (c == tagChar) {
-					// (Possible) New tag
-					tag[0] = '\0';
-					tagLen = 0;
-				} else {
-					client.write (c);		// c is a raw byte
-				}
+				client.write (c);
 			}
-		} else {
-			client.write (c);
-		}
 #else
-		client.write (c);
+			client.write (c);
+#endif
+		}
+	} else {
+#ifdef ENABLE_HTTPAUTH
+		client.print (F(HEADER_START UNAUTHORIZED_HEADER HEADER_END));
+		client.print (F(AUTH_HEADER));
+		client.print (realm);
+		client.print (F(HEADER_END));
+		client.print (F(HEADER_END));
 #endif
 	}
 }
@@ -354,3 +393,11 @@ boolean WebServer::loop () {
 
 	return client != NULL;
 }
+
+#ifdef ENABLE_HTTPAUTH
+void WebServer::enableAuth (const char *_realm, AuthorizeFunc _authFunc) {
+	realm = _realm;
+
+	authorizeFunc = _authFunc;
+}
+#endif

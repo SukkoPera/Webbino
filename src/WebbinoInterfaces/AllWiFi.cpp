@@ -88,21 +88,33 @@ boolean NetworkInterfaceWiFi::begin (Stream& _serial, const char *_ssid, const c
 	server.begin ();
 
 	return true;
-
 }
+
+boolean lineIsInteresting (const char *line) {
+	return strncmp_P (line, PSTR ("Authorization: Basic "), 21) == 0;
+}
+
+enum RequestState {
+	RS_URI,
+	RS_HEADERS,
+	RS_BODY,
+	RS_COMPLETE
+};
 
 WebClient* NetworkInterfaceWiFi::processPacket () {
 	WebClient *ret = NULL;
 
 	InternalClient client = server.available ();
 	if (client) {
-		DPRINTLN (F("New client"));
+		DPRINT (F("New client from "));
+		DPRINTLN (client.remoteIP ());
 
 		// An http request ends with a blank line
 		boolean currentLineIsBlank = true;
 		ethernetBufferSize = 0;
-		boolean firstLine = true;
-		while (client.connected ()) {
+		RequestState state = RS_URI;
+		unsigned int lastLineStart = 0;
+		while (client.connected () && state != RS_COMPLETE) {
 			if (client.available ()) {
 				char c = client.read ();
 
@@ -110,42 +122,55 @@ WebClient* NetworkInterfaceWiFi::processPacket () {
 				 * (i.e.: the one that contains the method and the URI), so if
 				 * we haven't seen an LF yet, let's append to our buffer
 				 */
-				if (firstLine) {
-					// Reserve one place for the terminator we'll append later
-					if (ethernetBufferSize < sizeof (ethernetBuffer) - 1) {
-						ethernetBuffer[ethernetBufferSize++] = c;
-					} else {
-						// No more space in buffer, ignore
-						DPRINTLN (F("Ethernet buffer overflow"));
-					}
+				// Reserve one place for the terminator we'll append later
+				if (ethernetBufferSize < sizeof (ethernetBuffer) - 1) {
+					ethernetBuffer[ethernetBufferSize++] = c;
+				} else {
+					// No more space in buffer, ignore
+					DPRINTLN (F("Ethernet buffer overflow"));
 				}
 
 				if (c == '\n') {		// End of a line
-					if (currentLineIsBlank) {
-						/* We got to the end of the line and the line is blank,
-						 * this means the http request has ended
-						 */
-						if (!firstLine) {
-							webClient.begin (client, reinterpret_cast<char *> (ethernetBuffer));
-							ret = &webClient;
-						} else {
-							// Got an empty request, don't be fooled!
-						}
+					switch (state) {
+						case RS_URI:
+							/* Great, we have extracted the request line! The
+							 * following lines will be header lines.
+							 */
+							state = RS_HEADERS;
+							lastLineStart = ethernetBufferSize;
+							break;;
+						case RS_HEADERS:
+							if (currentLineIsBlank) {
+								/* We got to the end of the line and the line is blank,
+								 * this means the http request has ended
+								 */
+								 state = RS_BODY;
+							} else {
+								/* Got a header line, see if it's an interesting one
+								 * or discard it
+								 */
+								const char *line = reinterpret_cast<char *> (ethernetBuffer + lastLineStart);
+								ethernetBuffer[ethernetBufferSize] = '\0';	// Terminate
+								if (lineIsInteresting (line)) {
+									lastLineStart = ethernetBufferSize;
+								} else {
+									DPRINT (F("Discarding header line: "));
+									DPRINTLN (line);
+									ethernetBufferSize = lastLineStart;
+								}
+							}
+							break;
+						case RS_BODY:
+							// Just keep it
+							lastLineStart = ethernetBufferSize;
 
-						// In any case, let's get out
-						break;
-					} else if (firstLine) {
-						// Great, we have extracted the request line!
-						firstLine = false;
+							// Request complete, get out
+							ethernetBuffer[ethernetBufferSize] = '\0';	// Terminate
 
-						/* Terminate the line. Note that this cannot underflow,
-						 * as at least one char was copied for sure
-						 */
-						ethernetBuffer[ethernetBufferSize - 1] = '\0';	// Terminate
-					} else {
-						/* This is a header line, at the moment we'll just
-						 * ignore it altogether
-						 */
+							state = RS_COMPLETE;
+							break;
+						default:
+							break;
 					}
 
 					// A new line is starting
@@ -154,11 +179,21 @@ WebClient* NetworkInterfaceWiFi::processPacket () {
 					// Got a character on the current line
 					currentLineIsBlank = false;
 				}
+			} else if (state == RS_BODY) {
+				DPRINTLN (F("COMPLETE"));
+				ethernetBuffer[ethernetBufferSize] = '\0';	// Terminate
+				state = RS_COMPLETE;
 			}
 		}
 
-		// If we are not returning a client, close the connection
-		if (!ret) {
+		// FIXME: Make const
+		if (state == RS_COMPLETE && ethernetBufferSize > 0) {
+			// Got a request to parse
+			char *req = reinterpret_cast<char *> (ethernetBuffer);
+			webClient.begin (client, req);
+			ret = &webClient;
+		} else {
+			// Close the connection
 			client.stop ();
 			DPRINTLN (F("Client disconnected"));
 		}

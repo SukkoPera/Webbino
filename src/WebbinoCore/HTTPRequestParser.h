@@ -46,6 +46,11 @@ public:
 
 	HttpMethod method;
 
+#ifdef ENABLE_HTTPAUTH
+	const char *username;
+	const char *password;
+#endif
+
 	HTTPRequestParser ();
 
 	char uri[MAX_URL_LEN];
@@ -64,6 +69,10 @@ public:
 
 private:
 	char buffer[BUF_LEN];
+
+#ifdef ENABLE_HTTPAUTH
+	char userpassBuf [MAX_USERPASS_LEN + 2];	// Add 2 for separator and terminator
+#endif
 
 	static boolean parametricMatch (const char *str, const char *expr, MatchResult& result);
 };

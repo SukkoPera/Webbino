@@ -51,6 +51,9 @@
 // Define to enable running functions upon request of certain pages
 #define ENABLE_PAGE_FUNCTIONS
 
+// Define to enable HTTP Basic Authorization support
+#define ENABLE_HTTPAUTH
+
 /* Define to enable serving webpages from the ESP8266 integrated filesystem on
  * flash (SPIFFS). By default this is always enabled if compiling for ESP8266
  * standalone.
@@ -94,6 +97,12 @@
  */
 #define MAX_URL_LEN 128
 
+/* Maximum length of username:password string
+ *
+ * Only meaningful if ENABLE_HTTPAUTH is enabled
+ */
+#define MAX_USERPASS_LEN 32
+
 /* TCP port the server will listen on
  *
  * NOTE: Port 80 can not be used with DigiFi
@@ -126,7 +135,7 @@
 
 /* DEFINE this to DISABLE debug messages
  */
-#define WEBBINO_NDEBUG
+//~ #define WEBBINO_NDEBUG
 
 /* Enable verbose HTTP request parser
  */

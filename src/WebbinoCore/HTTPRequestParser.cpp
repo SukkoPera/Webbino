@@ -20,6 +20,10 @@
 #include <Arduino.h>
 #include "HTTPRequestParser.h"
 
+#ifdef ENABLE_HTTPAUTH
+#include <Base64.h>
+#endif
+
 
 static const char METHOD_GET_STR[] PROGMEM = "GET";
 static const char METHOD_PUT_STR[] PROGMEM = "PUT";
@@ -97,6 +101,36 @@ boolean HTTPRequestParser::parse (const char *request) {
 #endif
 
 		// Let's ignore the HTTP version, for the moment :)
+
+#ifdef ENABLE_HTTPAUTH
+		// Look for the "Authorize" header
+		username = NULL;
+		password = NULL;
+		char *p = strstr_P (request, PSTR ("Authorization: Basic "));
+		if (p) {
+			char *authStart = p + 21;
+			char *authEnd = strchr (authStart, '\r');
+			if (authEnd) {
+				const ptrdiff_t uriLen = authEnd - authStart;
+				DPRINTLN (F("Found auth header"));
+				int decodedLength = Base64.decodedLength (authStart, uriLen);
+				if (decodedLength <= MAX_USERPASS_LEN) {
+					Base64.decode (userpassBuf, authStart, uriLen);
+					DPRINT (F("Decoded auth data is: "));
+					DPRINTLN (userpassBuf);
+
+					char *sep = strchr (userpassBuf, ':');
+					if (sep) {
+						*sep = '\0';
+						username = userpassBuf;
+						password = sep + 1;
+					}
+				} else {
+					DPRINTLN (F("Decoded auth data would overflow buffer"));
+				}
+			}
+		}
+#endif
 
 		ret = true;
 	} else {

@@ -156,7 +156,20 @@ public:
 	void associateFunctions (FileFuncAssociationArray* _associations);
 #endif
 
+#ifdef ENABLE_HTTPAUTH
+	typedef boolean (*AuthorizeFunc) (const char *user, const char *passwd);
+
+	void enableAuth (const char *realm, AuthorizeFunc authFunc);
+#endif
+
 	boolean loop ();
+
+private:
+#ifdef ENABLE_HTTPAUTH
+	const char *realm;
+
+	AuthorizeFunc authorizeFunc;
+#endif
 };
 
 #endif
