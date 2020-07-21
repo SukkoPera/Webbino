@@ -266,17 +266,23 @@ void WebServer::sendContent (WebClient& client, Content& content) {
 #ifdef ENABLE_HTTPAUTH
 	if (realm != NULL) {
 		// Auth required
+		DPRINTLN (F("Auth required"));
 		if (client.request.username == NULL || client.request.password == NULL) {
 			// Auth data not provided
+			DPRINTLN (F("Client did not provide auth data"));
 		} else if (authorizeFunc != NULL) {
 			// Browser sent username/passwd, check them
+			DPRINTLN (F("Calling user auth function"));
 			authOk = authorizeFunc (client.request.username, client.request.password);
 		} else {
 			// Browser sent username/password but user did not set an auth func
 			DPRINTLN (F("Auth requested but no authorization function set"));
 		}
+	} else {
+		authOk = true;
 	}
 #else
+	// Let the compiler optimize out this variable/check
 	authOk = true;
 #endif
 
