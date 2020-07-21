@@ -45,7 +45,7 @@
 
 #else
 
-#warning Flash strings disabled
+#warning "Flash strings disabled"
 
 #undef PSTR
 #define PSTR(s) s
@@ -68,9 +68,13 @@
 #define strncpy_P strncpy
 #undef strncmp_P
 #define strncmp_P strncmp
+#undef strncasecmp_P
+#define strncasecmp_P strncasecmp
 
 #undef pgm_read_ptr
 #define pgm_read_ptr(p) (*(p))
+#undef pgm_read_word
+#define pgm_read_word(p) (*(p))
 
 #endif
 
