@@ -84,10 +84,12 @@ public:
 	}
 
 	boolean exists (const char* filename) override {
+		(void) filename;
 		return true;
 	}
 
 	Content& get (const char* filename) override {
+		(void) filename;
 		content.reset ();
 		return content;
 	}
