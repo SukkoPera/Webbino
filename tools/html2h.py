@@ -49,7 +49,7 @@ def shallStrip (filename):
 	ext = ext.lower ()
 	return ext == "htm" or ext == "html"
 
-def process_file (filename, nostrip = False):
+def process_file (filename, defines, nostrip = False):
 	print >> sys.stderr, "Processing file: %s" % filename
 
 	if not nostrip and not shallStrip (filename):
@@ -73,16 +73,35 @@ def process_file (filename, nostrip = False):
 			print
 			print "const byte %s[] PROGMEM = {" % code
 			i = 0
-			b = fp.read (1)
-			while len (b) > 0:
-				if nostrip or (b != '\n' and b != '\r' and b != '\t'):
-					if i % 8 == 0:
-						print "\t",
-					print "0x%02x, " % ord (b),
-					i += 1
-					if i % 8 == 0:
-						print ""
-				b = fp.read (1)
+			line = fp.readline ()
+			tokens = []
+			while line:
+				if line.startswith ("#ifdef"):
+					parts = line.split ()
+					assert len (parts) == 2
+					token = parts[1]
+					tokens.append (token)
+				elif line.startswith ("#ifndef"):
+					token = line.split ()[1]
+					tokens.append ("!%s" % token)
+				elif line.startswith ("#else"):
+					token = tokens.pop ()
+					tokens.append ("!%s" % token)
+				elif line.startswith ("#endif"):
+					tokens.pop ()
+				elif all (d[1:] not in defines if d[0] == '!' else d in defines for d in tokens):
+					# This works because all ([]) == True
+					for b in line:
+						if nostrip or (b != '\n' and b != '\r' and b != '\t'):
+							if i % 8 == 0:
+								print "\t",
+							print "0x%02x, " % ord (b),
+							i += 1
+							if i % 8 == 0:
+								print ""
+				else:
+					print >> sys.stderr, "Skipping line: %s" % line.strip ()
+				line = fp.readline ()
 
 			print "\n};"
 			print
@@ -94,17 +113,17 @@ def process_file (filename, nostrip = False):
 
 	return code
 
-def process_dir (dirpath, nostrip = False):
+def process_dir (dirpath, defines, nostrip = False):
 	print >> sys.stderr, "Processing directory: %s" % dirpath
 	idents = []
 	for filename in sorted (os.listdir (dirpath)):
 		fullfile = os.path.join (dirpath, filename)
 		if os.path.isfile (fullfile):
-			ident = process_file (fullfile, nostrip)
+			ident = process_file (fullfile, defines, nostrip)
 			if ident is not None:
 				idents.append (ident)
 		elif os.path.isdir (fullfile):
-			idents += process_dir (fullfile, nostrip)
+			idents += process_dir (fullfile, defines, nostrip)
 		else:
 			print "Skipping %s" % filename
 	return idents
@@ -136,13 +155,14 @@ if __name__ == "__main__":
 	parser.add_argument ('webroot', metavar = "WEBROOT", help = "Path to website root directory")
 	parser.add_argument ('--nostrip', "-n", action = 'store_true', default = False,
 						 help = "Do not strip CR/LF/TABs")
+	parser.add_argument ("--define", "-D", action = "append")
 
 	args = parser.parse_args ()
 
 	# The above will raise an error if webroot was not specified, so we can
 	# assume it was
 	os.chdir (args.webroot)
-	idents = process_dir (".", args.nostrip)
+	idents = process_dir (".", args.define or [], args.nostrip)
 	n_pages = len (idents)
 
 	print "/*** CODE TO INCLUDE IN SKETCH ***\n"
