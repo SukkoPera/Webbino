@@ -139,7 +139,7 @@ const byte TAG_CHAR = static_cast<byte> ('$');
  * recommended on AVRs, works fine on ESP8266 standalone, probably not supported
  * on other targets.
  */
-#if defined (ARDUINO_ARCH_AVR) || defined (ESP8266)
+#if defined (ARDUINO_ARCH_AVR) || defined (ESP8266)	 || defined (ARDUINO_ARCH_STM32F1)
 	#define ENABLE_FLASH_STRINGS
 #endif
 

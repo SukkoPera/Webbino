@@ -35,8 +35,15 @@
 // FIXME: This should probably be moved somewhere else
 #ifdef ENABLE_FLASH_STRINGS
 
-#if defined (ARDUINO_ARCH_AVR)
+// STM32 has a avr/pgmspace.h wrapper...
+#if defined (ARDUINO_ARCH_AVR) || defined (ARDUINO_ARCH_STM32F1)
 #include <avr/pgmspace.h>
+#endif
+
+// ... But it's missing some functions :(
+#ifdef ARDUINO_ARCH_STM32F1
+#define strncpy_P strncpy
+#define strncmp_P strncmp
 #endif
 
 #define PSTR_TO_F(s) reinterpret_cast<const __FlashStringHelper *> (s)
