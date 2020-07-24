@@ -20,6 +20,9 @@
 #ifndef WEBBINOCOMMON_H_
 #define WEBBINOCOMMON_H_
 
+#include <Arduino.h>
+
+
 /* Network device selection: please enable *only one* of the following,
  * corresponding to the network device you will be using
  */
@@ -77,9 +80,9 @@
  */
 #define ENABLE_TAGS
 
-/* Character that delimits tags
+/* Character that delimits tags - Make sure this is a *byte* and not a char
  */
-#define TAG_CHAR '#'
+const byte TAG_CHAR = static_cast<byte> ('$');
 
 /* Maximum length of a tag name
  */
