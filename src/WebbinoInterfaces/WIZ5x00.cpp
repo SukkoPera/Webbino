@@ -48,14 +48,16 @@ byte NetworkInterfaceWIZ5x00::retBuffer[6];
 NetworkInterfaceWIZ5x00::NetworkInterfaceWIZ5x00 (): server (SERVER_PORT) {
 }
 
-boolean NetworkInterfaceWIZ5x00::begin (byte *mac) {
-	boolean ret;
-
 #if defined (WEBBINO_USE_ENC28J60_UIP)
+boolean NetworkInterfaceWIZ5x00::begin (byte *mac, const byte ssPin) {
 	DPRINTLN (F("Using UIP Ethernet library"));
+	Ethernet.init (ssPin);
 #else
+boolean NetworkInterfaceWIZ5x00::begin (byte *mac) {
 	DPRINTLN (F("Using Arduino Ethernet library"));
 #endif
+
+	boolean ret;
 
 	memcpy (macAddress, mac, 6);
 	if ((ret = Ethernet.begin (mac))) {
@@ -69,10 +71,12 @@ boolean NetworkInterfaceWIZ5x00::begin (byte *mac) {
 	return ret;
 }
 
-boolean NetworkInterfaceWIZ5x00::begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask) {
 #if defined (WEBBINO_USE_ENC28J60_UIP)
+boolean NetworkInterfaceWIZ5x00::begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask, const byte ssPin) {
 	DPRINTLN (F("Using UIP Ethernet library"));
+	Ethernet.init (ssPin);
 #else
+boolean NetworkInterfaceWIZ5x00::begin (byte *mac) {
 	DPRINTLN (F("Using Arduino Ethernet library"));
 #endif
 

@@ -64,9 +64,17 @@ private:
 public:
 	NetworkInterfaceWIZ5x00 ();
 
+#if defined (WEBBINO_USE_ENC28J60_UIP)
+	boolean begin (byte *mac, const byte ssPin);
+#else
 	boolean begin (byte *mac);
+#endif
 
-	boolean begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask);
+#if defined (WEBBINO_USE_ENC28J60_UIP)
+	boolean begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask, const byte ssPin);
+#else
+	boolean begin (byte *mac);
+#endif
 
 	WebClient* processPacket () override;
 
