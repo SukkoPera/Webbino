@@ -22,7 +22,7 @@
 
 #include <Arduino.h>
 #include <webbino_config.h>
-#include "HTTPRequestParser.h"
+#include "HTTPRequest.h"
 
 
 class WebClient: public Print {

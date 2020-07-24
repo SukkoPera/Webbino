@@ -22,7 +22,7 @@
 
 #include <webbino_config.h>
 #include "NetworkInterface.h"
-#include "HTTPRequestParser.h"
+#include "HTTPRequest.h"
 #include "Storage.h"
 #include "MimeTypes.h"
 

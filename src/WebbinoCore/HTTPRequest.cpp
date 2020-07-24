@@ -18,7 +18,7 @@
  ***************************************************************************/
 
 #include <Arduino.h>
-#include "HTTPRequestParser.h"
+#include "HTTPRequest.h"
 
 #ifdef ENABLE_HTTPAUTH
 #include <Base64.h>
