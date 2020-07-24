@@ -26,6 +26,7 @@
 
 class HTTPRequestParser {
 public:
+#ifdef ENABLE_REST
 	static const byte MAX_MATCHES = 4;
 
 	struct MatchResult {
@@ -34,6 +35,10 @@ public:
 		byte nMatches;
 	};
 
+	MatchResult matchResult;
+#endif
+
+#ifdef ENABLE_ALL_METHODS
 	enum HttpMethod {
 		METHOD_GET,
 		METHOD_PUT,
@@ -42,9 +47,8 @@ public:
 		METHOD_UNKNOWN		// Keep at end, not supported ATM
 	};
 
-	MatchResult matchResult;
-
 	HttpMethod method;
+#endif
 
 #ifdef ENABLE_HTTPAUTH
 	const char *username;
@@ -65,16 +69,32 @@ public:
 	char *get_parameter (WebbinoFStr param);
 #endif
 
+#ifdef ENABLE_REST
 	boolean matchAssociation (const char *assocPath);
+#endif
+
+#ifdef ENABLE_ALL_METHODS
+	char *getPostValue (const char param[]);
+#endif
 
 private:
 	char buffer[BUF_LEN];
+
+	const char *request;
 
 #ifdef ENABLE_HTTPAUTH
 	char userpassBuf [MAX_USERPASS_LEN + 2];	// Add 2 for separator and terminator
 #endif
 
+	char *getFormParameter (const char str[], const char param[]);
+
+	static char *cpyndec (char *dst, const char *src, const size_t len);
+
+#ifdef ENABLE_REST
 	static boolean parametricMatch (const char *str, const char *expr, MatchResult& result);
+#endif
+
+	char *getBodyStart ();
 };
 
 #endif

@@ -24,7 +24,7 @@
 #include <Base64.h>
 #endif
 
-
+#ifdef ENABLE_ALL_METHODS
 static const char METHOD_GET_STR[] PROGMEM = "GET";
 static const char METHOD_PUT_STR[] PROGMEM = "PUT";
 static const char METHOD_POST_STR[] PROGMEM = "POST";
@@ -39,6 +39,7 @@ static const char * const HTTP_METHOD_STRINGS[N_METHODS] = {
 	METHOD_POST_STR,
 	METHOD_DELETE_STR
 };
+#endif
 
 HTTPRequestParser::HTTPRequestParser () {
 	uri[0] = '\0';
@@ -46,9 +47,21 @@ HTTPRequestParser::HTTPRequestParser () {
 
 /* Request syntax:
  * METHOD URI HTTP/1.x
+ *
+ * This stores a pointer to the request, which must thus be kept valid.
  */
-boolean HTTPRequestParser::parse (const char *request) {
+boolean HTTPRequestParser::parse (const char *_request) {
 	boolean ret = false;
+
+	// Clear current data
+	uri[0] = '\0';
+
+#ifdef ENABLE_ALL_METHODS
+	method = METHOD_UNKNOWN;
+#endif
+
+	// Save a pointer to the request
+	request = _request;
 
 #ifdef VERBOSE_REQUEST_PARSER
 	DPRINT (F("Parsing request: \""));
@@ -56,15 +69,12 @@ boolean HTTPRequestParser::parse (const char *request) {
 	DPRINTLN (F("\""));
 #endif
 
-	// Clear current data
-	uri[0] = '\0';
-	method = METHOD_UNKNOWN;
-
 	// Look for the first space in the request, which separates method and URI
 	const char* uriStart = strchr (request, ' ');
 	if (uriStart) {
+#ifdef ENABLE_ALL_METHODS
 		// Find out what method was requested
-		const ptrdiff_t methodLen = uriStart - request;
+		const size_t methodLen = uriStart - request;
 
 		for (byte i = 0; i < N_METHODS; ++i) {
 			PGM_P candidate = F_TO_PSTR (HTTP_METHOD_STRINGS[i]);
@@ -75,6 +85,7 @@ boolean HTTPRequestParser::parse (const char *request) {
 				break;
 			}
 		}
+#endif
 
 		/* OK, we got the method, now find the first non-space character
 		 * after it and look for the first space after that, which marks the
@@ -86,7 +97,7 @@ boolean HTTPRequestParser::parse (const char *request) {
 		const char *uriEnd = strchr (uriStart, ' ');
 		if (uriEnd) {
 			// Found another space
-			const ptrdiff_t uriLen = uriEnd - uriStart;
+			const size_t uriLen = uriEnd - uriStart;
 			// The strlcpy() function copies up to size - 1 characters
 			strlcpy (uri, uriStart, uriLen + 1 < MAX_URL_LEN ? uriLen + 1: MAX_URL_LEN);
 		} else {
@@ -159,30 +170,83 @@ char *HTTPRequestParser::get_basename () {
 	return buffer;
 }
 
-char *HTTPRequestParser::get_parameter (const char param[]) {
-	char *start;
-	boolean found = false;
+#ifdef ENABLE_REST
+
+#define isHexDigit(c) (((c) >= '0' && (c) <= '9') || (tolower (c) >= 'a' && tolower (c) <= 'f'))
+#define hex2int(c) ((c) <= '9' ? ((c) - '0') : ((c) - 'a' + 10))
+
+/* Copy up to len characters from src to dst decoding space-encoded characters
+ * and replacing '+' with spaces
+ */
+char *HTTPRequestParser::cpyndec (char *dst, const char *src, const size_t len) {
+	size_t i = 0, j = 0;
+
+	while (i < len) {
+		if (src[i] == '+') {
+			// That's the encoding of a space
+			dst[j++] = ' ';
+			++i;
+		} else if (src[i] == '%') {
+			// Decode
+			if (i + 2 < len && isHexDigit (src[i + 1]) && isHexDigit (src[i + 2])) {
+				int d = hex2int (src[i + 1]);
+				int u = hex2int (src[i + 2]);
+				int n = d * 16 + u;
+				dst[j++] = n;
+
+				i += 3;
+			} else {
+				// Fallback
+				dst[j++] = src[i++];
+			}
+		} else {
+			// Copy as-is
+			dst[j++] = src[i++];
+		}
+	}
+	dst[j] = '\0';
+
+	return dst;
+}
+
+#else
+
+char *HTTPRequestParser::cpyndec (char *dst, const char *src, const size_t len) {
+	strlcpy (dst, src, len + 1);		// FIXME: This +1 is dangerous
+
+	return dst;
+}
+
+#endif
+
+// Extract the value of a parameter from an x-www-form-urlencoded string
+char *HTTPRequestParser::getFormParameter (const char str[], const char param[]) {
+	const char *start;
+	bool found = false;
 
 #ifdef VERBOSE_REQUEST_PARSER
 	/* Print this now, because if we got called by
 	 * get_parameter(WebbinoFStr), param is actually stored in
 	 * buffer and will be overwritten.
 	 */
-	DPRINT (F("Extracting GET parameter: \""));
+	DPRINT (F("Extracting form parameter: \""));
 	DPRINT (param);
 	DPRINT (F("\": \""));
 #endif
 
-	for (start = strchr (uri, '?'); !found && start; start = strchr (start + 1, '&')) {
-		char *end = strchr (start, '=');
-		if (end && (end - start - 1) == (int) strlen (param) && strncmp (start + 1, param, end - start - 1) == 0) {
+	for (start = str; !found && start; start = strchr (start + 1, '&')) {
+		if (start[0] == '&')
+			++start;
+		char *end = strchr (start + 1, '=');
+		size_t nameLen = end - start;
+		if (end && nameLen == strlen (param) && strncmp (start, param, nameLen) == 0) {
 			// Found!
+			size_t valueLen = BUF_LEN;
 			char *x = strchr (end + 1, '&');
 			if (x) {
-				strlcpy (buffer, end + 1, x - end < BUF_LEN ? x - end : BUF_LEN);
-			} else {
-				strlcpy (buffer, end + 1, BUF_LEN);
+				valueLen = min (x - end - 1, BUF_LEN);
 			}
+			cpyndec (buffer, end + 1, valueLen);
 			found = true;
 		}
 	}
@@ -198,13 +262,32 @@ char *HTTPRequestParser::get_parameter (const char param[]) {
 	return buffer;
 }
 
+char *HTTPRequestParser::get_parameter (const char param[]) {
+	char *paramStart = strchr (uri, '?');
+	if (paramStart != NULL) {
+		getFormParameter (paramStart + 1, param);
+	} else {
+		buffer[0] = '\0';
+	}
+
+	return buffer;
+}
+
 #ifdef ENABLE_FLASH_STRINGS
 char *HTTPRequestParser::get_parameter (WebbinoFStr param) {
-	strncpy_P (buffer, F_TO_PSTR (param), BUF_LEN);
-	return get_parameter (buffer);
+	char *paramStart = strchr (uri, '?');
+	if (paramStart != NULL) {
+		strncpy_P (buffer, F_TO_PSTR (param), BUF_LEN);
+		getFormParameter (paramStart + 1, buffer);
+	} else {
+		buffer[0] = '\0';
+	}
+
+	return buffer;
 }
 #endif
 
+#ifdef ENABLE_REST
 boolean HTTPRequestParser::parametricMatch (const char *str, const char *expr, MatchResult& result) {
 	result.nMatches = 0;
 
@@ -256,3 +339,32 @@ boolean HTTPRequestParser::parametricMatch (const char *str, const char *expr, M
 boolean HTTPRequestParser::matchAssociation (const char *assocPath) {
 	return HTTPRequestParser::parametricMatch (uri, assocPath, matchResult);
 }
+
+char *HTTPRequestParser::getBodyStart () {
+	char *headerEnd = strstr_P (request, PSTR ("\r\n\r\n"));
+	if (headerEnd) {
+		headerEnd += 4;		// Get past the string we searched
+
+		if (*headerEnd == '\0') {
+			// We're the no-bodies
+			headerEnd = NULL;
+		}
+	}
+
+	return headerEnd;
+}
+#endif
+
+#ifdef ENABLE_ALL_METHODS
+// Extract the value of a parameter from the x-www-form-urlencoded request body
+char *HTTPRequestParser::getPostValue (const char param[]) {
+	char *body = getBodyStart ();
+	if (body != NULL) {
+		getFormParameter (body, param);
+	} else {
+		buffer[0] = '\0';
+	}
+
+	return buffer;
+}
+#endif

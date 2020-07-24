@@ -24,6 +24,7 @@
 #include "NetworkInterface.h"
 #include "HTTPRequestParser.h"
 #include "Storage.h"
+#include "MimeTypes.h"
 
 // http://arduiniana.org/libraries/pstring/
 #include <PString.h>
@@ -133,7 +134,7 @@ private:
 
 	void sendContent (WebClient& client, Content& content);
 
-	PGM_P getContentType (const char* filename);
+	const MimeType& getContentType (const char* filename);
 
 #ifdef ENABLE_TAGS
 	boolean shallReplace (PGM_P contType);

@@ -57,6 +57,17 @@
 // Define to enable HTTP Basic Authorization support
 #define ENABLE_HTTPAUTH
 
+/* By default only the GET HTTP method/verb is supported (i.e.: all requests are
+ * implicitly assumed to be GETS). Define this to enable the parsing of the
+ * actual method, which will be available in page functions.
+ */
+//~ #define ENABLE_ALL_METHODS
+
+/* Enable some features that will help implementing REST services. Note that you
+ * should probably enable ENABLE_ALL_METHODS with this.
+ */
+//~ #define ENABLE_REST
+
 /* Define to enable serving webpages from the ESP8266 integrated filesystem on
  * flash (SPIFFS). By default this is always enabled if compiling for ESP8266
  * standalone.
@@ -70,10 +81,6 @@
  * gz files.
  */
 //~ #define ENABLE_EXTRA_MIMETYPES
-
-/* MIME type to be used for files that do not match any known extension
- */
-#define WEBBINO_FALLBACK_MIMETYPE "application/octet-stream"
 
 /* Define to enable support for tag substitutions, i.e.: replace #TAGS#
  * in served pages

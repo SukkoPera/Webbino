@@ -115,7 +115,7 @@ boolean WebServer::addStorage (Storage& storage) {
 	return ret;
 }
 
-PGM_P WebServer::getContentType (const char* filename) {
+const MimeType& WebServer::getContentType (const char* filename) {
 	const MimeType* mt = NULL;
 
 #ifndef WEBBINO_NDEBUG
@@ -143,10 +143,7 @@ PGM_P WebServer::getContentType (const char* filename) {
 	}
 #endif
 
-	DPRINT (F("Content type is "));
-	DPRINTLN (PSTR_TO_F (mt ? mt -> getType () : FALLBACK_MIMETYPE));
-
-	return mt ? mt -> getType () : FALLBACK_MIMETYPE;
+	return mt ? *mt : FALLBACK_MIMETYPE;
 }
 
 void WebServer::handleClient (WebClient& client) {
@@ -187,8 +184,11 @@ void WebServer::handleClient (WebClient& client) {
 					const FileFuncAssociation* ass;
 
 					for (byte i = 0; (ass = reinterpret_cast<const FileFuncAssociation*> (pgm_read_ptr (&associations[i]))); i++) {
-						//~ if (strcmp_P (pagename, ass -> getPath ()) == 0) {
+#ifdef ENABLE_REST
 						if (client.request.matchAssociation (ass -> getPath ())) {
+#else
+						if (strcmp_P (pagename, ass -> getPath ()) == 0) {
+#endif
 							DPRINTLN (F("Page has an associated function"));
 							PageFunction func = ass -> getFunction ();
 							func (client.request);
@@ -227,14 +227,6 @@ void WebServer::handleClient (WebClient& client) {
 }
 
 #ifdef ENABLE_TAGS
-boolean WebServer::shallReplace (PGM_P contType) {
-	// Well, we must compare two strings in program space ^___^
-	char tmp[4];
-	strncpy_P (tmp, contType, 4);
-	//~ tmp[4] = '\0';
-	return strncmp_P (tmp, PSTR("text"), 4) == 0;
-}
-
 PString* WebServer::findSubstitutionTag (const char *tag) const {
 	const ReplacementTag* sub;
 	PString* ret = nullptr;
@@ -259,7 +251,10 @@ char *WebServer::findSubstitutionTagGetParameter (HTTPRequestParser& request, co
 void WebServer::sendContent (WebClient& client, Content& content) {
 	boolean authOk = false;
 
-	PGM_P contType = getContentType (content.getFilename ());
+	const MimeType& contType = getContentType (content.getFilename ());
+
+	DPRINT (F("Content type is "));
+	DPRINTLN (contType.getType ());
 
 	// Send headers
 #ifdef ENABLE_HTTPAUTH
@@ -287,7 +282,7 @@ void WebServer::sendContent (WebClient& client, Content& content) {
 
 	if (authOk) {
 		client.print (F(HEADER_START OK_HEADER CONT_TYPE_HEADER));
-		client.print (PSTR_TO_F (contType));
+		client.print (PSTR_TO_F (contType.getType ()));
 		client.print (F(HEADER_END));
 
 		client.print (F(HEADER_END));
@@ -300,7 +295,7 @@ void WebServer::sendContent (WebClient& client, Content& content) {
 			byte c = content.getNextByte ();
 
 #ifdef ENABLE_TAGS
-			if (shallReplace (contType)) {		// We only want to do replacements on "text" MIME Types
+			if (contType.supportsReplacements) {		// We do not want to do replacements on binary files...
 				if (tagLen >= 0) {
 					// A tag is in progress
 					if (c == TAG_CHAR) {

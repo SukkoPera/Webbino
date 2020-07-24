@@ -55,7 +55,7 @@ public:
 	//~ }
 
 	const char* getFilename () const override {
-		return "a.html";
+		return "a._wwwf_";		// This hackish extension will have us return a content-type of x-www-form-urlencoded
 	}
 
 	boolean available () override {
@@ -68,7 +68,7 @@ public:
 };
 
 
-const char DummyContent::content[] = "#DUMMY#";
+const char DummyContent::content[] = "$DUMMY$";
 
 
 /******************************************************************************/
