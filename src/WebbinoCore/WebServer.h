@@ -137,8 +137,6 @@ private:
 	const MimeType& getContentType (const char* filename);
 
 #ifdef ENABLE_TAGS
-	boolean shallReplace (PGM_P contType);
-
 	PString* findSubstitutionTag (const char* tag) const;
 
 	char *findSubstitutionTagGetParameter (HTTPRequestParser& request, const char* tag);
