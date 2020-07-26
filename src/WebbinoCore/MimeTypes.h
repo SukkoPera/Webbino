@@ -23,7 +23,16 @@
 struct MimeType {
 	PGM_P ext;
 	PGM_P type;
+
+	/* NOTE: If this field is of type boolean, code will crash on ESP8266 for
+	 * some reason! It appears to work fine with uint32_t. I guess it's a matter
+	 * of alignment with the PROGMEM stuff (which should do nothing on ESP???).
+	 */
+#ifdef ARDUINO_ARCH_ESP8266
+	uint32_t supportsReplacements;
+#else
 	boolean supportsReplacements;
+#endif
 
 	// Methods that (try to) hide the complexity of accessing PROGMEM data
 	PGM_P getExtension () const {
