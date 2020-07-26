@@ -27,9 +27,15 @@ FlashStorage flashStorage;
 #if defined (WEBBINO_USE_ENC28J60)
 	#include <WebbinoInterfaces/ENC28J60.h>
 	NetworkInterfaceENC28J60 netint;
-#elif defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500)
+#elif defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500) || \
+	  defined (WEBBINO_USE_ENC28J60_UIP)
 	#include <WebbinoInterfaces/WIZ5x00.h>
 	NetworkInterfaceWIZ5x00 netint;
+
+	#define MAC_ADDRESS 0x00,0x11,0x22,0x33,0x44,0x55
+
+	// ENC28J60_UIP also needs an SS pin
+	const byte SS_PIN = PA4;		// STM32
 #elif defined (WEBBINO_USE_ESP8266)
 	#include <WebbinoInterfaces/AllWiFi.h>
 
@@ -62,6 +68,7 @@ FlashStorage flashStorage;
 	#include <WebbinoInterfaces/DigiFi.h>
 	NetworkInterfaceDigiFi netint;
 #endif
+
 
 // Network configuration (Note the commas)
 #define IP_ADDRESS 192,168,1,177
@@ -102,8 +109,11 @@ void setup () {
 	Serial.println (F("Configuring static IP address"));
 #if defined (WEBBINO_USE_ENC28J60) || defined (WEBBINO_USE_WIZ5100) || \
 	  defined (WEBBINO_USE_WIZ5500)
-	byte mac[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
+	byte mac[6] = {MAC_ADDRESS};
 	bool ok = netint.begin (mac, ip, dns, gw, mask);
+#elif defined (WEBBINO_USE_ENC28J60_UIP)
+	byte mac[6] = {MAC_ADDRESS};
+	bool ok = netint.begin (mac, ip, dns, gw, mask, SS_PIN);
 #elif defined (WEBBINO_USE_ESP8266) || defined (WEBBINO_USE_ESP8266_STANDALONE)
 	#error "ESP8266 does not currently support static IP configuration"
 #elif defined (WEBBINO_USE_FISHINO)
