@@ -17,12 +17,21 @@
  *   along with Webbino. If not, see <http://www.gnu.org/licenses/>.       *
  ***************************************************************************/
 
+/* This backend handles the following network interfaces:
+ * Arduino + Official WiFi Shield (Untested)
+ * Arduino + Official WiFi01 Shield (Untested)
+ * Arduino MKR1000 (Untested)
+ * Arduino + WiFiEsp (+ ESP8266)
+ * ESP8266 Standalone
+ * ESP32 Standalone
+ */
+
 #include "AllWiFi.h"
 
 #if defined (WEBBINO_USE_WIFI) || defined (WEBBINO_USE_WIFI101) || \
 	  defined (WEBBINO_USE_ESP8266) || defined (WEBBINO_USE_ESP8266_STANDALONE)
 
-#include <webbino_debug.h>
+#include "webbino_debug.h"
 
 void WebClientWifi::begin (InternalClient& c, char* req) {
 	WebClient::begin (req);
@@ -81,7 +90,7 @@ boolean NetworkInterfaceWiFi::begin (Stream& _serial, const char *_ssid, const c
 	WiFi.begin (const_cast<char *> (_ssid), _password);
 	while (WiFi.status () != WL_CONNECTED) {
 		delay (500);
-	};
+	}
 	DPRINT (F("Joined AP, server is at "));
 	DPRINTLN (WiFi.localIP ());
 
@@ -89,6 +98,53 @@ boolean NetworkInterfaceWiFi::begin (Stream& _serial, const char *_ssid, const c
 
 	return true;
 }
+
+#ifndef WEBBINO_USE_ESP8266		// WiFiEsp does not support this
+boolean NetworkInterfaceWiFi::begin (const char *_ssid, const char *_password, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask) {
+	boolean ret = false;
+
+#ifndef ARDUINO_ARCH_ESP32
+	// Check for the presence of the WiFi interface
+	if (WiFi.status () == WL_NO_SHIELD) {
+		DPRINTLN (F("WiFi interface not found"));
+		return false;
+	}
+
+#ifndef WEBBINO_USE_ESP8266_STANDALONE
+	DPRINT (F("FW Version: "));
+	DPRINTLN (WiFi.firmwareVersion ());
+#endif
+#endif
+
+	// Set IP configuration
+#if defined (WEBBINO_USE_WIFI) || defined (WEBBINO_USE_WIFI101)
+	// The original Arduino API has this parameter order and returns nothing
+	WiFi.config (ip, dns, gw, mask);
+	if (false) {
+#else
+	// Other implementations seem to have converges to the following
+	if (!WiFi.config (ip, gw, mask, dns)) {
+#endif
+		DPRINTLN (F("Cannot set static IP address configuration"));
+	} else {
+		// Attempt to connect to WiFi network
+		DPRINT (F("Connecting to AP: "));
+		DPRINTLN (_ssid);
+		WiFi.begin (const_cast<char *> (_ssid), _password);
+		while (WiFi.status () != WL_CONNECTED) {
+			delay (500);
+		}
+		DPRINT (F("Joined AP, server is at "));
+		DPRINTLN (WiFi.localIP ());
+
+		server.begin ();
+
+		ret = true;
+	}
+
+	return ret;
+}
+#endif
 
 boolean lineIsInteresting (const char *line) {
 	return strncmp_P (line, PSTR ("Authorization: Basic "), 21) == 0;

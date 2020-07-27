@@ -21,7 +21,7 @@
 
 #ifdef WEBBINO_USE_ENC28J60
 
-#include <webbino_debug.h>
+#include "webbino_debug.h"
 
 // Ethernet packet buffer
 byte Ethernet::buffer[NetworkInterfaceENC28J60::ETHERNET_BUFSIZE];

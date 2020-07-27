@@ -22,7 +22,7 @@
 
 #if defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500) || defined (WEBBINO_USE_ENC28J60_UIP)
 
-#include <webbino_debug.h>
+#include "webbino_debug.h"
 
 
 void WebClientWIZ5x00::begin (EthernetClient& c, char* req) {

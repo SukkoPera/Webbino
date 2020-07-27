@@ -21,7 +21,7 @@
 
 #ifdef WEBBINO_USE_FISHINO
 
-#include <webbino_debug.h>
+#include "webbino_debug.h"
 
 void FishinoWebClient::begin (FishinoClient& c, char* req) {
 	WebClient::begin (req);

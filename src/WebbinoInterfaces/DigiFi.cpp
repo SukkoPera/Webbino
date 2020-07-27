@@ -21,7 +21,7 @@
 
 #ifdef WEBBINO_USE_DIGIFI
 
-#include <webbino_debug.h>
+#include "webbino_debug.h"
 
 
 WebClientDigiFi::WebClientDigiFi (DigiFi& _wifi): wifi (_wifi) {

@@ -85,6 +85,8 @@ public:
 #if defined (WEBBINO_USE_WIFI) || defined (WEBBINO_USE_WIFI101) || \
       defined (WEBBINO_USE_ESP8266_STANDALONE)
 	boolean begin (const char *_ssid, const char *_password);
+
+	boolean begin (const char *_ssid, const char *_password, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask);
 #elif defined (WEBBINO_USE_ESP8266)
 	boolean begin (Stream& _serial, const char *_ssid, const char *_password);
 #endif
