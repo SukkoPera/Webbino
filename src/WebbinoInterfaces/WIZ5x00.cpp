@@ -76,7 +76,7 @@ boolean NetworkInterfaceWIZ5x00::begin (byte *mac, IPAddress ip, IPAddress dns, 
 	DPRINTLN (F("Using UIP Ethernet library"));
 	Ethernet.init (ssPin);
 #else
-boolean NetworkInterfaceWIZ5x00::begin (byte *mac) {
+boolean NetworkInterfaceWIZ5x00::begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask) {
 	DPRINTLN (F("Using Arduino Ethernet library"));
 #endif
 

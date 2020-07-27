@@ -73,7 +73,7 @@ public:
 #if defined (WEBBINO_USE_ENC28J60_UIP)
 	boolean begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask, const byte ssPin);
 #else
-	boolean begin (byte *mac);
+	boolean begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask);
 #endif
 
 	WebClient* processPacket () override;
