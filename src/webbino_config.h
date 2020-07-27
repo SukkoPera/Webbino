@@ -26,13 +26,13 @@
 /* Network device selection: please enable *only one* of the following,
  * corresponding to the network device you will be using
  */
-//~ #define WEBBINO_USE_WIZ5100
+#define WEBBINO_USE_WIZ5100
 //~ #define WEBBINO_USE_WIZ5500
 //~ #define WEBBINO_USE_ENC28J60
 //~ #define WEBBINO_USE_ENC28J60_UIP
 //~ #define WEBBINO_USE_ESP8266
 //~ #define WEBBINO_USE_ESP8266_STANDALONE
-#define WEBBINO_USE_WIFI
+//~ #define WEBBINO_USE_WIFI
 //~ #define WEBBINO_USE_WIFI101
 //~ #define WEBBINO_USE_FISHINO
 //~ #define WEBBINO_USE_DIGIFI
@@ -55,7 +55,13 @@
 #define ENABLE_PAGE_FUNCTIONS
 
 // Define to enable HTTP Basic Authorization support
-#define ENABLE_HTTPAUTH
+//~ #define ENABLE_HTTPAUTH
+
+/* Maximum length of username:password string
+ *
+ * Only meaningful if ENABLE_HTTPAUTH is enabled
+ */
+#define MAX_USERPASS_LEN 32
 
 /* By default only the GET HTTP method/verb is supported (i.e.: all requests are
  * implicitly assumed to be GETS). Define this to enable the parsing of the
@@ -107,12 +113,6 @@ const byte TAG_CHAR = static_cast<byte> ('$');
  */
 #define MAX_URL_LEN 128
 
-/* Maximum length of username:password string
- *
- * Only meaningful if ENABLE_HTTPAUTH is enabled
- */
-#define MAX_USERPASS_LEN 32
-
 /* TCP port the server will listen on
  *
  * NOTE: Port 80 can not be used with DigiFi
@@ -135,17 +135,9 @@ const byte TAG_CHAR = static_cast<byte> ('$');
  */
 #define CLIENT_BUFSIZE 64
 
-/* Define this to store strings in flash memory. This saves RAM on smaller MCUs,
- * recommended on AVRs, works fine on ESP8266 standalone, probably not supported
- * on other targets.
- */
-#if defined (ARDUINO_ARCH_AVR) || defined (ARDUINO_ARCH_ESP8266) || defined (ARDUINO_ARCH_STM32F1)
-	#define ENABLE_FLASH_STRINGS
-#endif
-
 /* DEFINE this to DISABLE debug messages
  */
-//~ #define WEBBINO_NDEBUG
+#define WEBBINO_NDEBUG
 
 /* Enable verbose HTTP request parser
  */

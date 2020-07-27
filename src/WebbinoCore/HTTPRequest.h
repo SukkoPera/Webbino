@@ -65,9 +65,7 @@ public:
 
 	char *get_parameter (const char param[]);
 
-#ifdef ENABLE_FLASH_STRINGS
 	char *get_parameter (WebbinoFStr param);
-#endif
 
 #ifdef ENABLE_REST
 	boolean matchAssociation (const char *assocPath);

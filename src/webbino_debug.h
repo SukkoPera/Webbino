@@ -32,13 +32,13 @@
 
 #endif
 
+// Flash strings stuff
 // FIXME: This should probably be moved somewhere else
-#ifdef ENABLE_FLASH_STRINGS
 
 // STM32 has a avr/pgmspace.h wrapper...
-#if defined (ARDUINO_ARCH_AVR) || defined (ARDUINO_ARCH_STM32F1)
+//~ #if defined (ARDUINO_ARCH_AVR) || defined (ARDUINO_ARCH_STM32F1)
 #include <avr/pgmspace.h>
-#endif
+//~ #endif
 
 // ... But it's missing some functions :(
 #ifdef ARDUINO_ARCH_STM32F1
@@ -49,41 +49,6 @@
 #define PSTR_TO_F(s) reinterpret_cast<const __FlashStringHelper *> (s)
 #define F_TO_PSTR(s) reinterpret_cast<PGM_P> (s)
 #define WebbinoFStr const __FlashStringHelper *
-
-#else
-
-#warning "Flash strings disabled"
-
-#undef PSTR
-#define PSTR(s) s
-
-#undef F
-#define F(s) s
-
-#define PSTR_TO_F(s) s
-#define F_TO_PSTR(s) s
-
-#define WebbinoFStr const char *
-
-#undef strlen_P
-#define strlen_P strlen
-#undef strcmp_P
-#define strcmp_P strcmp
-#undef strcat_P
-#define strcat_P strcat
-#undef strncpy_P
-#define strncpy_P strncpy
-#undef strncmp_P
-#define strncmp_P strncmp
-#undef strncasecmp_P
-#define strncasecmp_P strncasecmp
-
-#undef pgm_read_ptr
-#define pgm_read_ptr(p) (*(p))
-#undef pgm_read_word
-#define pgm_read_word(p) (*(p))
-
-#endif
 
 // Use to mark unused function parameters
 #define _UNUSED __attribute__ ((unused))

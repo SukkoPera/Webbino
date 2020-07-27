@@ -273,7 +273,6 @@ char *HTTPRequestParser::get_parameter (const char param[]) {
 	return buffer;
 }
 
-#ifdef ENABLE_FLASH_STRINGS
 char *HTTPRequestParser::get_parameter (WebbinoFStr param) {
 	char *paramStart = strchr (uri, '?');
 	if (paramStart != NULL) {
@@ -285,7 +284,6 @@ char *HTTPRequestParser::get_parameter (WebbinoFStr param) {
 
 	return buffer;
 }
-#endif
 
 #ifdef ENABLE_REST
 boolean HTTPRequestParser::parametricMatch (const char *str, const char *expr, MatchResult& result) {
