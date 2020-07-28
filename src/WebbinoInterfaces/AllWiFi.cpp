@@ -117,12 +117,14 @@ boolean NetworkInterfaceWiFi::begin (const char *_ssid, const char *_password, I
 #endif
 
 	// Set IP configuration
-#if defined (WEBBINO_USE_WIFI) || defined (WEBBINO_USE_WIFI101)
+#if (defined (WEBBINO_USE_WIFI) && defined (ARDUINO_ARCH_AVR)) || defined (WEBBINO_USE_WIFI101)
 	// The original Arduino API has this parameter order and returns nothing
 	WiFi.config (ip, dns, gw, mask);
 	if (false) {
 #else
-	// Other implementations seem to have converges to the following
+	/* Other implementations seem to have converges to the following (including
+	 * ESP32, hence the check for ARDUINO_ARCH_AVR above).
+	 */
 	if (!WiFi.config (ip, gw, mask, dns)) {
 #endif
 		DPRINTLN (F("Cannot set static IP address configuration"));
