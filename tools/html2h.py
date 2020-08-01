@@ -49,29 +49,70 @@ def shallStrip (filename):
 	ext = ext.lower ()
 	return ext == "htm" or ext == "html"
 
-def process_file (filename, defines, nostrip = False):
-	print >> sys.stderr, "Processing file: %s" % filename
+def make_page_name (filename):
+	# Make up a unique ID for every file to use in C identifiers
+	parts = splitall (filename[2:])
+	parts = [parts[0]] + [x.capitalize () for x in parts[1:]]
+	code = "".join (parts)
+	code = code.replace ('.', '_')
+	code = code.replace ('-', '_')
+	pagename = filename[1:]
+
+	# Convert Windows slashes to Posix slashes
+	pagename = pagename.replace ('\\', '/')
+
+	return code, pagename
+
+def process_binary_file (filename):
+	print ("Processing binary file: %s" % filename, file=sys.stderr)
+	try:
+		with open (filename, 'rb') as fp:
+			code, pagename = make_page_name (filename)
+			print ("const char %s_name[] PROGMEM = \"%s\";" % (code, pagename))
+			print ()
+			print ("const byte %s[] PROGMEM = {" % code)
+
+			i = 0
+			bs = fp.read (1024)
+			while bs:
+				for b in bs:
+					if i % 8 == 0:
+						print ("\t", end = '')
+					print ("0x%02x, " % b, end = '')
+					i += 1
+					if i % 8 == 0:
+						print ("")
+				bs = fp.read (1024)
+
+			print ("\n};")
+			print ()
+			print ("const unsigned int %s_len PROGMEM = %u;" % (code, i))
+			print ()
+	except IOError as ex:
+		print ("Cannot open file %s: %s" % (filename, str (ex)))
+		code = None
+
+	return code
+
+# Thanks to jfs at https://stackoverflow.com/questions/898669/how-can-i-detect-if-a-file-is-binary-non-text-in-python
+textchars = bytearray ({7,8,9,10,12,13,27} | set (range (0x20, 0x100)) - {0x7f})
+is_binary_string = lambda bytes: bool (bytes.translate (None, textchars))
+is_binary_file = lambda fn: is_binary_string (open (fn, 'rb').read(1024))
+
+def process_text_file (filename, defines, nostrip = False):
+	print ("Processing text file: %s" % filename, file=sys.stderr)
 
 	if not nostrip and not shallStrip (filename):
-		print >> sys.stderr, "- File will not be stripped"
+		print ("- File will not be stripped", file=sys.stderr)
 		nostrip = True
 
 	try:
-		with open (filename, 'rb') as fp:
-			# Make up a unique ID for every file to use in C identifiers
-			parts = splitall (filename[2:])
-			parts = [parts[0]] + [x.capitalize () for x in parts[1:]]
-			code = "".join (parts)
-			code = code.replace ('.', '_')
-			code = code.replace ('-', '_')
-			pagename = filename[1:]
+		with open (filename, 'r') as fp:
+			code, pagename = make_page_name (filename)
+			print ("const char %s_name[] PROGMEM = \"%s\";" % (code, pagename))
+			print ()
+			print ("const byte %s[] PROGMEM = {" % code)
 
-			# Convert Windows slashes to Posix slashes
-			pagename = pagename.replace ('\\', '/')
-
-			print "const char %s_name[] PROGMEM = \"%s\";" % (code, pagename)
-			print
-			print "const byte %s[] PROGMEM = {" % code
 			i = 0
 			line = fp.readline ()
 			tokens = []
@@ -94,27 +135,33 @@ def process_file (filename, defines, nostrip = False):
 					for b in line:
 						if nostrip or (b != '\n' and b != '\r' and b != '\t'):
 							if i % 8 == 0:
-								print "\t",
-							print "0x%02x, " % ord (b),
+								print ("\t", end = '')
+							print ("0x%02x, " % ord (b), end = '')
 							i += 1
 							if i % 8 == 0:
-								print ""
+								print ("")
 				else:
-					print >> sys.stderr, "Skipping line: %s" % line.strip ()
+					print ("Skipping line: %s" % line.strip (), file=sys.stderr)
 				line = fp.readline ()
 
-			print "\n};"
-			print
-			print "const unsigned int %s_len PROGMEM = %u;" % (code, i)
-			print
+			print ("\n};")
+			print ()
+			print ("const unsigned int %s_len PROGMEM = %u;" % (code, i))
+			print ()
 	except IOError as ex:
-		print "Cannot open file %s: %s" % (filename, str (ex))
+		print ("Cannot open file %s: %s" % (filename, str (ex)))
 		code = None
 
 	return code
 
+def process_file (filename, defines, nostrip = False):
+	if is_binary_file (filename):
+		return process_binary_file (filename)
+	else:
+		return process_text_file (filename, defines, nostrip)
+
 def process_dir (dirpath, defines, nostrip = False):
-	print >> sys.stderr, "Processing directory: %s" % dirpath
+	print ("Processing directory: %s" % dirpath, file=sys.stderr)
 	idents = []
 	for filename in sorted (os.listdir (dirpath)):
 		fullfile = os.path.join (dirpath, filename)
@@ -125,7 +172,7 @@ def process_dir (dirpath, defines, nostrip = False):
 		elif os.path.isdir (fullfile):
 			idents += process_dir (fullfile, defines, nostrip)
 		else:
-			print "Skipping %s" % filename
+			print ("Skipping %s" % filename)
 	return idents
 
 def make_include_code (idents):
@@ -137,7 +184,7 @@ def make_include_code (idents):
 	ret += "\n"
 
 	ret += "const Page* const pages[] PROGMEM = {\n"
-	for n in xrange (1, n_pages + 1):
+	for n in range (1, n_pages + 1):
 		ret += "\t&page%02d,\n" % n
 
 	ret += "\tNULL\n"
@@ -165,17 +212,17 @@ if __name__ == "__main__":
 	idents = process_dir (".", args.define or [], args.nostrip)
 	n_pages = len (idents)
 
-	print "/*** CODE TO INCLUDE IN SKETCH ***\n"
-	print make_include_code (idents)
-	print "\n***/"
+	print ("/*** CODE TO INCLUDE IN SKETCH ***\n")
+	print (make_include_code (idents))
+	print ("\n***/")
 
-	print >> sys.stderr, "Total files processed: %d" % n_pages
+	print ("Total files processed: %d" % n_pages, file=sys.stderr)
 
 	if n_pages > 0:
 		# Help with code to be put in sketch
-		print >> sys.stderr
-		print >> sys.stderr, "Put the following in your sketch:"
-		print >> sys.stderr
-		print >> sys.stderr, '#include "html.h"'
-		print >> sys.stderr
-		print >> sys.stderr, make_include_code (idents)
+		print (file=sys.stderr)
+		print ("Put the following in your sketch:", file=sys.stderr)
+		print (file=sys.stderr)
+		print ('#include "html.h"', file=sys.stderr)
+		print (file=sys.stderr)
+		print (make_include_code (idents), file=sys.stderr)
