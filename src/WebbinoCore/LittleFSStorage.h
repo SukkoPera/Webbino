@@ -1,4 +1,4 @@
-/***************************************************************************
+ /***************************************************************************
  *   This file is part of Webbino                                          *
  *                                                                         *
  *   Copyright (C) 2012-2020 by SukkoPera                                  *
@@ -21,41 +21,42 @@
 #include "Content.h"
 #include "webbino_common.h"
 
-#ifdef WEBBINO_ENABLE_SPIFFS
+#ifdef WEBBINO_ENABLE_LITTLEFS
 
 #ifndef WEBBINO_USE_ESP8266_STANDALONE
-#error "SPIFFS can only be enabled on ESP8266 standalone"
+#error "LittleFS can only be enabled on ESP8266 standalone"
 #endif
 
 #include <FS.h>
+#include <LittleFS.h>
 
-struct SpiffsContent: public Content {
+struct LittleFSContent: public Content {
 private:
 	File file;
 
 public:
-	SpiffsContent () {
+	LittleFSContent () {
 	}
 
-	SpiffsContent (const char* filename): Content (filename) {
-		file = SPIFFS.open (filename, "r");
+	LittleFSContent (const char* filename): Content (filename) {
+		file = LittleFS.open (filename, "r");
 	}
 
-	SpiffsContent (const SpiffsContent& o): Content (*this) {
+	LittleFSContent (const LittleFSContent& o): Content (*this) {
 		file = o.file;
 	}
 
-	SpiffsContent& operator= (SpiffsContent o) {
+	LittleFSContent& operator= (LittleFSContent o) {
 		if (file)
 			file.close ();
 
 		Content::operator= (o);		// This must be called explicitly!!!
 
-		 file = SPIFFS.open (filename, "r");
+		file = LittleFS.open (filename, "r");
 		return *this;
 	}
 
-	~SpiffsContent () {
+	~LittleFSContent () {
 		if (file)
 			file.close ();
 	}
@@ -72,18 +73,17 @@ public:
 
 /******************************************************************************/
 
-
-class SpiffsStorage: public Storage {
+class LittleFSStorage: public Storage {
 private:
-	SpiffsContent content;
+	LittleFSContent content;
 
 public:
 	void begin () {
-		SPIFFS.begin ();
+		LittleFS.begin ();
 
 #ifndef WEBBINO_NDEBUG
-		DPRINTLN (F("Pages available in SPIFFS:"));
-		Dir dir = SPIFFS.openDir ("/");
+		DPRINTLN (F("Pages available in LittleFS:"));
+		Dir dir = LittleFS.openDir ("/");
 		for (byte i = 0; dir.next (); i++) {
 			DPRINT (i);
 			DPRINT (F(". "));
@@ -93,11 +93,11 @@ public:
 	}
 
 	boolean exists (const char* filename) override {
-		return SPIFFS.exists (filename);
+		return LittleFS.exists (filename);
 	}
 
 	Content& get (const char* filename) override {
-		content = SpiffsContent (filename);
+		content = LittleFSContent (filename);
 
 		return content;
 	}

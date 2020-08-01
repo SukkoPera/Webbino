@@ -23,4 +23,5 @@
 #include "WebbinoCore/FlashStorage.h"
 #include "WebbinoCore/SdStorage.h"
 #include "WebbinoCore/SpiffsStorage.h"
+#include "WebbinoCore/LittleFSStorage.h"
 #include "WebbinoCore/DummyStorage.h"

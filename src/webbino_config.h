@@ -75,11 +75,15 @@
 //~ #define ENABLE_REST
 
 /* Define to enable serving webpages from the ESP8266 integrated filesystem on
- * flash (SPIFFS). By default this is always enabled if compiling for ESP8266
- * standalone.
+ * flash. There are actually two filesystems: SPIFFS is deprecated and will be
+ * removed soon, LittleFS has more capabilities and is the way to go for the
+ * future.
+ *
+ * By default, if compiling for ESP8266 standalone the latter is enabled.
  */
 #ifdef WEBBINO_USE_ESP8266_STANDALONE
-#define WEBBINO_ENABLE_SPIFFS
+#define WEBBINO_ENABLE_LITTLEFS
+//~ #define WEBBINO_ENABLE_SPIFFS
 #endif
 
 /* By default, only MIME types for html, css, js, png, jpeg, gif and ico files
