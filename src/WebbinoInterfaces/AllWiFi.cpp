@@ -148,6 +148,24 @@ boolean NetworkInterfaceWiFi::begin (const char *_ssid, const char *_password, I
 }
 #endif
 
+// ESP8266 and ESP32 also support Access-Point mode - Thanks gpb01!
+#if defined (WEBBINO_USE_ESP8266_STANDALONE) || defined (ARDUINO_ARCH_ESP32)
+boolean NetworkInterfaceWiFi::beginAP (const char *_ssid, const char *_password, IPAddress& address) {
+	boolean ret = false;
+
+    DPRINT (F("Creating AP: "));
+	DPRINTLN (_ssid);
+	WiFi.mode (WIFI_AP);
+    ret = WiFi.softAP ((_ssid), _password);
+    if (ret) {
+		address = WiFi.softAPIP ();
+		server.begin ();
+	}
+
+	return ret;
+}
+#endif
+
 boolean lineIsInteresting (const char *line) {
 	return strncmp_P (line, PSTR ("Authorization: Basic "), 21) == 0;
 }

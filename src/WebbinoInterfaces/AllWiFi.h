@@ -95,6 +95,10 @@ public:
 	boolean begin (Stream& _serial, const char *_ssid, const char *_password);
 #endif
 
+#if defined (WEBBINO_USE_ESP8266_STANDALONE) || defined (ARDUINO_ARCH_ESP32)
+	boolean beginAP (const char *_ssid, const char *_password, IPAddress& address);
+#endif
+
 	WebClient* processPacket () override;
 
 	boolean usingDHCP () override;
