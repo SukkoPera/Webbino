@@ -59,6 +59,10 @@ private:
 	byte ethernetBuffer[MAX_URL_LEN + 16];			// MAX_URL_LEN + X is enough, since we only store the "GET <url> HTTP/1.x" request line
 	unsigned int ethernetBufferSize;
 
+#ifdef CLIENT_TIMEOUT
+	unsigned long lastPacketReceived = 0;
+#endif
+
 	WebClientWIZ5x00 webClient;
 
 public:

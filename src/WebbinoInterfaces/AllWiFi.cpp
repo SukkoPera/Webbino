@@ -167,14 +167,31 @@ WebClient* NetworkInterfaceWiFi::processPacket () {
 		DPRINT (F("New client from "));
 		DPRINTLN (client.remoteIP ());
 
+#ifdef CLIENT_TIMEOUT
+		lastPacketReceived = millis ();
+#endif
+
 		// An http request ends with a blank line
 		boolean currentLineIsBlank = true;
 		ethernetBufferSize = 0;
 		RequestState state = RS_URI;
 		unsigned int lastLineStart = 0;
 		while (client.connected () && state != RS_COMPLETE) {
+#ifdef CLIENT_TIMEOUT
+		    // Check for connection timeout
+		    if (millis () - lastPacketReceived > CLIENT_TIMEOUT) {
+		        DPRINTLN (F("Client connection timeout"));
+		        break;
+		    }
+#endif
+
 			if (client.available ()) {
 				char c = client.read ();
+
+#ifdef CLIENT_TIMEOUT
+				// Something was received, reset timeout
+				lastPacketReceived = millis();
+#endif
 
 				/* We are only interested in the first line of the HTTP request
 				 * (i.e.: the one that contains the method and the URI), so if

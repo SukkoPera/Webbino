@@ -135,6 +135,14 @@ const byte TAG_CHAR = static_cast<byte> ('$');
  */
 #define CLIENT_BUFSIZE 64
 
+/* Maximum time in milliseconds without receiving characters after which a
+ * client connection is dropped. Solves hanging connection from Chrome on OSX.
+ * Undefine to turn off this feature.
+ *
+ * Implemented by gpb01, thanks!
+ */
+#define CLIENT_TIMEOUT 2500
+
 /* DEFINE this to DISABLE debug messages
  */
 #define WEBBINO_NDEBUG
