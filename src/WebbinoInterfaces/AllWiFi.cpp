@@ -100,7 +100,7 @@ boolean NetworkInterfaceWiFi::begin (Stream& _serial, const char *_ssid, const c
 }
 
 #ifndef WEBBINO_USE_ESP8266		// WiFiEsp does not support this
-boolean NetworkInterfaceWiFi::begin (const char *_ssid, const char *_password, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask) {
+boolean NetworkInterfaceWiFi::begin (const char *_ssid, const char *_password, IPAddress ip, IPAddress mask, IPAddress gw, IPAddress dns) {
 	boolean ret = false;
 
 #ifndef ARDUINO_ARCH_ESP32
@@ -122,8 +122,8 @@ boolean NetworkInterfaceWiFi::begin (const char *_ssid, const char *_password, I
 	WiFi.config (ip, dns, gw, mask);
 	if (false) {
 #else
-	/* Other implementations seem to have converges to the following (including
-	 * ESP32, hence the check for ARDUINO_ARCH_AVR above).
+	/* Other implementations seem to converge to the following (including ESP32,
+	 * hence the check for ARDUINO_ARCH_AVR above).
 	 */
 	if (!WiFi.config (ip, gw, mask, dns)) {
 #endif
@@ -314,6 +314,10 @@ IPAddress NetworkInterfaceWiFi::getNetmask () {
 
 IPAddress NetworkInterfaceWiFi::getGateway () {
 	return WiFi.gatewayIP ();
+}
+
+IPAddress NetworkInterfaceWiFi::getDns() {
+	return WiFi.dnsIP ();
 }
 
 #endif

@@ -58,7 +58,7 @@ boolean NetworkInterfaceENC28J60::begin (byte *mac, byte csPin) {
 	return ret;
 }
 
-boolean NetworkInterfaceENC28J60::begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask, byte csPin) {
+boolean NetworkInterfaceENC28J60::begin (byte *mac, IPAddress ip, IPAddress mask, IPAddress gw, IPAddress dns, byte csPin) {
 	boolean ret;
 
 	DPRINTLN (F("Using EtherCard library"));
@@ -108,6 +108,11 @@ IPAddress NetworkInterfaceENC28J60::getNetmask () {
 
 IPAddress NetworkInterfaceENC28J60::getGateway () {
 	IPAddress ip = EtherCard::gwip;
+	return ip;
+}
+
+IPAddress NetworkInterfaceENC28J60::getDns () {
+	IPAddress ip = EtherCard::dnsip;
 	return ip;
 }
 

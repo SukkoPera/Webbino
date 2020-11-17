@@ -51,7 +51,7 @@ public:
 
 	boolean begin (byte *mac, byte csPin = DEFAULT_CS_PIN);
 
-	boolean begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask, byte csPin = DEFAULT_CS_PIN);
+	boolean begin (byte *mac, IPAddress ip, IPAddress mask, IPAddress gw, IPAddress dns, byte csPin = DEFAULT_CS_PIN);
 
 	WebClient* processPacket () override;
 
@@ -64,6 +64,8 @@ public:
 	IPAddress getNetmask () override;
 
 	IPAddress getGateway () override;
+
+	IPAddress getDns () override;
 
 private:
 	boolean dhcp;

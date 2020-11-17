@@ -38,6 +38,8 @@ public:
 	virtual IPAddress getNetmask () = 0;
 
 	virtual IPAddress getGateway () = 0;
+
+	virtual IPAddress getDns () = 0;
 };
 
 #endif
