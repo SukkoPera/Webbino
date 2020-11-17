@@ -75,9 +75,9 @@ public:
 #endif
 
 #if defined (WEBBINO_USE_ENC28J60_UIP)
-	boolean begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask, const byte ssPin);
+	boolean begin (byte *mac, IPAddress ip, IPAddress mask, IPAddress gw, IPAddress dns, const byte ssPin);
 #else
-	boolean begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask);
+	boolean begin (byte *mac, IPAddress ip, IPAddress mask, IPAddress gw, IPAddress dns);
 #endif
 
 	WebClient* processPacket () override;
@@ -91,6 +91,8 @@ public:
 	IPAddress getNetmask () override;
 
 	IPAddress getGateway () override;
+
+	IPAddress getDns () override;
 };
 
 #endif

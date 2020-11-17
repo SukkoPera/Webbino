@@ -72,11 +72,11 @@ boolean NetworkInterfaceWIZ5x00::begin (byte *mac) {
 }
 
 #if defined (WEBBINO_USE_ENC28J60_UIP)
-boolean NetworkInterfaceWIZ5x00::begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask, const byte ssPin) {
+boolean NetworkInterfaceWIZ5x00::begin (byte *mac, IPAddress ip, IPAddress mask, IPAddress gw, IPAddress dns, const byte ssPin) {
 	DPRINTLN (F("Using UIP Ethernet library"));
 	Ethernet.init (ssPin);
 #else
-boolean NetworkInterfaceWIZ5x00::begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask) {
+boolean NetworkInterfaceWIZ5x00::begin (byte *mac, IPAddress ip, IPAddress mask, IPAddress gw, IPAddress dns) {
 	DPRINTLN (F("Using Arduino Ethernet library"));
 #endif
 
@@ -243,6 +243,10 @@ IPAddress NetworkInterfaceWIZ5x00::getNetmask () {
 
 IPAddress NetworkInterfaceWIZ5x00::getGateway () {
 	return Ethernet.gatewayIP ();
+}
+
+IPAddress NetworkInterfaceWIZ5x00::getDns() {
+	return Ethernet.dnsServerIP ();
 }
 
 #endif
