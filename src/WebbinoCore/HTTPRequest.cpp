@@ -181,7 +181,7 @@ char *HTTPRequestParser::get_basename () {
 char *HTTPRequestParser::cpyndec (char *dst, const char *src, const size_t len) {
 	size_t i = 0, j = 0;
 
-	while (i < len) {
+	while (src[i] != '\0' && j < len - 1) {
 		if (src[i] == '+') {
 			// That's the encoding of a space
 			dst[j++] = ' ';
@@ -212,7 +212,7 @@ char *HTTPRequestParser::cpyndec (char *dst, const char *src, const size_t len) 
 #else
 
 char *HTTPRequestParser::cpyndec (char *dst, const char *src, const size_t len) {
-	strlcpy (dst, src, len + 1);		// FIXME: This +1 is dangerous
+	strlcpy (dst, src, len);
 
 	return dst;
 }
@@ -246,7 +246,7 @@ char *HTTPRequestParser::getFormParameter (const char str[], const char param[])
 			if (x) {
 				valueLen = min (x - end - 1, BUF_LEN);
 			}
-			cpyndec (buffer, end + 1, valueLen);
+			cpyndec (buffer, end + 1, valueLen + 1);	// FIXME: This +1 is dangerous
 			found = true;
 		}
 	}
