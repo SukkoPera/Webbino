@@ -312,7 +312,7 @@ boolean HTTPRequestParser::parametricMatch (const char *str, WebbinoFStr expr, M
 						matchOk = false;
 					}
 				} else {
-					// Capture char is last char or patter, there must be no slash in str
+					// Capture char is last char of pattern, there must be no slash in str
 					char *slash = strchr (str + j, '/');
 					if (!slash) {
 						// OK, save capture
