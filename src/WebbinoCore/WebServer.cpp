@@ -185,7 +185,7 @@ void WebServer::handleClient (WebClient& client) {
 
 					for (byte i = 0; (ass = reinterpret_cast<const FileFuncAssociation*> (pgm_read_ptr (&associations[i]))); i++) {
 #ifdef ENABLE_REST
-						if (client.request.matchAssociation (ass -> getPath ())) {
+						if (client.request.matchAssociation (PSTR_TO_F (ass -> getPath ()))) {
 #else
 						if (strcmp_P (pagename, ass -> getPath ()) == 0) {
 #endif

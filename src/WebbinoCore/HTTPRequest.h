@@ -68,7 +68,7 @@ public:
 	char *get_parameter (WebbinoFStr param);
 
 #ifdef ENABLE_REST
-	boolean matchAssociation (const char *assocPath);
+	boolean matchAssociation (WebbinoFStr assocPath);
 #endif
 
 #ifdef ENABLE_ALL_METHODS
@@ -89,7 +89,7 @@ private:
 	static char *cpyndec (char *dst, const char *src, const size_t len);
 
 #ifdef ENABLE_REST
-	static boolean parametricMatch (const char *str, const char *expr, MatchResult& result);
+	static boolean parametricMatch (const char *str, WebbinoFStr expr, MatchResult& result);
 #endif
 
 	char *getBodyStart ();

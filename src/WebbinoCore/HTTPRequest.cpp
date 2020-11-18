@@ -286,16 +286,18 @@ char *HTTPRequestParser::get_parameter (WebbinoFStr param) {
 }
 
 #ifdef ENABLE_REST
-boolean HTTPRequestParser::parametricMatch (const char *str, const char *expr, MatchResult& result) {
+boolean HTTPRequestParser::parametricMatch (const char *str, WebbinoFStr expr, MatchResult& result) {
 	result.nMatches = 0;
 
 	boolean matchOk = true;
 	byte i = 0, j = 0;
-	while (matchOk && i < strlen (expr)) {
-		if (expr[i] != str[j]) {
-			if (expr[i] == '*') {
+	while (matchOk && i < strlen_P (F_TO_PSTR (expr))) {
+		const char ecur = pgm_read_byte (&((const char *) expr)[i]);		// FIXME
+		if (ecur != str[j]) {
+			if (ecur == '*') {
 				// Capture
-				if (expr[i + 1] == '/') {		// Always safe
+				const char enext = pgm_read_byte (&((const char *) expr)[i + 1]);
+				if (enext == '/') {		// Always safe
 					// Pattern goes on, there must be a slash in str
 					char *slash = strchr (str + j, '/');
 					if (slash) {
@@ -334,7 +336,7 @@ boolean HTTPRequestParser::parametricMatch (const char *str, const char *expr, M
 	return matchOk;
 }
 
-boolean HTTPRequestParser::matchAssociation (const char *assocPath) {
+boolean HTTPRequestParser::matchAssociation (WebbinoFStr assocPath) {
 	return HTTPRequestParser::parametricMatch (uri, assocPath, matchResult);
 }
 
