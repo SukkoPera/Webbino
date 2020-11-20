@@ -28,15 +28,44 @@
 
 #define HEADER_START "HTTP/1.0 "
 #define REDIRECT_HEADER "301 Moved Permanently\r\nLocation: "
-#define OK_HEADER "200 OK\r\n"		// \r\nPragma: no-cache
+//~ #define OK_HEADER "200 OK\r\n"		// \r\nPragma: no-cache
 #define CONT_TYPE_HEADER "Content-Type: "
-#define NOT_FOUND_HEADER "404 Not Found\r\nContent-Type: text/html"
+//~ #define NOT_FOUND_HEADER "404 Not Found\r\nContent-Type: text/html"
 #define HEADER_END "\r\n"
 
 #ifdef ENABLE_HTTPAUTH
 #define AUTH_HEADER "WWW-Authenticate: Basic realm="
-#define UNAUTHORIZED_HEADER "401 Unauthorized"
+//~ #define UNAUTHORIZED_HEADER "401 Unauthorized"
 #endif
+
+enum HttpStatusCode {
+	// 2xx success
+	HTTP_OK = 200,
+	HTTP_OK_CREATED = 201,
+	HTTP_OK_NO_CONTENT = 204,
+	
+	// 3xx redirection
+	HTTP_MOVED_PERMANENTLY = 301,
+	
+	// 4xx client errors
+	HTTP_BAD_REQUEST = 400,
+	HTTP_UNAUTHORIZED = 401,
+	HTTP_FORBIDDEN = 403,
+	HTTP_NOT_FOUND = 404
+};
+
+//~ const char *HttpStatusMessages[] = {
+	//~ "OK",
+	//~ "Created",
+	//~ "No Content",
+	//~ "Moved Permanently",
+	//~ "Bad Request",
+	//~ "Unauthorized",
+	//~ "Forbidden",
+	//~ "Not Found"
+//~ };
+
+#define replyIsSuccessful(x) ((x) / 100) == 2)
 
 boolean WebServer::begin (NetworkInterface& _netint) {
 	nStorage = 0;
@@ -161,65 +190,135 @@ void WebServer::handleClient (WebClient& client) {
 			client.print (client.request.uri);
 		client.print (F(REDIRECT_ROOT_PAGE HEADER_END HEADER_END));
 	} else {
-		const char *pagename = client.request.get_basename ();
+#ifdef ENABLE_HTTPAUTH
+		boolean authOk = false;
+		
+		if (realm != NULL) {
+			// Auth required
+			DPRINTLN (F("Auth required"));
+			if (client.request.username == NULL || client.request.password == NULL) {
+				// Auth data not provided
+				DPRINTLN (F("Client did not provide auth data"));
+			} else if (authorizeFunc != NULL) {
+				// Browser sent username/passwd, check them
+				DPRINTLN (F("Calling user auth function"));
+				authOk = authorizeFunc (client.request.username, client.request.password);
+			} else {
+				// Browser sent username/password but user did not set an auth func
+				DPRINTLN (F("Auth requested but no authorization function set"));
+			}
+		} else {
+			authOk = true;
+		}
+#else
+		// The compiler will optimize out this variable/check
+		authOk = true;
+#endif
 
-		byte i;
-		for (i = 0; i < nStorage; ++i) {
-			Storage& stor = *storages[i];
+		if (authOk) {
+			const char *pagename = client.request.get_basename ();
 
-			if (stor.exists (pagename)) {
-				DPRINT (F("Page found on storage "));
-				DPRINTLN (i);
+			byte i;
+			for (i = 0; i < nStorage; ++i) {
+				Storage& stor = *storages[i];
 
-				/* Get the content NOW: pagename is stored in buffer, and the
-				 * PageFunction, if any, might call request.get_parameter()
-				 * which would overwrite the buffer and thus pagename. Not
-				 * pretty, but it works.
-				 */
-				Content& content = stor.get (pagename);
+				if (stor.exists (pagename)) {
+					HttpStatusCode responseCode = HTTP_OK;
+					
+					DPRINT (F("Page found on storage "));
+					DPRINTLN (i);
+
+					/* Get the content NOW: pagename is stored in buffer, and the
+					 * PageFunction, if any, might call request.get_parameter()
+					 * which would overwrite the buffer and thus pagename. Not
+					 * pretty, but it works.
+					 */
+					Content& content = stor.get (pagename);
 
 #ifdef ENABLE_PAGE_FUNCTIONS
-				// Look up page function, if available
-				if (associations != nullptr) {
-					const FileFuncAssociation* ass;
+					// Look up page function, if available
+					if (associations != nullptr) {
+						const FileFuncAssociation* ass;
 
-					for (byte i = 0; (ass = reinterpret_cast<const FileFuncAssociation*> (pgm_read_ptr (&associations[i]))); i++) {
+						for (byte i = 0; (ass = reinterpret_cast<const FileFuncAssociation*> (pgm_read_ptr (&associations[i]))); i++) {
 #ifdef ENABLE_REST
-						if (client.request.matchAssociation (PSTR_TO_F (ass -> getPath ()))) {
+							if (client.request.matchAssociation (PSTR_TO_F (ass -> getPath ()))) {
 #else
-						if (strcmp_P (pagename, ass -> getPath ()) == 0) {
+							if (strcmp_P (pagename, ass -> getPath ()) == 0) {
 #endif
-							DPRINTLN (F("Page has an associated function"));
-							PageFunction func = ass -> getFunction ();
-							func (client.request);
-							break;
+								// Found!
+								DPRINTLN (F("Page has an associated function"));
+								PageFunction func = ass -> getFunction ();
+								responseCode = func (client.request);		// The page function can alter the response code
+								break;
+							}
 						}
 					}
-				}
 #endif
 
-				/* content.getFilename() points to the buffer returned by
-				 * client.request.get_basename (), which might get modified if
-				 * the associated function called get_parameter(), thus let's
-				 * restore it so that it keeps pointing to what is should.
-				 *
-				 * I guess this is crap and should be a FIXME...
-				 */
-				client.request.get_basename ();
+					/* content.getFilename() points to the buffer returned by
+					 * client.request.get_basename (), which might get modified if
+					 * the associated function called get_parameter(), thus let's
+					 * restore it so that it keeps pointing to what is should.
+					 *
+					 * I guess this is crap and should be a FIXME...
+					 */
+					client.request.get_basename ();
 
-				sendContent (client, content);
-				stor.release (content);
-				break;
+					const MimeType& contType = getContentType (content.getFilename ());
+					DPRINT (F("Content type is "));
+					DPRINTLN (contType.getType ());
+
+					// Send headers
+					client.print (F(HEADER_START));
+					client.print (responseCode);
+					client.print (responseCodeToMessage (responseCode));
+					client.print (F(HEADER_END));
+					
+					if (replyIsSuccessful (responseCode) {
+						client.print (CONT_TYPE_HEADER));
+						client.print (PSTR_TO_F (contType.getType ()));
+						client.print (F(HEADER_END));
+						client.print (F(HEADER_END));
+
+						sendContent (client, content, contType);
+					}
+					
+					stor.release (content);
+					
+					// Stop looping on storages
+					break;
+				}
 			}
-		}
 
-		if (i >= nStorage) {
-			// Page not found
-			client.print (F(HEADER_START NOT_FOUND_HEADER HEADER_END HEADER_END));
+			if (i >= nStorage) {
+				// Page not found
+				//~ client.print (F(HEADER_START NOT_FOUND_HEADER HEADER_END HEADER_END));
+				client.print (F(HEADER_START));
+				client.print (HTTP_NOT_FOUND);
+				client.print (responseCodeToMessage (HTTP_NOT_FOUND));
+				client.print (F(HEADER_END));
+				
+				client.print (F(HEADER_END));
 
-			client.print (F("<html><body><h3>No such page: \""));
-			client.print (pagename);
-			client.print (F("\"</h3></body></html>"));
+				client.print (F("<html><body><h3>No such page: \""));
+				client.print (pagename);
+				client.print (F("\"</h3></body></html>"));
+			}
+		} else {
+#ifdef ENABLE_HTTPAUTH
+			// Auth failed (or no auth data provided)
+			//~ client.print (F(HEADER_START UNAUTHORIZED_HEADER HEADER_END));
+			client.print (HTTP_UNAUTHORIZED);
+			client.print (responseCodeToMessage (HTTP_UNAUTHORIZED));
+			client.print (F(HEADER_END));
+			
+			client.print (F(AUTH_HEADER));
+			client.print (realm);
+			client.print (F(HEADER_END));
+			
+			client.print (F(HEADER_END));
+#endif
 		}
 	}
 
@@ -248,45 +347,7 @@ char *WebServer::findSubstitutionTagGetParameter (HTTPRequestParser& request, co
 
 // Read the page, perform tag substitutions and send it over
 // FIXME: Handle unterminated tags
-void WebServer::sendContent (WebClient& client, Content& content) {
-	boolean authOk = false;
-
-	const MimeType& contType = getContentType (content.getFilename ());
-
-	DPRINT (F("Content type is "));
-	DPRINTLN (contType.getType ());
-
-	// Send headers
-#ifdef ENABLE_HTTPAUTH
-	if (realm != NULL) {
-		// Auth required
-		DPRINTLN (F("Auth required"));
-		if (client.request.username == NULL || client.request.password == NULL) {
-			// Auth data not provided
-			DPRINTLN (F("Client did not provide auth data"));
-		} else if (authorizeFunc != NULL) {
-			// Browser sent username/passwd, check them
-			DPRINTLN (F("Calling user auth function"));
-			authOk = authorizeFunc (client.request.username, client.request.password);
-		} else {
-			// Browser sent username/password but user did not set an auth func
-			DPRINTLN (F("Auth requested but no authorization function set"));
-		}
-	} else {
-		authOk = true;
-	}
-#else
-	// Let the compiler optimize out this variable/check
-	authOk = true;
-#endif
-
-	if (authOk) {
-		client.print (F(HEADER_START OK_HEADER CONT_TYPE_HEADER));
-		client.print (PSTR_TO_F (contType.getType ()));
-		client.print (F(HEADER_END));
-
-		client.print (F(HEADER_END));
-
+void WebServer::sendContent (WebClient& client, Content& content, const MimeType& contType) {
 #ifdef ENABLE_TAGS
 		char tag[MAX_TAG_LEN];
 		int8_t tagLen = -1;			// If >= 0 we are inside a tag
@@ -369,14 +430,6 @@ void WebServer::sendContent (WebClient& client, Content& content) {
 			client.write (c);
 #endif
 		}
-	} else {
-#ifdef ENABLE_HTTPAUTH
-		client.print (F(HEADER_START UNAUTHORIZED_HEADER HEADER_END));
-		client.print (F(AUTH_HEADER));
-		client.print (realm);
-		client.print (F(HEADER_END));
-		client.print (F(HEADER_END));
-#endif
 	}
 }
 
