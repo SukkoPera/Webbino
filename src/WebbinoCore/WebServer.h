@@ -32,6 +32,22 @@
 class WebClient;
 class Content;
 
+enum HttpStatusCode {
+	// 2xx success
+	HTTP_OK = 200,
+	HTTP_OK_CREATED = 201,
+	HTTP_OK_NO_CONTENT = 204,
+
+	// 3xx redirection
+	HTTP_MOVED_PERMANENTLY = 301,
+
+	// 4xx client errors
+	HTTP_BAD_REQUEST = 400,
+	HTTP_UNAUTHORIZED = 401,
+	HTTP_FORBIDDEN = 403,
+	HTTP_NOT_FOUND = 404
+};
+
 #ifdef ENABLE_TAGS
 
 typedef PString& (*TagEvaluateFn) (void* data);
@@ -80,7 +96,7 @@ typedef const ReplacementTag* const EasyReplacementTagArray;
 /******************************************************************************/
 
 #ifdef ENABLE_PAGE_FUNCTIONS
-typedef void (*PageFunction) (HTTPRequestParser& request);
+typedef HttpStatusCode (*PageFunction) (HTTPRequestParser& request);
 
 
 struct FileFuncAssociation {
@@ -132,7 +148,7 @@ private:
 
 	void handleClient (WebClient& client);
 
-	void sendContent (WebClient& client, Content& content);
+	void sendContent (WebClient& client, Content& content, const MimeType& contType);
 
 	const MimeType& getContentType (const char* filename);
 

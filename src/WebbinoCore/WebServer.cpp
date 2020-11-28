@@ -26,44 +26,52 @@
 
 
 
-#define HEADER_START "HTTP/1.0 "
-#define REDIRECT_HEADER "301 Moved Permanently\r\nLocation: "
-//~ #define OK_HEADER "200 OK\r\n"		// \r\nPragma: no-cache
+#define RESPONSE_START "HTTP/1.0 "
+#define REDIRECT_HEADER "Location: "
+//~ #define NOCACHE_HEADER "Pragma: no-cache
 #define CONT_TYPE_HEADER "Content-Type: "
-//~ #define NOT_FOUND_HEADER "404 Not Found\r\nContent-Type: text/html"
 #define HEADER_END "\r\n"
 
 #ifdef ENABLE_HTTPAUTH
 #define AUTH_HEADER "WWW-Authenticate: Basic realm="
-//~ #define UNAUTHORIZED_HEADER "401 Unauthorized"
 #endif
 
-enum HttpStatusCode {
-	// 2xx success
-	HTTP_OK = 200,
-	HTTP_OK_CREATED = 201,
-	HTTP_OK_NO_CONTENT = 204,
-	
-	// 3xx redirection
-	HTTP_MOVED_PERMANENTLY = 301,
-	
-	// 4xx client errors
-	HTTP_BAD_REQUEST = 400,
-	HTTP_UNAUTHORIZED = 401,
-	HTTP_FORBIDDEN = 403,
-	HTTP_NOT_FOUND = 404
+
+// FIXME: Store in PROGMEM
+const char *HttpStatusMessages[] = {
+	"OK",
+	"Created",
+	"No Content",
+	"Moved Permanently",
+	"Bad Request",
+	"Unauthorized",
+	"Forbidden",
+	"Not Found"
 };
 
-//~ const char *HttpStatusMessages[] = {
-	//~ "OK",
-	//~ "Created",
-	//~ "No Content",
-	//~ "Moved Permanently",
-	//~ "Bad Request",
-	//~ "Unauthorized",
-	//~ "Forbidden",
-	//~ "Not Found"
-//~ };
+const char *responseCodeToMessage (HttpStatusCode code) {
+	const char *msg = "N/A";
+
+	static const HttpStatusCode map[] = {
+		HTTP_OK,
+		HTTP_OK_CREATED,
+		HTTP_OK_NO_CONTENT,
+		HTTP_MOVED_PERMANENTLY,
+		HTTP_BAD_REQUEST,
+		HTTP_UNAUTHORIZED,
+		HTTP_FORBIDDEN,
+		HTTP_NOT_FOUND
+	};
+
+	for (byte i = 0; i < sizeof (map) / sizeof (HttpStatusCode); ++i) {
+		if (map[i] == code) {
+			msg = HttpStatusMessages[i];
+			break;
+		}
+	}
+
+	return msg;
+}
 
 #define replyIsSuccessful(x) ((x) / 100) == 2)
 
@@ -183,16 +191,22 @@ void WebServer::handleClient (WebClient& client) {
 		DPRINT (client.request.uri);
 		DPRINTLN (F(REDIRECT_ROOT_PAGE));
 
-		client.print (F(HEADER_START REDIRECT_HEADER));
+		client.print (F(RESPONSE_START));
+		client.print (HTTP_MOVED_PERMANENTLY);
+		client.print (' ');
+		client.print (responseCodeToMessage (HTTP_MOVED_PERMANENTLY));
+		client.print (F(HEADER_END));
+
+		client.print (F(REDIRECT_HEADER));
 		if (l == 0)
 			client.print ('/');
 		else
 			client.print (client.request.uri);
 		client.print (F(REDIRECT_ROOT_PAGE HEADER_END HEADER_END));
 	} else {
-#ifdef ENABLE_HTTPAUTH
 		boolean authOk = false;
-		
+
+#ifdef ENABLE_HTTPAUTH
 		if (realm != NULL) {
 			// Auth required
 			DPRINTLN (F("Auth required"));
@@ -224,7 +238,7 @@ void WebServer::handleClient (WebClient& client) {
 
 				if (stor.exists (pagename)) {
 					HttpStatusCode responseCode = HTTP_OK;
-					
+
 					DPRINT (F("Page found on storage "));
 					DPRINTLN (i);
 
@@ -270,22 +284,23 @@ void WebServer::handleClient (WebClient& client) {
 					DPRINTLN (contType.getType ());
 
 					// Send headers
-					client.print (F(HEADER_START));
+					client.print (F(RESPONSE_START));
 					client.print (responseCode);
+					client.print (' ');
 					client.print (responseCodeToMessage (responseCode));
 					client.print (F(HEADER_END));
-					
+
 					if (replyIsSuccessful (responseCode) {
-						client.print (CONT_TYPE_HEADER));
+						client.print (F(CONT_TYPE_HEADER));
 						client.print (PSTR_TO_F (contType.getType ()));
 						client.print (F(HEADER_END));
 						client.print (F(HEADER_END));
 
 						sendContent (client, content, contType);
 					}
-					
+
 					stor.release (content);
-					
+
 					// Stop looping on storages
 					break;
 				}
@@ -293,12 +308,12 @@ void WebServer::handleClient (WebClient& client) {
 
 			if (i >= nStorage) {
 				// Page not found
-				//~ client.print (F(HEADER_START NOT_FOUND_HEADER HEADER_END HEADER_END));
-				client.print (F(HEADER_START));
+				client.print (F(RESPONSE_START));
 				client.print (HTTP_NOT_FOUND);
+				client.print (' ');
 				client.print (responseCodeToMessage (HTTP_NOT_FOUND));
 				client.print (F(HEADER_END));
-				
+
 				client.print (F(HEADER_END));
 
 				client.print (F("<html><body><h3>No such page: \""));
@@ -308,15 +323,16 @@ void WebServer::handleClient (WebClient& client) {
 		} else {
 #ifdef ENABLE_HTTPAUTH
 			// Auth failed (or no auth data provided)
-			//~ client.print (F(HEADER_START UNAUTHORIZED_HEADER HEADER_END));
+			client.print (F(RESPONSE_START));
 			client.print (HTTP_UNAUTHORIZED);
+			client.print (' ');
 			client.print (responseCodeToMessage (HTTP_UNAUTHORIZED));
 			client.print (F(HEADER_END));
-			
+
 			client.print (F(AUTH_HEADER));
 			client.print (realm);
 			client.print (F(HEADER_END));
-			
+
 			client.print (F(HEADER_END));
 #endif
 		}
@@ -349,87 +365,86 @@ char *WebServer::findSubstitutionTagGetParameter (HTTPRequestParser& request, co
 // FIXME: Handle unterminated tags
 void WebServer::sendContent (WebClient& client, Content& content, const MimeType& contType) {
 #ifdef ENABLE_TAGS
-		char tag[MAX_TAG_LEN];
-		int8_t tagLen = -1;			// If >= 0 we are inside a tag
+	char tag[MAX_TAG_LEN];
+	int8_t tagLen = -1;			// If >= 0 we are inside a tag
 #endif
-		while (content.available ()) {
-			byte c = content.getNextByte ();
+	while (content.available ()) {
+		byte c = content.getNextByte ();
 
 #ifdef ENABLE_TAGS
-			if (contType.supportsReplacements) {		// We do not want to do replacements on binary files...
-				if (tagLen >= 0) {
-					// A tag is in progress
-					if (c == TAG_CHAR) {
-						// End of tag
-						DPRINT (F("Processing replacement tag: \""));
-						DPRINT (tag);
-						DPRINTLN (F("\""));
+		if (contType.supportsReplacements) {		// We do not want to do replacements on binary files...
+			if (tagLen >= 0) {
+				// A tag is in progress
+				if (c == TAG_CHAR) {
+					// End of tag
+					DPRINT (F("Processing replacement tag: \""));
+					DPRINT (tag);
+					DPRINTLN (F("\""));
 
-						if (tagLen >= MAX_TAG_LEN - 1) {
-							DPRINT (F("WARNING: Tag was truncated (Max length is "));
-							DPRINT (MAX_TAG_LEN - 1);
-							DPRINTLN ((byte) ')');
-						}
-
-						boolean found = false;
-						if (strncmp_P (tag, PSTR ("GETP_"), 5) == 0) {
-							char* rep = findSubstitutionTagGetParameter (client.request, tag + 5);
-							if (rep) {
-								DPRINT (F("Replacement is: \""));
-								DPRINT (rep);
-								DPRINTLN (F("\""));
-
-								client.print (rep);
-								found = true;
-							}
-						} else {
-							PString* pstr = findSubstitutionTag (tag);
-							if (pstr) {
-								DPRINT (F("Replacement is: \""));
-								DPRINT (*pstr);
-								DPRINTLN (F("\""));
-
-								client.print (*pstr);
-								pstr -> begin ();		// Reset for next usage
-								found = true;
-							}
-						}
-
-						if (!found) {
-							// Tag not found, emit it
-							DPRINTLN (F("Tag not found"));
-
-							client.write (TAG_CHAR);
-							client.print (tag);
-							client.write (TAG_CHAR);
-						}
-
-						// Prepare for next tag
-						tagLen = -1;
-					} else if (tagLen < MAX_TAG_LEN - 1) {
-						// Tag continues
-						tag[tagLen++] = c;
-						tag[tagLen] = '\0';
-					} else {
-						// Tag too long, just count for debugging purposes
-						++tagLen;
+					if (tagLen >= MAX_TAG_LEN - 1) {
+						DPRINT (F("WARNING: Tag was truncated (Max length is "));
+						DPRINT (MAX_TAG_LEN - 1);
+						DPRINTLN ((byte) ')');
 					}
+
+					boolean found = false;
+					if (strncmp_P (tag, PSTR ("GETP_"), 5) == 0) {
+						char* rep = findSubstitutionTagGetParameter (client.request, tag + 5);
+						if (rep) {
+							DPRINT (F("Replacement is: \""));
+							DPRINT (rep);
+							DPRINTLN (F("\""));
+
+							client.print (rep);
+							found = true;
+						}
+					} else {
+						PString* pstr = findSubstitutionTag (tag);
+						if (pstr) {
+							DPRINT (F("Replacement is: \""));
+							DPRINT (*pstr);
+							DPRINTLN (F("\""));
+
+							client.print (*pstr);
+							pstr -> begin ();		// Reset for next usage
+							found = true;
+						}
+					}
+
+					if (!found) {
+						// Tag not found, emit it
+						DPRINTLN (F("Tag not found"));
+
+						client.write (TAG_CHAR);
+						client.print (tag);
+						client.write (TAG_CHAR);
+					}
+
+					// Prepare for next tag
+					tagLen = -1;
+				} else if (tagLen < MAX_TAG_LEN - 1) {
+					// Tag continues
+					tag[tagLen++] = c;
+					tag[tagLen] = '\0';
 				} else {
-					if (c == TAG_CHAR) {
-						// (Possible) New tag
-						tag[0] = '\0';
-						tagLen = 0;
-					} else {
-						client.write (c);		// c is a raw byte
-					}
+					// Tag too long, just count for debugging purposes
+					++tagLen;
 				}
 			} else {
-				client.write (c);
+				if (c == TAG_CHAR) {
+					// (Possible) New tag
+					tag[0] = '\0';
+					tagLen = 0;
+				} else {
+					client.write (c);		// c is a raw byte
+				}
 			}
-#else
+		} else {
 			client.write (c);
-#endif
 		}
+#else
+		client.write (c);
+#endif
 	}
 }
 
