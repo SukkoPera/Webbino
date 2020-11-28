@@ -21,8 +21,6 @@
 #include "Content.h"
 #include "webbino_common.h"
 
-typedef void (*PageFunction) (HTTPRequestParser& request);
-
 typedef const byte* PGM_BYTES_P;
 
 struct Page {
