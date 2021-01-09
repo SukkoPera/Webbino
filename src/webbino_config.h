@@ -29,12 +29,12 @@
  * Please enable *only one* of the following,
  * corresponding to the network device you will be using
  */
-//~ #define WEBBINO_USE_WIZ5100
+#define WEBBINO_USE_WIZ5100
 //~ #define WEBBINO_USE_WIZ5500
 //~ #define WEBBINO_USE_ENC28J60
 //~ #define WEBBINO_USE_ENC28J60_UIP
 //~ #define WEBBINO_USE_ESP8266
-#define WEBBINO_USE_ESP8266_STANDALONE
+//~ #define WEBBINO_USE_ESP8266_STANDALONE
 //~ #define WEBBINO_USE_WIFI
 //~ #define WEBBINO_USE_WIFI101
 //~ #define WEBBINO_USE_FISHINO
@@ -72,7 +72,7 @@
  *   removed soon, LittleFS has more capabilities and is the way to go for the
  *   future.
  */
-#ifdef WEBBINO_USE_ESP8266_STANDALONE
+#if defined( WEBBINO_USE_ESP8266_STANDALONE ) || ( defined ( ARDUINO_ARCH_ESP32 ) && defined ( WEBBINO_USE_WIFI ) )
 //~ #define WEBBINO_ENABLE_LITTLEFS
 //~ #define WEBBINO_ENABLE_SPIFFS
 #endif
