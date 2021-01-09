@@ -23,11 +23,14 @@
 
 #ifdef WEBBINO_ENABLE_SPIFFS
 
-#ifndef WEBBINO_USE_ESP8266_STANDALONE
-#error "SPIFFS can only be enabled on ESP8266 standalone"
+#if !( defined( WEBBINO_USE_ESP8266_STANDALONE ) || ( defined ( ARDUINO_ARCH_ESP32 ) && defined ( WEBBINO_USE_WIFI ) ) )
+#error "SPIFFS can only be enabled on ESP8266/ESP32 standalone"
 #endif
 
 #include <FS.h>
+#if defined ( ARDUINO_ARCH_ESP32 ) && defined ( WEBBINO_USE_WIFI )
+#include <SPIFFS.h>
+#endif
 
 struct SpiffsContent: public Content {
 private:
