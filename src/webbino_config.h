@@ -23,108 +23,64 @@
 #include <Arduino.h>
 
 
-/* Network device selection: please enable *only one* of the following,
+/* FIRST: Network device selection
+ * -------------------------------
+ *
+ * Please enable *only one* of the following,
  * corresponding to the network device you will be using
  */
-#define WEBBINO_USE_WIZ5100
+//~ #define WEBBINO_USE_WIZ5100
 //~ #define WEBBINO_USE_WIZ5500
 //~ #define WEBBINO_USE_ENC28J60
 //~ #define WEBBINO_USE_ENC28J60_UIP
 //~ #define WEBBINO_USE_ESP8266
-//~ #define WEBBINO_USE_ESP8266_STANDALONE
+#define WEBBINO_USE_ESP8266_STANDALONE
 //~ #define WEBBINO_USE_WIFI
 //~ #define WEBBINO_USE_WIFI101
 //~ #define WEBBINO_USE_FISHINO
 //~ #define WEBBINO_USE_DIGIFI
 
-/* Define to enable serving webpages from SD. This will use Arduino's SD
- * library, which only allows DOS-style (i.e. 8+3 characters) file names. This
- * means that you will have to name your pages with a .htm extension, instead of
- * .html. If you don't like this, install the SdFat library and see below.
+
+/* SECOND: Webpages storage
+ * ------------------------
+ *
+ * You have to choose where your webpages are stored. You can select from SD
+ * (using or standard Arduino SD library or SDFAT library), integrated filesystem
+ * (using or the deprecated SPIFFS o the LittleFS) or from flash memory.
+ * Please, enable only one storage corresponding to one you will be using.
+/*
+
+/*   Define to enable serving webpages from SD. This will use Arduino's SD
+ *   library, which only allows DOS-style (i.e. 8+3 characters) file names. This
+ *   means that you will have to name your pages with a .htm extension, instead of
+ *   .html. If you don't like this, install the SdFat library and see below.
  */
 //~ #define WEBBINO_ENABLE_SD
 
-/* Define to enable serving webpages from SD. This will use the SDFat
- * library (https://github.com/greiman/SdFat). This library allows access to
- * files with long names (LFNs), if properly configured (see SdFatConfig.h in
- * the library sources).
+/*   Define to enable serving webpages from SD. This will use the SDFat
+ *   library (https://github.com/greiman/SdFat). This library allows access to
+ *   files with long names (LFNs), if properly configured (see SdFatConfig.h in
+ *   the library sources).
  */
 //~ #define WEBBINO_ENABLE_SDFAT
-
-// Define to enable running functions upon request of certain pages
-#define ENABLE_PAGE_FUNCTIONS
-
-// Define to enable HTTP Basic Authorization support
-//~ #define ENABLE_HTTPAUTH
-
-/* Maximum length of username:password string
- *
- * Only meaningful if ENABLE_HTTPAUTH is enabled
- */
-#define MAX_USERPASS_LEN 32
-
-/* By default only the GET HTTP method/verb is supported (i.e.: all requests are
- * implicitly assumed to be GETS). Define this to enable the parsing of the
- * actual method, which will be available in page functions.
- */
-//~ #define ENABLE_ALL_METHODS
-
-/* Enable some features that will help implementing REST services. Note that you
- * should probably enable ENABLE_ALL_METHODS with this.
- */
-//~ #define ENABLE_REST
-
-/* Define to enable serving webpages from the ESP8266 integrated filesystem on
- * flash. There are actually two filesystems: SPIFFS is deprecated and will be
- * removed soon, LittleFS has more capabilities and is the way to go for the
- * future.
- *
- * By default, if compiling for ESP8266 standalone the latter is enabled.
- */
-#ifdef WEBBINO_USE_ESP8266_STANDALONE
-#define WEBBINO_ENABLE_LITTLEFS
-//~ #define WEBBINO_ENABLE_SPIFFS
+#if defined( WEBBINO_ENABLE_SD ) && defined( WEBBINO_ENABLE_SDFAT )
+#error "You can't enable both SD and SDFAT libraries"
 #endif
 
-/* By default, only MIME types for html, css, js, png, jpeg, gif and ico files
- * are enabled. Define this to enable some extra types, namely xml, pdf, zip and
- * gz files.
+/*   Define to enable serving webpages from the ESP8266 integrated filesystem on
+ *   flash. There are actually two filesystems: SPIFFS is deprecated and will be
+ *   removed soon, LittleFS has more capabilities and is the way to go for the
+ *   future.
  */
-//~ #define ENABLE_EXTRA_MIMETYPES
+#ifdef WEBBINO_USE_ESP8266_STANDALONE
+//~ #define WEBBINO_ENABLE_LITTLEFS
+//~ #define WEBBINO_ENABLE_SPIFFS
+#endif
+#if defined( WEBBINO_ENABLE_LITTLEFS ) && defined( WEBBINO_ENABLE_SPIFFS )
+#error "You can't enable both LITTLEFS and SPIFFS"
+#endif
 
-/* Define to enable support for tag substitutions, i.e.: replace #TAGS#
- * in served pages
- */
-#define ENABLE_TAGS
-
-/* Character that delimits tags - Make sure this is a *byte* and not a char
- */
-const byte TAG_CHAR = static_cast<byte> ('$');
-
-/* Maximum length of a tag name
- */
-#define MAX_TAG_LEN 24
-
-/* Maximum length of a filename in the Flash storage
- */
-#define MAX_FLASH_FNLEN 16
-
-/* Maximum length of a get parameter name and value
- */
-#define BUF_LEN 32
-
-/* Maximum length of an URL to process
- */
-#define MAX_URL_LEN 128
-
-/* TCP port the server will listen on
- *
- * NOTE: Port 80 can not be used with DigiFi
- * NOTE: Currently changing this will have no effect with most cards, FIXME
- */
-#define SERVER_PORT 80
-
-/* Name of the index page, i.e. the page requests for / get redirected to.
+/*   Name of the index page, i.e. the page requests for / get redirected to.
  */
 #ifdef WEBBINO_ENABLE_SD
 // Long File Names are not supported, cope with it
@@ -133,26 +89,104 @@ const byte TAG_CHAR = static_cast<byte> ('$');
 #define REDIRECT_ROOT_PAGE "index.html"
 #endif
 
-/* Size of output buffer. This speeds up transmission, by sending clients more
- * than one character at a time. Size it appropriately according to available
- * RAM. Theoretically it could be reduced to 1, but this has not been tested.
+
+/* THIRD: Enable/Disable special functions
+ * ---------------------------------------
+ */
+
+/*   Define to enable running functions upon request of certain pages
+ */
+#define ENABLE_PAGE_FUNCTIONS
+
+/*   Define to enable HTTP Basic Authorization support
+ */
+//~ #define ENABLE_HTTPAUTH
+
+#ifdef ENABLE_HTTPAUTH
+/*   Maximum length of username:password string
+ */
+#define MAX_USERPASS_LEN 32
+#endif
+
+/*   By default only the GET HTTP method/verb is supported (i.e.: all requests are
+ *   implicitly assumed to be GETS). Define this to enable the parsing of the
+ *   actual method, which will be available in page functions.
+ */
+//~ #define ENABLE_ALL_METHODS
+
+/*   Enable some features that will help implementing REST services. Note that you
+ *   should probably enable ENABLE_ALL_METHODS with this.
+ */
+//~ #define ENABLE_REST
+
+/*   By default, only MIME types for html, css, js, png, jpeg, gif and ico files
+ *   are enabled. Define this to enable some extra types, namely xml, pdf, zip and
+ *   gz files.
+ */
+//~ #define ENABLE_EXTRA_MIMETYPES
+
+/*   Define to enable support for tag substitutions, i.e.: replace #TAGS#
+ *   in served pages
+ */
+#define ENABLE_TAGS
+
+
+/* FOURTH: Adjust, only if necessary, some library parameters
+ * ----------------------------------------------------------
+ */
+
+/*   Character that delimits tags - Make sure this is a *byte* and not a char
+ */
+const byte TAG_CHAR = static_cast<byte> ('$');
+
+/*   Maximum length of a tag name
+ */
+#define MAX_TAG_LEN 24
+
+/*   Maximum length of a filename in the Flash storage
+ */
+#define MAX_FLASH_FNLEN 16
+
+/*   Maximum length of a get parameter name and value
+ */
+#define BUF_LEN 32
+
+/*   Maximum length of an URL to process
+ */
+#define MAX_URL_LEN 128
+
+/*   TCP port the server will listen on
+ *
+ *   NOTE: Port 80 can not be used with DigiFi
+ *   NOTE: Currently changing this will have no effect with most cards, FIXME
+ */
+#define SERVER_PORT 80
+
+/*   Size of output buffer. This speeds up transmission, by sending clients more
+ *   than one character at a time. Size it appropriately according to available
+ *   RAM. Theoretically it could be reduced to 1, but this has not been tested.
  */
 #define CLIENT_BUFSIZE 64
 
-/* Maximum time in milliseconds without receiving characters after which a
- * client connection is dropped. Solves hanging connection from Chrome on OSX.
- * Undefine to turn off this feature.
+/*   Maximum time in milliseconds without receiving characters after which a
+ *   client connection is dropped. Solves hanging connection from Chrome on OSX.
+ *   Undefine to turn off this feature.
  *
  * Implemented by gpb01, thanks!
  */
 #define CLIENT_TIMEOUT 2500
 
-/* DEFINE this to DISABLE debug messages
- */
-#define WEBBINO_NDEBUG
-
-/* Enable verbose HTTP request parser
+/*   Enable verbose HTTP request parser
  */
 #define VERBOSE_REQUEST_PARSER
+
+
+/* FIFTH: choose if you want to see on the serial terminal the Debug messages
+ * --------------------------------------------------------------------------
+ */
+
+/*   DEFINE this to DISABLE debug messages
+ */
+#define WEBBINO_NDEBUG
 
 #endif
