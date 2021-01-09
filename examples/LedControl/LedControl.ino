@@ -108,7 +108,7 @@ const Page* const pages[] PROGMEM = {
 #error Please define ENABLE_PAGE_FUNCTIONS in webbino_config.h
 #endif
 
-void ledToggle (HTTPRequestParser& request) {
+HttpStatusCode ledToggle (HTTPRequestParser& request) {
 	char *param;
 
 	param = request.get_parameter (F("state"));
@@ -121,6 +121,7 @@ void ledToggle (HTTPRequestParser& request) {
 			digitalWrite (ledPin, !LED_ACTIVE_LEVEL);
 		}
 	}
+	return HTTP_OK;
 }
 
 FlashFileFuncAssoc (indexAss, index_html_name, ledToggle);
