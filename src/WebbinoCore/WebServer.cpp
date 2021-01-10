@@ -297,6 +297,8 @@ void WebServer::handleClient (WebClient& client) {
 						client.print (F(HEADER_END));
 
 						sendContent (client, content, contType);
+					} else {
+						DPRINTLN (F("Not sending output since reply indicates error"));
 					}
 
 					stor.release (content);
