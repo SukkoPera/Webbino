@@ -35,7 +35,7 @@ DummyStorage dummyStorage;
 	byte mac[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
 
 	// ENC28J60_UIP also needs an SS pin
-	const byte SS_PIN = PA4;		// STM32
+	const byte ETH_SS_PIN = SS;
 #elif defined (WEBBINO_USE_ESP8266)
 	#include <WebbinoInterfaces/AllWiFi.h>
 
@@ -179,7 +179,7 @@ void setup () {
 #if defined (WEBBINO_USE_ENC28J60) || defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500)
 	bool ok = netint.begin (mac);
 #elif defined (WEBBINO_USE_ENC28J60_UIP)
-	bool ok = netint.begin (mac, SS_PIN);
+	bool ok = netint.begin (mac, ETH_SS_PIN);
 #elif defined (WEBBINO_USE_ESP8266)
 	swSerial.begin (9600);
 	bool ok = netint.begin (swSerial, WIFI_SSID, WIFI_PASSWORD);

@@ -26,7 +26,6 @@
 
 // Instantiate the WebServer and page storages
 WebServer webserver;
-FlashStorage flashStorage;
 SdStorage sdStorage;
 
 // Instantiate the network interface defined in the Webbino headers
@@ -41,7 +40,7 @@ SdStorage sdStorage;
 	#define MAC_ADDRESS 0x00,0x11,0x22,0x33,0x44,0x55
 
 	// ENC28J60_UIP also needs an SS pin
-	const byte SS_PIN = PA4;		// STM32
+	const byte ETH_SS_PIN = SS;
 #elif defined (WEBBINO_USE_ESP8266)
 	#include <WebbinoInterfaces/AllWiFi.h>
 
@@ -224,7 +223,7 @@ void setup () {
 	bool ok = netint.begin (mac);
 #elif defined (WEBBINO_USE_ENC28J60_UIP)
 	byte mac[6] = {MAC_ADDRESS};
-	bool ok = netint.begin (mac, SS_PIN);
+	bool ok = netint.begin (mac, ETH_SS_PIN);
 #elif defined (WEBBINO_USE_ESP8266)
 	swSerial.begin (9600);
 	bool ok = netint.begin (swSerial, WIFI_SSID, WIFI_PASSWORD);
