@@ -36,9 +36,9 @@
 // FIXME: This should probably be moved somewhere else
 
 // STM32 has a avr/pgmspace.h wrapper...
-//~ #if defined (ARDUINO_ARCH_AVR) || defined (ARDUINO_ARCH_STM32F1)
+#if defined (ARDUINO_ARCH_AVR) || defined (ARDUINO_ARCH_STM32F1) || defined (ARDUINO_ARCH_ESP8266)
 #include <avr/pgmspace.h>
-//~ #endif
+#endif
 
 // ... But it's missing some functions :(
 #ifdef ARDUINO_ARCH_STM32F1
