@@ -273,7 +273,7 @@ WebClient* NetworkInterfaceWiFi::processPacket () {
 					currentLineIsBlank = false;
 				}
 			} else if (state == RS_BODY) {
-				DPRINTLN (F("COMPLETE"));
+				DPRINTLN (F("Detected end of headers"));
 				ethernetBuffer[ethernetBufferSize] = '\0';	// Terminate
 				state = RS_COMPLETE;
 			}
