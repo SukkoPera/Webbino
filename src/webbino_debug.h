@@ -44,6 +44,7 @@
 #ifdef ARDUINO_ARCH_STM32F1
 #define strncpy_P strncpy
 #define strncmp_P strncmp
+#define strncasecmp_P strncasecmp
 #endif
 
 #define PSTR_TO_F(s) reinterpret_cast<const __FlashStringHelper *> (s)
