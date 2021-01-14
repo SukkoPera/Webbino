@@ -25,9 +25,18 @@
 #if defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500) || defined (WEBBINO_USE_ENC28J60_UIP)
 
 #if defined (WEBBINO_USE_WIZ5100)
+
+// check if you are on Teensy 4.1 an use Native Ethernet
+#if defined (WEBBINO_USE_TEENSY41_NATIVE)
+#pragma message "INFO: Compiling for Teensy 4.1 native ethernet"
+#include <NativeEthernet.h>
+#else
 #include <Ethernet.h>
+#endif
+
 #elif defined (WEBBINO_USE_WIZ5500)
 #include <Ethernet2.h>
+
 #elif defined (WEBBINO_USE_ENC28J60_UIP)
 #include <UIPEthernet.h>
 #endif
