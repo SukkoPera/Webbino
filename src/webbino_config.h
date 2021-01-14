@@ -39,6 +39,16 @@
 //~ #define WEBBINO_USE_WIFI101
 //~ #define WEBBINO_USE_FISHINO
 //~ #define WEBBINO_USE_DIGIFI
+//~ #define WEBBINO_USE_TEENSY41_NATIVE
+
+#if defined( WEBBINO_USE_TEENSY41_NATIVE )
+// check if you are really on Teensy 4.1
+#if defined( ARDUINO_TEENSY41 )
+#define WEBBINO_USE_WIZ5100
+#else
+#error "You can use WEBBINO_USE_TEENSY41_NATIVE *only* with Teensy 4.1"
+#endif
+#endif
 
 
 /* SECOND: Webpages storage
@@ -48,7 +58,7 @@
  * (using or standard Arduino SD library or SDFAT library), integrated filesystem
  * (using or the deprecated SPIFFS o the LittleFS) or from flash memory.
  * Please, enable only one storage corresponding to one you will be using.
-/*
+ */
 
 /*   Define to enable serving webpages from SD. This will use Arduino's SD
  *   library, which only allows DOS-style (i.e. 8+3 characters) file names. This

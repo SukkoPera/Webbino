@@ -599,8 +599,8 @@ const unsigned int logo_gif_len PROGMEM = 4194;
 
 /*** CODE TO INCLUDE IN SKETCH ***
 
-const Page page01 PROGMEM = {index_html_name, index_html, index_html_len, NULL};
-const Page page02 PROGMEM = {logo_gif_name, logo_gif, logo_gif_len, NULL};
+const Page page01 PROGMEM = {index_html_name, index_html, index_html_len};
+const Page page02 PROGMEM = {logo_gif_name, logo_gif, logo_gif_len};
 
 const Page* const pages[] PROGMEM = {
 	&page01,

@@ -34,8 +34,14 @@ DummyStorage dummyStorage;
 
 	byte mac[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
 
-	// ENC28J60_UIP also needs an SS pin
-	const byte ETH_SS_PIN = SS;
+#if defined ( WEBBINO_USE_TEENSY41_NATIVE )
+   // Teensy41 Native Ethernet doesn't require a SS pin
+	const byte ETH_SS_PIN = 0;
+#else
+	// ENC28J60_UIP also needs an SS pin, please adjust for your board
+	const byte ETH_SS_PIN = PA4;		// STM32
+#endif
+	
 #elif defined (WEBBINO_USE_ESP8266)
 	#include <WebbinoInterfaces/AllWiFi.h>
 

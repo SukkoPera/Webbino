@@ -34,8 +34,14 @@ SpiffsStorage spiffsStorage;
 
 	#define MAC_ADDRESS 0x00,0x11,0x22,0x33,0x44,0x55
 
-	// ENC28J60_UIP also needs an SS pin
-	const byte ETH_SS_PIN = SS;
+#if defined ( WEBBINO_USE_TEENSY41_NATIVE )
+   // Teensy41 Native Ethernet doesn't require a SS pin
+	const byte ETH_SS_PIN = 0;
+#else
+	// ENC28J60_UIP also needs an SS pin, please adjust for your board
+	const byte ETH_SS_PIN = PA4;		// STM32
+#endif
+	
 #elif defined (WEBBINO_USE_ESP8266)
 	#include <WebbinoInterfaces/AllWiFi.h>
 
@@ -75,8 +81,13 @@ SpiffsStorage spiffsStorage;
  *   through SPI, which means that pin 13 (i.e. the pin for LED_BUILTIN) is used
  *   by the SPI clock line, so put a led on a different pin.
  * - Use D0 on NodeMCU!
+ * - On Teensy 4.1, pin 13 it's automatically chosen 
  */
+#if defined ( ARDUINO_TEENSY41 )
+const byte ledPin = 13;
+#else
 const byte ledPin = D0;
+#endif
 
 // Logic level turns the led on: on NodeMCU and with most relays, this should
 // be LOW

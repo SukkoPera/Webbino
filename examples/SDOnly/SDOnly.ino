@@ -21,11 +21,17 @@
 
 /* SS pin for the SD card reader. Pin 4 is used by the reader included on most
  * WIZ5100-based Ethernet shields and also by Fishino boards.
+ * Teensy 4.1 defines its own SS pin with the constant BUILTIN_SDCARD.
  */
+#if defined ( ARDUINO_TEENSY41 )
+#define SD_SS BUILTIN_SDCARD
+#else
 #define SD_SS 4
+#endif
 
 // Instantiate the WebServer and page storages
 WebServer webserver;
+FlashStorage flashStorage;
 SdStorage sdStorage;
 
 // Instantiate the network interface defined in the Webbino headers
@@ -39,8 +45,14 @@ SdStorage sdStorage;
 
 	#define MAC_ADDRESS 0x00,0x11,0x22,0x33,0x44,0x55
 
-	// ENC28J60_UIP also needs an SS pin
-	const byte ETH_SS_PIN = SS;
+#if defined ( WEBBINO_USE_TEENSY41_NATIVE )
+   // Teensy41 Native Ethernet doesn't require a SS pin
+	const byte ETH_SS_PIN = 0;
+#else
+	// ENC28J60_UIP also needs an SS pin, please adjust for your board
+	const byte ETH_SS_PIN = PA4;		// STM32
+#endif
+	
 #elif defined (WEBBINO_USE_ESP8266)
 	#include <WebbinoInterfaces/AllWiFi.h>
 
