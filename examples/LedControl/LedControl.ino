@@ -27,26 +27,25 @@ FlashStorage flashStorage;
 #if defined (WEBBINO_USE_ENC28J60)
 	#include <WebbinoInterfaces/ENC28J60.h>
 	NetworkInterfaceENC28J60 netint;
+
+	#define MAC_ADDRESS 0x00,0x11,0x22,0x33,0x44,0x55
+
+	// Ethernet Slave Select pin
+	const byte ETH_SS_PIN = SS;
 #elif defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500) || \
-	  defined (WEBBINO_USE_ENC28J60_UIP)
+	  defined (WEBBINO_USE_ENC28J60_UIP) || defined (WEBBINO_USE_TEENSY41_NATIVE)
 	#include <WebbinoInterfaces/WIZ5x00.h>
 	NetworkInterfaceWIZ5x00 netint;
 
 	#define MAC_ADDRESS 0x00,0x11,0x22,0x33,0x44,0x55
-	  
-#if defined ( WEBBINO_USE_TEENSY41_NATIVE )
-   // Teensy41 Native Ethernet doesn't require a SS pin
-	const byte ETH_SS_PIN = 0;
-#else
-	// ENC28J60_UIP also needs an SS pin, please adjust for your board
-	const byte ETH_SS_PIN = PA4;		// STM32
-#endif
-	
+
+   // This is ignored for Teensy 4.1
+	const byte ETH_SS_PIN = SS;
 #elif defined (WEBBINO_USE_ESP8266)
 	#include <WebbinoInterfaces/AllWiFi.h>
 
 	#include <SoftwareSerial.h>
-	SoftwareSerial swSerial (6, 7);
+	SoftwareSerial espSerial (6, 7);
 
 	// Wi-Fi parameters
 	#define WIFI_SSID        "ssid"
@@ -81,9 +80,9 @@ FlashStorage flashStorage;
  *   through SPI, which means that pin 13 (i.e. the pin for LED_BUILTIN) is used
  *   by the SPI clock line, so put a led on a different pin.
  * - Use D0 on NodeMCU!
- * - On Teensy 4.1, pin 13 it's automatically chosen 
+ * - On Teensy 4.1, pin 13 it's automatically chosen
  */
-#if defined ( ARDUINO_TEENSY41 )
+#ifdef ARDUINO_TEENSY41
 const byte ledPin = 13;
 #else
 const byte ledPin = 7;
@@ -192,15 +191,15 @@ void setup () {
 
 	Serial.println (F("Trying to get an IP address through DHCP"));
 #if defined (WEBBINO_USE_ENC28J60) || defined (WEBBINO_USE_WIZ5100) || \
-	defined (WEBBINO_USE_WIZ5500)
-	byte mac[6] = {MAC_ADDRESS};
-	bool ok = netint.begin (mac);
-#elif defined (WEBBINO_USE_ENC28J60_UIP)
+	defined (WEBBINO_USE_WIZ5500) || defined (WEBBINO_USE_ENC28J60_UIP)
 	byte mac[6] = {MAC_ADDRESS};
 	bool ok = netint.begin (mac, ETH_SS_PIN);
+#elif defined (WEBBINO_USE_TEENSY41_NATIVE)
+	byte mac[6] = {MAC_ADDRESS};
+	bool ok = netint.begin (mac);
 #elif defined (WEBBINO_USE_ESP8266)
-	swSerial.begin (9600);
-	bool ok = netint.begin (swSerial, WIFI_SSID, WIFI_PASSWORD);
+	espSerial.begin (9600);
+	bool ok = netint.begin (espSerial, WIFI_SSID, WIFI_PASSWORD);
 #elif defined (WEBBINO_USE_WIFI) || defined (WEBBINO_USE_WIFI101) || \
 	  defined (WEBBINO_USE_ESP8266_STANDALONE) || defined (WEBBINO_USE_FISHINO)
 	bool ok = netint.begin (WIFI_SSID, WIFI_PASSWORD);

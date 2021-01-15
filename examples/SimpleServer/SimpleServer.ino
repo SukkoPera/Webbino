@@ -45,7 +45,7 @@ FlashStorage flashStorage;
 	#include <WebbinoInterfaces/AllWiFi.h>
 
 	#include <SoftwareSerial.h>
-	SoftwareSerial swSerial (6, 7);
+	SoftwareSerial espSerial (6, 7);
 
 	// Wi-Fi parameters
 	#define WIFI_SSID        "ssid"
@@ -104,15 +104,15 @@ void setup () {
 
 	Serial.println (F("Trying to get an IP address through DHCP"));
 #if defined (WEBBINO_USE_ENC28J60) || defined (WEBBINO_USE_WIZ5100) || \
-	defined (WEBBINO_USE_WIZ5500) || defined (WEBBINO_USE_TEENSY41_NATIVE)
-	byte mac[6] = {MAC_ADDRESS};
-	bool ok = netint.begin (mac);
-#elif defined (WEBBINO_USE_ENC28J60_UIP)
+	defined (WEBBINO_USE_WIZ5500) || defined (WEBBINO_USE_ENC28J60_UIP)
 	byte mac[6] = {MAC_ADDRESS};
 	bool ok = netint.begin (mac, ETH_SS_PIN);
+#elif defined (WEBBINO_USE_TEENSY41_NATIVE)
+	byte mac[6] = {MAC_ADDRESS};
+	bool ok = netint.begin (mac);
 #elif defined (WEBBINO_USE_ESP8266)
-	swSerial.begin (9600);
-	bool ok = netint.begin (swSerial, WIFI_SSID, WIFI_PASSWORD);
+	espSerial.begin (9600);
+	bool ok = netint.begin (espSerial, WIFI_SSID, WIFI_PASSWORD);
 #elif defined (WEBBINO_USE_WIFI) || defined (WEBBINO_USE_WIFI101) || \
 	  defined (WEBBINO_USE_ESP8266_STANDALONE) || defined (WEBBINO_USE_FISHINO)
 	bool ok = netint.begin (WIFI_SSID, WIFI_PASSWORD);
