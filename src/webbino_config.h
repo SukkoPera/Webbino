@@ -180,10 +180,6 @@ const byte TAG_CHAR = static_cast<byte> ('$');
  */
 #define CLIENT_TIMEOUT 2500
 
-/*   Enable verbose HTTP request parser
- */
-//~ #define VERBOSE_REQUEST_PARSER
-
 
 /* FIFTH: choose if you want to see on the serial terminal the Debug messages
  * --------------------------------------------------------------------------
@@ -192,5 +188,9 @@ const byte TAG_CHAR = static_cast<byte> ('$');
 /*   DEFINE this to DISABLE debug messages
  */
 #define WEBBINO_NDEBUG
+
+/*   Enable verbose HTTP request parser
+ */
+//~ #define VERBOSE_REQUEST_PARSER
 
 #endif
