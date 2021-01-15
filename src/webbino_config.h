@@ -173,7 +173,10 @@ const byte TAG_CHAR = static_cast<byte> ('$');
  *   client connection is dropped. Solves hanging connection from Chrome on OSX.
  *   Undefine to turn off this feature.
  *
- * Implemented by gpb01, thanks!
+ *   NOTE: This feature is not available on ENC28J60 when using the EtherCard
+ *         library.
+ *
+ *   Implemented by gpb01, thanks!
  */
 #define CLIENT_TIMEOUT 2500
 
