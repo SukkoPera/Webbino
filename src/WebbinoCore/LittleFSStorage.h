@@ -31,7 +31,7 @@
 #elif defined (WEBBINO_USE_ESP8266_STANDALONE)
 #include <LittleFS.h>
 #else
-#error "LittleFS can only be enabled on ESP8266 standalone"
+#error "LittleFS can only be enabled on ESP8266 or ESP32 standalone"
 #endif
 
 struct LittleFSContent: public Content {
