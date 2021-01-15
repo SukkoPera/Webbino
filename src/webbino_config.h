@@ -64,7 +64,7 @@
  *   the library sources).
  */
 //~ #define WEBBINO_ENABLE_SDFAT
-#if defined( WEBBINO_ENABLE_SD ) && defined( WEBBINO_ENABLE_SDFAT )
+#if defined (WEBBINO_ENABLE_SD) && defined (WEBBINO_ENABLE_SDFAT)
 #error "You can't enable both SD and SDFAT libraries"
 #endif
 
@@ -73,11 +73,11 @@
  *   removed soon, LittleFS has more capabilities and is the way to go for the
  *   future.
  */
-#if defined( WEBBINO_USE_ESP8266_STANDALONE ) || ( defined ( ARDUINO_ARCH_ESP32 ) && defined ( WEBBINO_USE_WIFI ) )
+#if defined (WEBBINO_USE_ESP8266_STANDALONE) || (defined (ARDUINO_ARCH_ESP32) && defined (WEBBINO_USE_WIFI))
 #define WEBBINO_ENABLE_LITTLEFS
 //~ #define WEBBINO_ENABLE_SPIFFS
 #endif
-#if defined( WEBBINO_ENABLE_LITTLEFS ) && defined( WEBBINO_ENABLE_SPIFFS )
+#if defined (WEBBINO_ENABLE_LITTLEFS) && defined (WEBBINO_ENABLE_SPIFFS)
 #error "You can't enable both LITTLEFS and SPIFFS"
 #endif
 
