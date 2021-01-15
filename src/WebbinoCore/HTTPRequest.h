@@ -24,7 +24,7 @@
 #include <webbino_debug.h>
 
 
-class HTTPRequestParser {
+class HttpRequest {
 public:
 #ifdef ENABLE_REST
 	static const byte MAX_MATCHES = 4;
@@ -55,7 +55,7 @@ public:
 	const char *password;
 #endif
 
-	HTTPRequestParser ();
+	HttpRequest ();
 
 	char uri[MAX_URL_LEN];
 

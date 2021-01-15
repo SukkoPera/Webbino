@@ -116,7 +116,7 @@ void appendRestReply (const char *key, const char *val) {
 }
 
 
-void pinFunc (HTTPRequestParser& request) {
+void pinFunc (HttpRequest& request) {
 	if (request.matchResult.nMatches == 1) {
 		char temp[8];
 		strlcpy (temp, request.uri + request.matchResult.matchPositions[0], request.matchResult.matchLengths[0] + 1);
@@ -125,10 +125,10 @@ void pinFunc (HTTPRequestParser& request) {
 		Serial.println (pinNo);
 
 		switch (request.method) {
-			case HTTPRequestParser::METHOD_GET:
+			case HttpRequest::METHOD_GET:
 				appendRestReply ("state", digitalRead (pinNo) ? "1" : "0");
 				break;
-			case HTTPRequestParser::METHOD_POST: {
+			case HttpRequest::METHOD_POST: {
 				const char *v = request.getPostValue ("mode");
 				Serial.print ("mode = ");
 				Serial.println (v);
@@ -149,7 +149,7 @@ void pinFunc (HTTPRequestParser& request) {
 				}
 
 				break;
-			} case HTTPRequestParser::METHOD_DELETE:
+			} case HttpRequest::METHOD_DELETE:
 				subBuffer.print (F("ICH MUSS ZERSTOEREN!"));
 				break;
 			default:

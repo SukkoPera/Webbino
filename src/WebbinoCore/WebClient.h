@@ -56,7 +56,7 @@ protected:
 	}
 
 public:
-	HTTPRequestParser request;
+	HttpRequest request;
 
 	virtual void begin (char* req) {
 		request.parse (req);

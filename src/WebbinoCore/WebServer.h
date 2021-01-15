@@ -96,7 +96,7 @@ typedef const ReplacementTag* const EasyReplacementTagArray;
 /******************************************************************************/
 
 #ifdef ENABLE_PAGE_FUNCTIONS
-typedef HttpStatusCode (*PageFunction) (HTTPRequestParser& request);
+typedef HttpStatusCode (*PageFunction) (HttpRequest& request);
 
 
 struct FileFuncAssociation {
@@ -155,7 +155,7 @@ private:
 #ifdef ENABLE_TAGS
 	PString* findSubstitutionTag (const char* tag) const;
 
-	char *findSubstitutionTagGetParameter (HTTPRequestParser& request, const char* tag);
+	char *findSubstitutionTagGetParameter (HttpRequest& request, const char* tag);
 #endif
 
 public:

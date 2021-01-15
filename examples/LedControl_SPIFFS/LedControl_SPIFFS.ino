@@ -100,7 +100,7 @@ boolean ledState = false;
 #error Please define ENABLE_PAGE_FUNCTIONS in webbino_config.h
 #endif
 
-HttpStatusCode ledToggle (HTTPRequestParser& request) {
+HttpStatusCode ledToggle (HttpRequest& request) {
 	char *param;
 
 	param = request.get_parameter (F("state"));

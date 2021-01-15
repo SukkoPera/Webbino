@@ -23,7 +23,7 @@
 #include <webbino_config.h>
 #include <webbino_debug.h>
 
-class HTTPRequestParser;
+class HttpRequest;
 
 /* Note that filename is NOT copied, so it must be kept pointing to a valid
  * string during the life of the object.

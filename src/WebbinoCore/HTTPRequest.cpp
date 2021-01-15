@@ -41,7 +41,7 @@ static const char * const HTTP_METHOD_STRINGS[N_METHODS] = {
 };
 #endif
 
-HTTPRequestParser::HTTPRequestParser () {
+HttpRequest::HttpRequest () {
 	uri[0] = '\0';
 }
 
@@ -50,7 +50,7 @@ HTTPRequestParser::HTTPRequestParser () {
  *
  * This stores a pointer to the request, which must thus be kept valid.
  */
-boolean HTTPRequestParser::parse (const char *_request) {
+boolean HttpRequest::parse (const char *_request) {
 	boolean ret = false;
 
 	// Clear current data
@@ -152,7 +152,7 @@ boolean HTTPRequestParser::parse (const char *_request) {
 	return ret;
 }
 
-char *HTTPRequestParser::get_basename () {
+char *HttpRequest::get_basename () {
 	buffer[0] = '\0';
 	char *qMark = strchr (uri, '?');
 	if (qMark) {
@@ -178,7 +178,7 @@ char *HTTPRequestParser::get_basename () {
 /* Copy up to len characters from src to dst decoding space-encoded characters
  * and replacing '+' with spaces
  */
-char *HTTPRequestParser::cpyndec (char *dst, const char *src, const size_t len) {
+char *HttpRequest::cpyndec (char *dst, const char *src, const size_t len) {
 	size_t i = 0, j = 0;
 
 	while (src[i] != '\0' && j < len - 1) {
@@ -211,7 +211,7 @@ char *HTTPRequestParser::cpyndec (char *dst, const char *src, const size_t len) 
 
 #else
 
-char *HTTPRequestParser::cpyndec (char *dst, const char *src, const size_t len) {
+char *HttpRequest::cpyndec (char *dst, const char *src, const size_t len) {
 	strlcpy (dst, src, len);
 
 	return dst;
@@ -220,7 +220,7 @@ char *HTTPRequestParser::cpyndec (char *dst, const char *src, const size_t len) 
 #endif
 
 // Extract the value of a parameter from an x-www-form-urlencoded string
-char *HTTPRequestParser::getFormParameter (const char str[], const char param[]) {
+char *HttpRequest::getFormParameter (const char str[], const char param[]) {
 	const char *start;
 	bool found = false;
 
@@ -262,7 +262,7 @@ char *HTTPRequestParser::getFormParameter (const char str[], const char param[])
 	return buffer;
 }
 
-char *HTTPRequestParser::get_parameter (const char param[]) {
+char *HttpRequest::get_parameter (const char param[]) {
 	char *paramStart = strchr (uri, '?');
 	if (paramStart != NULL) {
 		getFormParameter (paramStart + 1, param);
@@ -273,7 +273,7 @@ char *HTTPRequestParser::get_parameter (const char param[]) {
 	return buffer;
 }
 
-char *HTTPRequestParser::get_parameter (WebbinoFStr param) {
+char *HttpRequest::get_parameter (WebbinoFStr param) {
 	char *paramStart = strchr (uri, '?');
 	if (paramStart != NULL) {
 		strncpy_P (buffer, F_TO_PSTR (param), BUF_LEN);
@@ -286,7 +286,7 @@ char *HTTPRequestParser::get_parameter (WebbinoFStr param) {
 }
 
 #ifdef ENABLE_REST
-boolean HTTPRequestParser::parametricMatch (const char *str, WebbinoFStr expr, MatchResult& result) {
+boolean HttpRequest::parametricMatch (const char *str, WebbinoFStr expr, MatchResult& result) {
 	result.nMatches = 0;
 
 	boolean matchOk = true;
@@ -336,11 +336,11 @@ boolean HTTPRequestParser::parametricMatch (const char *str, WebbinoFStr expr, M
 	return matchOk;
 }
 
-boolean HTTPRequestParser::matchAssociation (WebbinoFStr assocPath) {
-	return HTTPRequestParser::parametricMatch (uri, assocPath, matchResult);
+boolean HttpRequest::matchAssociation (WebbinoFStr assocPath) {
+	return HttpRequest::parametricMatch (uri, assocPath, matchResult);
 }
 
-char *HTTPRequestParser::getBodyStart () {
+char *HttpRequest::getBodyStart () {
 	char *headerEnd = strstr_P (request, PSTR ("\r\n\r\n"));
 	if (headerEnd) {
 		headerEnd += 4;		// Get past the string we searched
@@ -357,7 +357,7 @@ char *HTTPRequestParser::getBodyStart () {
 
 #ifdef ENABLE_ALL_METHODS
 // Extract the value of a parameter from the x-www-form-urlencoded request body
-char *HTTPRequestParser::getPostValue (const char param[]) {
+char *HttpRequest::getPostValue (const char param[]) {
 	char *body = getBodyStart ();
 	if (body != NULL) {
 		getFormParameter (body, param);

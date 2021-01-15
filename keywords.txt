@@ -45,7 +45,7 @@ PSTR_TO_F	KEYWORD2
 F_TO_PSTR	KEYWORD2
 WebbinoFStr	KEYWORD2
 HttpStatusCode	KEYWORD2
-HTTPRequestParser	KEYWORD2
+HttpRequest	KEYWORD2
 get_parameter	KEYWORD2
 FlashFileFuncAssoc	KEYWORD2
 FileFuncAssociationArray	KEYWORD2
