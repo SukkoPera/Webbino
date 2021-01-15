@@ -86,7 +86,7 @@ boolean FishinoInterface::begin (const char *_ssid, const char *_password) {
 }
 
 boolean FishinoInterface::begin (const char *_ssid, const char *_password,
-	  IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask) {
+	  IPAddress ip, IPAddress mask, IPAddress gw, IPAddress dns) {
 
 	// Reset and test WiFi module
 	while (!Fishino.reset ())

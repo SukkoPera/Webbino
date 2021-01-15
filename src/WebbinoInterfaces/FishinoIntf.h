@@ -62,8 +62,7 @@ public:
 
 	boolean begin (const char *_ssid, const char *_password);
 
-	boolean begin (const char *_ssid, const char *_password, IPAddress ip,
-		IPAddress dns, IPAddress gw, IPAddress mask);
+	boolean begin (const char *_ssid, const char *_password, IPAddress ip, IPAddress mask, IPAddress gw, IPAddress dns);
 
 	WebClient* processPacket () override;
 
