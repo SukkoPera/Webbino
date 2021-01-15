@@ -21,7 +21,7 @@
 #define WEBBINO_COMMON_H_INCLUDED
 
 // Don't touch :)
-#define WEBBINO_VERSION "0.9.96"
+#define WEBBINO_VERSION "0.9.97"
 
 // Implementation of std::swap() for copy-and-swap
 namespace mystd {
