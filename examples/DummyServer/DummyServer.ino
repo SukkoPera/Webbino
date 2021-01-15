@@ -39,7 +39,7 @@ DummyStorage dummyStorage;
 
 	#define MAC_ADDRESS 0x00,0x11,0x22,0x33,0x44,0x55
 
-   // This is ignored for Teensy 4.1
+	// This is ignored for Teensy 4.1
 	const byte ETH_SS_PIN = SS;
 #elif defined (WEBBINO_USE_ESP8266)
 	#include <WebbinoInterfaces/AllWiFi.h>
