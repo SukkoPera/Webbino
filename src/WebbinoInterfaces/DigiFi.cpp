@@ -72,7 +72,7 @@ void WebClientDigiFi::sendReply () {
 	// Add content length header
 	wifi.print (F("Content-Length: "));
 	wifi.print (bufUsed - headerLen);
-	wifi.write (F("\r\n"));
+	wifi.print (F("\r\n"));
 
 	// Add connection close header
 	wifi.print (F("Connection: close\r\n"));
@@ -94,16 +94,6 @@ NetworkInterfaceDigiFi::NetworkInterfaceDigiFi (): webClient (wifi) {
 boolean NetworkInterfaceDigiFi::begin () {
 	boolean ret = false;
 
-#ifndef WEBBINO_NDEBUG
-	/* DigiX trick: since we are on serial over USB wait for a character to be
-	 * entered in serial terminal
-	 */
-	while (!Serial.available ()) {
-		Serial.println (F("Enter any key to begin"));
-		delay (1000);
-	}
-#endif
-
 	DPRINTLN (F("Using DigiFi library"));
 
 	if (SERVER_PORT == 80) {
@@ -113,11 +103,11 @@ boolean NetworkInterfaceDigiFi::begin () {
 		DPRINTLN (F("Port 80 is not supported on this chip"));
 	} else {
 		/* Note that speed here must match the speed set under "Other Setting"
-		 * -> "Serial Port Parameters Setting" in the wigi module web
+		 * -> "Serial Port Parameters Setting" in the wifi module web
 		 * interface. If no speed is specified, it defaults to 9600 bps, but
 		 * note that the module defaults to 115200!
 		 */
-		wifi.begin ();
+		wifi.begin (115200);
 
 		// Attempt to connect to WiFi network
 		DPRINTLN (F("Connecting to network"));
@@ -136,7 +126,7 @@ boolean NetworkInterfaceDigiFi::begin () {
 		 * replied. See http://digistump.com/board/index.php/topic,1270.0.html
 		 * for details.
 		 *
-		 * Note that this must allow time for all tags to be replaces, which
+		 * Note that this must allow time for all tags to be replaced, which
 		 * might take a bit, since some tags might need to talk to the wifi
 		 * module to retrieve IP settings, etc.
 		 */
@@ -148,6 +138,17 @@ boolean NetworkInterfaceDigiFi::begin () {
 	return ret;
 }
 
+boolean lineIsInteresting (const char *line) {
+	return strncmp_P (line, PSTR ("Authorization: Basic "), 21) == 0;
+}
+
+enum RequestState {
+	RS_URI,
+	RS_HEADERS,
+	RS_BODY,
+	RS_COMPLETE
+};
+
 /* The DigiFi library is total crap, so we have to go low-level. Of course it
  * would be much better to rewrite said library from scratch, but it doesn't
  * really look it is worth the effort, so let's make do with this.
@@ -158,59 +159,111 @@ WebClient* NetworkInterfaceDigiFi::processPacket () {
 	if (wifi.available ()) {
 		DPRINTLN (F("New client"));
 
+#ifdef CLIENT_TIMEOUT
+		lastPacketReceived = millis ();
+#endif
+
 		// An http request ends with a blank line
 		boolean currentLineIsBlank = true;
 		ethernetBufferSize = 0;
-		boolean copy = true;
-		unsigned int startTime = millis ();
-		while (!ret && millis () - startTime < REQUEST_TIMEOUT * 1000L) {
+		RequestState state = RS_URI;
+		unsigned int lastLineStart = 0;
+		while (!ret && state != RS_COMPLETE) {
+#ifdef CLIENT_TIMEOUT
+		    // Check for connection timeout
+		    if (millis () - lastPacketReceived > CLIENT_TIMEOUT) {
+		        DPRINTLN (F("Client connection timeout"));
+		        break;
+		    }
+#endif
+
 			if (wifi.available ()) {
 				char c = wifi.read ();
-				if (copy) {
-					if (ethernetBufferSize < sizeof (ethernetBuffer)) {
-						ethernetBuffer[ethernetBufferSize++] = c;
-					} else {
-						DPRINTLN (F("Ethernet buffer overflow"));
-						break;
-					}
+
+#ifdef CLIENT_TIMEOUT
+				// Something was received, reset timeout
+				lastPacketReceived = millis();
+#endif
+
+				/* We are only interested in the first line of the HTTP request
+				 * (i.e.: the one that contains the method and the URI), so if
+				 * we haven't seen an LF yet, let's append to our buffer
+				 */
+				// Reserve one place for the terminator we'll append later
+				if (ethernetBufferSize < sizeof (ethernetBuffer) - 1) {
+					ethernetBuffer[ethernetBufferSize++] = c;
+				} else {
+					// No more space in buffer, ignore
+					DPRINTLN (F("Ethernet buffer overflow"));
 				}
 
-				// If you've gotten to the end of the line (received a newline
-				// character) and the line is blank, the http request has ended,
-				if (c == '\n' && currentLineIsBlank) {
-					webClient.begin (reinterpret_cast<char *> (ethernetBuffer));
-					ret = &webClient;
-				}
+				if (c == '\n') {		// End of a line
+					switch (state) {
+						case RS_URI:
+							/* Great, we have extracted the request line! The
+							 * following lines will be header lines.
+							 */
+							state = RS_HEADERS;
+							lastLineStart = ethernetBufferSize;
+							break;;
+						case RS_HEADERS:
+							if (currentLineIsBlank) {
+								/* We got to the end of the line and the line is blank,
+								 * this means the http request has ended
+								 */
+								 state = RS_BODY;
+							} else {
+								/* Got a header line, see if it's an interesting one
+								 * or discard it
+								 */
+								const char *line = reinterpret_cast<char *> (ethernetBuffer + lastLineStart);
+								ethernetBuffer[ethernetBufferSize] = '\0';	// Terminate
+								if (lineIsInteresting (line)) {
+									lastLineStart = ethernetBufferSize;
+								} else {
+									DPRINT (F("Discarding header line: "));
+									DPRINTLN (line);
+									ethernetBufferSize = lastLineStart;
+								}
+							}
+							break;
+						case RS_BODY:
+							// Just keep it
+							lastLineStart = ethernetBufferSize;
 
-				if (c == '\n') {
-					// See if we got the URL line
-					if (strncmp_P (reinterpret_cast<char *> (ethernetBuffer), PSTR ("GET "), 4) == 0) {
-						// Yes, ignore the rest
-						ethernetBuffer[ethernetBufferSize - 1] = '\0';
-						copy = false;
-					} else {
-						// No, start over
-						ethernetBufferSize = 0;
+							// Request complete, get out
+							ethernetBuffer[ethernetBufferSize] = '\0';	// Terminate
+
+							state = RS_COMPLETE;
+							break;
+						default:
+							break;
 					}
 
-					// you're starting a new line
+					// A new line is starting
 					currentLineIsBlank = true;
 				} else if (c != '\r') {
-					// you've gotten a character on the current line
+					// Got a character on the current line
 					currentLineIsBlank = false;
 				}
+			} else if (state == RS_BODY) {
+				DPRINTLN (F("COMPLETE"));
+				ethernetBuffer[ethernetBufferSize] = '\0';	// Terminate
+				state = RS_COMPLETE;
 			}
 		}
 
-		if (!ret) {
-			DPRINTLN (F("Request timeout"));
-		}
-
-		// If we are not returning a client, close the connection
-		//~ if (!ret) {
+		// FIXME: Make const
+		if (state == RS_COMPLETE && ethernetBufferSize > 0) {
+			// Got a request to parse
+			char *req = reinterpret_cast<char *> (ethernetBuffer);
+			webClient.begin (req);
+			ret = &webClient;
+		} else {
+			// Close the connection
 			//~ client.stop ();
-			//~ DPRINTLN (F("Client disconnected"));
-		//~ }
+			DPRINTLN (F("Client disconnected"));
+		}
 	}
 
 	return ret;
@@ -260,6 +313,10 @@ IPAddress NetworkInterfaceDigiFi::getNetmask () {
 
 IPAddress NetworkInterfaceDigiFi::getGateway () {
 	return wifi.gatewayIP ();
+}
+
+IPAddress NetworkInterfaceDigiFi::getDns () {
+	return wifi.dnsServerIP ();
 }
 
 #endif
