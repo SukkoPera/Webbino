@@ -20,7 +20,8 @@
 #include <Arduino.h>		// See https://github.com/arduino-libraries/Ethernet/issues/72
 #include "WIZ5x00.h"
 
-#if defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500) || defined (WEBBINO_USE_ENC28J60_UIP)
+#if defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500) || \
+    defined (WEBBINO_USE_ENC28J60_UIP) || defined (WEBBINO_USE_TEENSY41_NATIVE)
 
 #include "webbino_debug.h"
 

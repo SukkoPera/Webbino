@@ -41,15 +41,6 @@
 //~ #define WEBBINO_USE_DIGIFI
 //~ #define WEBBINO_USE_TEENSY41_NATIVE
 
-#if defined( WEBBINO_USE_TEENSY41_NATIVE )
-// check if you are really on Teensy 4.1
-#if defined( ARDUINO_TEENSY41 )
-#define WEBBINO_USE_WIZ5100
-#else
-#error "You can use WEBBINO_USE_TEENSY41_NATIVE *only* with Teensy 4.1"
-#endif
-#endif
-
 
 /* SECOND: Webpages storage
  * ------------------------

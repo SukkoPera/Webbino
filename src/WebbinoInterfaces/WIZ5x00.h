@@ -22,23 +22,21 @@
 
 #include <webbino_config.h>
 
-#if defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500) || defined (WEBBINO_USE_ENC28J60_UIP)
+#if defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500) || \
+    defined (WEBBINO_USE_ENC28J60_UIP) || defined (WEBBINO_USE_TEENSY41_NATIVE)
 
 #if defined (WEBBINO_USE_WIZ5100)
-
-// check if you are on Teensy 4.1 an use Native Ethernet
-#if defined (WEBBINO_USE_TEENSY41_NATIVE)
-#pragma message "INFO: Compiling for Teensy 4.1 native ethernet"
-#include <NativeEthernet.h>
-#else
-#include <Ethernet.h>
-#endif
-
+	#include <Ethernet.h>
 #elif defined (WEBBINO_USE_WIZ5500)
-#include <Ethernet2.h>
-
+	#include <Ethernet2.h>
 #elif defined (WEBBINO_USE_ENC28J60_UIP)
-#include <UIPEthernet.h>
+	#include <UIPEthernet.h>
+#elif defined (WEBBINO_USE_TEENSY41_NATIVE)
+	#ifndef ARDUINO_TEENSY41
+		#error "You can *only* use WEBBINO_USE_TEENSY41_NATIVE with Teensy 4.1"
+	#endif
+
+	#include <NativeEthernet.h>
 #endif
 
 #include <WebbinoCore/WebClient.h>
