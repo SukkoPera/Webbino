@@ -111,7 +111,7 @@
 
 /*   Define to enable HTTP Basic Authorization support
  */
-#define ENABLE_HTTPAUTH
+//~ #define ENABLE_HTTPAUTH
 
 /*   By default only the GET HTTP method/verb is supported (i.e.: all requests are
  *   implicitly assumed to be GETs). Define this to enable the parsing of the
