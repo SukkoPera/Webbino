@@ -182,7 +182,7 @@ const byte TAG_CHAR = static_cast<byte> ('$');
 
 /*   Enable verbose HTTP request parser
  */
-#define VERBOSE_REQUEST_PARSER
+//~ #define VERBOSE_REQUEST_PARSER
 
 
 /* FIFTH: choose if you want to see on the serial terminal the Debug messages
