@@ -27,21 +27,20 @@ FlashStorage flashStorage;
 #if defined (WEBBINO_USE_ENC28J60)
 	#include <WebbinoInterfaces/ENC28J60.h>
 	NetworkInterfaceENC28J60 netint;
+
+	#define MAC_ADDRESS 0x00,0x11,0x22,0x33,0x44,0x55
+
+	// Ethernet Slave Select pin
+	const byte ETH_SS_PIN = SS;
 #elif defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500) || \
-	  defined (WEBBINO_USE_ENC28J60_UIP)
+	  defined (WEBBINO_USE_ENC28J60_UIP) || defined (WEBBINO_USE_TEENSY41_NATIVE)
 	#include <WebbinoInterfaces/WIZ5x00.h>
 	NetworkInterfaceWIZ5x00 netint;
 
 	#define MAC_ADDRESS 0x00,0x11,0x22,0x33,0x44,0x55
 
-#if defined ( WEBBINO_USE_TEENSY41_NATIVE )
-   // Teensy41 Native Ethernet doesn't require a SS pin
-	const byte ETH_SS_PIN = 0;
-#else
-	// ENC28J60_UIP also needs an SS pin, please adjust for your board
-	const byte ETH_SS_PIN = PA4;		// STM32
-#endif
-	
+   // This is ignored for Teensy 4.1
+	const byte ETH_SS_PIN = SS;
 #elif defined (WEBBINO_USE_ESP8266)
 	#include <WebbinoInterfaces/AllWiFi.h>
 
@@ -105,7 +104,7 @@ void setup () {
 
 	Serial.println (F("Trying to get an IP address through DHCP"));
 #if defined (WEBBINO_USE_ENC28J60) || defined (WEBBINO_USE_WIZ5100) || \
-	defined (WEBBINO_USE_WIZ5500)
+	defined (WEBBINO_USE_WIZ5500) || defined (WEBBINO_USE_TEENSY41_NATIVE)
 	byte mac[6] = {MAC_ADDRESS};
 	bool ok = netint.begin (mac);
 #elif defined (WEBBINO_USE_ENC28J60_UIP)
