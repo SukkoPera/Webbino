@@ -91,9 +91,14 @@
 #endif
 
 
-/* THIRD: Enable/Disable special functions
+/* THIRD: Enable/Disable optional features
  * ---------------------------------------
  */
+
+/*   Define to enable support for replacement tag, i.e.: replace $TAGS$ in the
+ *   served pages
+ */
+#define ENABLE_TAGS
 
 /*   Define to enable running functions upon request of certain pages
  */
@@ -102,12 +107,6 @@
 /*   Define to enable HTTP Basic Authorization support
  */
 //~ #define ENABLE_HTTPAUTH
-
-#ifdef ENABLE_HTTPAUTH
-/*   Maximum length of username:password string
- */
-#define MAX_USERPASS_LEN 32
-#endif
 
 /*   By default only the GET HTTP method/verb is supported (i.e.: all requests are
  *   implicitly assumed to be GETS). Define this to enable the parsing of the
@@ -125,11 +124,6 @@
  *   gz files.
  */
 //~ #define ENABLE_EXTRA_MIMETYPES
-
-/*   Define to enable support for tag substitutions, i.e.: replace #TAGS#
- *   in served pages
- */
-#define ENABLE_TAGS
 
 
 /* FOURTH: Adjust, only if necessary, some library parameters
@@ -168,6 +162,11 @@ const byte TAG_CHAR = static_cast<byte> ('$');
  *   RAM. Theoretically it could be reduced to 1, but this has not been tested.
  */
 #define CLIENT_BUFSIZE 64
+
+/*   Maximum length of the username:password string. Only used if
+ *   ENABLE_HTTPAUTH is defined.
+ */
+#define MAX_USERPASS_LEN 32
 
 /*   Maximum time in milliseconds without receiving characters after which a
  *   client connection is dropped. Solves hanging connection from Chrome on OSX.
