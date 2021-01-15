@@ -34,13 +34,13 @@
  * Please enable *only one* of the following,
  * corresponding to the network device you will be using
  */
-//~ #define WEBBINO_USE_WIZ5100
+#define WEBBINO_USE_WIZ5100
 //~ #define WEBBINO_USE_WIZ5500
 //~ #define WEBBINO_USE_ENC28J60
 //~ #define WEBBINO_USE_ENC28J60_UIP
 //~ #define WEBBINO_USE_ESP8266
 //~ #define WEBBINO_USE_ESP8266_STANDALONE
-#define WEBBINO_USE_WIFI
+//~ #define WEBBINO_USE_WIFI
 //~ #define WEBBINO_USE_WIFI101
 //~ #define WEBBINO_USE_FISHINO
 //~ #define WEBBINO_USE_DIGIFI
@@ -111,7 +111,7 @@
 
 /*   Define to enable HTTP Basic Authorization support
  */
-//~ #define ENABLE_HTTPAUTH
+#define ENABLE_HTTPAUTH
 
 /*   By default only the GET HTTP method/verb is supported (i.e.: all requests are
  *   implicitly assumed to be GETs). Define this to enable the parsing of the
