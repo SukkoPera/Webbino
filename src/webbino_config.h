@@ -22,6 +22,11 @@
 
 #include <Arduino.h>
 
+/* NOTE: For more detailed and up-to-date information about all the options in
+ * this configuration file, please refer to the dedicated wiki page:
+ * https://github.com/SukkoPera/Webbino/wiki/The-Configuration-File
+ */
+
 
 /* FIRST: Network device selection
  * -------------------------------
@@ -29,13 +34,13 @@
  * Please enable *only one* of the following,
  * corresponding to the network device you will be using
  */
-#define WEBBINO_USE_WIZ5100
+//~ #define WEBBINO_USE_WIZ5100
 //~ #define WEBBINO_USE_WIZ5500
 //~ #define WEBBINO_USE_ENC28J60
 //~ #define WEBBINO_USE_ENC28J60_UIP
 //~ #define WEBBINO_USE_ESP8266
 //~ #define WEBBINO_USE_ESP8266_STANDALONE
-//~ #define WEBBINO_USE_WIFI
+#define WEBBINO_USE_WIFI
 //~ #define WEBBINO_USE_WIFI101
 //~ #define WEBBINO_USE_FISHINO
 //~ #define WEBBINO_USE_DIGIFI
@@ -109,7 +114,7 @@
 //~ #define ENABLE_HTTPAUTH
 
 /*   By default only the GET HTTP method/verb is supported (i.e.: all requests are
- *   implicitly assumed to be GETS). Define this to enable the parsing of the
+ *   implicitly assumed to be GETs). Define this to enable the parsing of the
  *   actual method, which will be available in page functions.
  */
 //~ #define ENABLE_ALL_METHODS
