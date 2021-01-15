@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of Webbino.                                         *
  *                                                                         *
- *   Copyright (C) 2012-2019 by SukkoPera                                  *
+ *   Copyright (C) 2012-2021 by SukkoPera                                  *
  *                                                                         *
  *   Webbino is free software: you can redistribute it and/or modify       *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,14 +27,25 @@ FlashStorage flashStorage;
 #if defined (WEBBINO_USE_ENC28J60)
 	#include <WebbinoInterfaces/ENC28J60.h>
 	NetworkInterfaceENC28J60 netint;
-#elif defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500)
+
+	#define MAC_ADDRESS 0x00,0x11,0x22,0x33,0x44,0x55
+
+	// Ethernet Slave Select pin
+	const byte ETH_SS_PIN = SS;
+#elif defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500) || \
+	  defined (WEBBINO_USE_ENC28J60_UIP) || defined (WEBBINO_USE_TEENSY41_NATIVE)
 	#include <WebbinoInterfaces/WIZ5x00.h>
 	NetworkInterfaceWIZ5x00 netint;
+
+	#define MAC_ADDRESS 0x00,0x11,0x22,0x33,0x44,0x55
+
+   // This is ignored for Teensy 4.1
+	const byte ETH_SS_PIN = SS;
 #elif defined (WEBBINO_USE_ESP8266)
 	#include <WebbinoInterfaces/AllWiFi.h>
 
 	#include <SoftwareSerial.h>
-	SoftwareSerial swSerial (6, 7);
+	SoftwareSerial espSerial (6, 7);
 
 	// Wi-Fi parameters
 	#define WIFI_SSID        "ssid"
@@ -62,6 +73,7 @@ FlashStorage flashStorage;
 	#include <WebbinoInterfaces/DigiFi.h>
 	NetworkInterfaceDigiFi netint;
 #endif
+
 
 // Network configuration (Note the commas)
 #define IP_ADDRESS 192,168,1,177
@@ -101,8 +113,11 @@ void setup () {
 
 	Serial.println (F("Configuring static IP address"));
 #if defined (WEBBINO_USE_ENC28J60) || defined (WEBBINO_USE_WIZ5100) || \
-	  defined (WEBBINO_USE_WIZ5500)
-	byte mac[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
+	defined (WEBBINO_USE_WIZ5500) || defined (WEBBINO_USE_ENC28J60_UIP)
+	byte mac[6] = {MAC_ADDRESS};
+	bool ok = netint.begin (mac, ip, dns, gw, mask, ETH_SS_PIN);
+#elif defined (WEBBINO_USE_TEENSY41_NATIVE)
+	byte mac[6] = {MAC_ADDRESS};
 	bool ok = netint.begin (mac, ip, dns, gw, mask);
 #elif defined (WEBBINO_USE_ESP8266) || defined (WEBBINO_USE_ESP8266_STANDALONE)
 	#error "ESP8266 does not currently support static IP configuration"

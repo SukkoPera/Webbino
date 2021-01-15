@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of Webbino                                          *
  *                                                                         *
- *   Copyright (C) 2012-2019 by SukkoPera                                  *
+ *   Copyright (C) 2012-2021 by SukkoPera                                  *
  *                                                                         *
  *   Webbino is free software: you can redistribute it and/or modify       *
  *   it under the terms of the GNU General Public License as published by  *
@@ -22,14 +22,21 @@
 
 #include <webbino_config.h>
 
-#if defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500) || defined (WEBBINO_USE_ENC28J60_UIP)
+#if defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500) || \
+    defined (WEBBINO_USE_ENC28J60_UIP) || defined (WEBBINO_USE_TEENSY41_NATIVE)
 
 #if defined (WEBBINO_USE_WIZ5100)
-#include <Ethernet.h>
+	#include <Ethernet.h>
 #elif defined (WEBBINO_USE_WIZ5500)
-#include <Ethernet2.h>
+	#include <Ethernet2.h>
 #elif defined (WEBBINO_USE_ENC28J60_UIP)
-#include <UIPEthernet.h>
+	#include <UIPEthernet.h>
+#elif defined (WEBBINO_USE_TEENSY41_NATIVE)
+	#ifndef ARDUINO_TEENSY41
+		#error "You can *only* use WEBBINO_USE_TEENSY41_NATIVE with Teensy 4.1"
+	#endif
+
+	#include <NativeEthernet.h>
 #endif
 
 #include <WebbinoCore/WebClient.h>
@@ -59,14 +66,26 @@ private:
 	byte ethernetBuffer[MAX_URL_LEN + 16];			// MAX_URL_LEN + X is enough, since we only store the "GET <url> HTTP/1.x" request line
 	unsigned int ethernetBufferSize;
 
+#ifdef CLIENT_TIMEOUT
+	unsigned long lastPacketReceived = 0;
+#endif
+
 	WebClientWIZ5x00 webClient;
 
 public:
 	NetworkInterfaceWIZ5x00 ();
 
+#if defined (WEBBINO_USE_TEENSY41_NATIVE)
 	boolean begin (byte *mac);
+#else
+	boolean begin (byte *mac, const byte ssPin);
+#endif
 
-	boolean begin (byte *mac, IPAddress ip, IPAddress dns, IPAddress gw, IPAddress mask);
+#if defined (WEBBINO_USE_TEENSY41_NATIVE)
+	boolean begin (byte *mac, IPAddress ip, IPAddress mask, IPAddress gw, IPAddress dns);
+#else
+	boolean begin (byte *mac, IPAddress ip, IPAddress mask, IPAddress gw, IPAddress dns, const byte ssPin);
+#endif
 
 	WebClient* processPacket () override;
 
@@ -79,6 +98,8 @@ public:
 	IPAddress getNetmask () override;
 
 	IPAddress getGateway () override;
+
+	IPAddress getDns () override;
 };
 
 #endif

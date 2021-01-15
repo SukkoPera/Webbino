@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of Webbino                                          *
  *                                                                         *
- *   Copyright (C) 2012-2019 by SukkoPera                                  *
+ *   Copyright (C) 2012-2021 by SukkoPera                                  *
  *                                                                         *
  *   Webbino is free software: you can redistribute it and/or modify       *
  *   it under the terms of the GNU General Public License as published by  *
@@ -38,6 +38,8 @@ public:
 	virtual IPAddress getNetmask () = 0;
 
 	virtual IPAddress getGateway () = 0;
+
+	virtual IPAddress getDns () = 0;
 };
 
 #endif

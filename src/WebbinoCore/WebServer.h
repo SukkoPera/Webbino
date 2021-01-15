@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of Webbino                                          *
  *                                                                         *
- *   Copyright (C) 2012-2019 by SukkoPera                                  *
+ *   Copyright (C) 2012-2021 by SukkoPera                                  *
  *                                                                         *
  *   Webbino is free software: you can redistribute it and/or modify       *
  *   it under the terms of the GNU General Public License as published by  *
@@ -22,14 +22,31 @@
 
 #include <webbino_config.h>
 #include "NetworkInterface.h"
-#include "HTTPRequestParser.h"
+#include "HTTPRequest.h"
 #include "Storage.h"
+#include "MimeTypes.h"
 
 // http://arduiniana.org/libraries/pstring/
 #include <PString.h>
 
 class WebClient;
 class Content;
+
+enum HttpStatusCode {
+	// 2xx success
+	HTTP_OK = 200,
+	HTTP_OK_CREATED = 201,
+	HTTP_OK_NO_CONTENT = 204,
+
+	// 3xx redirection
+	HTTP_MOVED_PERMANENTLY = 301,
+
+	// 4xx client errors
+	HTTP_BAD_REQUEST = 400,
+	HTTP_UNAUTHORIZED = 401,
+	HTTP_FORBIDDEN = 403,
+	HTTP_NOT_FOUND = 404
+};
 
 #ifdef ENABLE_TAGS
 
@@ -79,7 +96,7 @@ typedef const ReplacementTag* const EasyReplacementTagArray;
 /******************************************************************************/
 
 #ifdef ENABLE_PAGE_FUNCTIONS
-typedef void (*PageFunction) (HTTPRequestParser& request);
+typedef HttpStatusCode (*PageFunction) (HttpRequest& request);
 
 
 struct FileFuncAssociation {
@@ -131,16 +148,14 @@ private:
 
 	void handleClient (WebClient& client);
 
-	void sendContent (WebClient& client, Content& content);
+	void sendContent (WebClient& client, Content& content, const MimeType& contType);
 
-	PGM_P getContentType (const char* filename);
+	const MimeType& getContentType (const char* filename);
 
 #ifdef ENABLE_TAGS
-	boolean shallReplace (PGM_P contType);
-
 	PString* findSubstitutionTag (const char* tag) const;
 
-	char *findSubstitutionTagGetParameter (HTTPRequestParser& request, const char* tag);
+	char *findSubstitutionTagGetParameter (HttpRequest& request, const char* tag);
 #endif
 
 public:
@@ -156,7 +171,20 @@ public:
 	void associateFunctions (FileFuncAssociationArray* _associations);
 #endif
 
+#ifdef ENABLE_HTTPAUTH
+	typedef boolean (*AuthorizeFunc) (const char *user, const char *passwd);
+
+	void enableAuth (const char *realm, AuthorizeFunc authFunc);
+#endif
+
 	boolean loop ();
+
+private:
+#ifdef ENABLE_HTTPAUTH
+	const char *realm;
+
+	AuthorizeFunc authorizeFunc;
+#endif
 };
 
 #endif

@@ -51,6 +51,10 @@ private:
 	byte ethernetBuffer[MAX_URL_LEN + 16];			// MAX_URL_LEN + X is enough, since we only store the "GET <url> HTTP/1.x" request line
 	unsigned int ethernetBufferSize;
 
+#ifdef CLIENT_TIMEOUT
+	unsigned long lastPacketReceived = 0;
+#endif
+
 	FishinoWebClient webClient;
 
 public:
@@ -58,8 +62,7 @@ public:
 
 	boolean begin (const char *_ssid, const char *_password);
 
-	boolean begin (const char *_ssid, const char *_password, IPAddress ip,
-		IPAddress dns, IPAddress gw, IPAddress mask);
+	boolean begin (const char *_ssid, const char *_password, IPAddress ip, IPAddress mask, IPAddress gw, IPAddress dns);
 
 	WebClient* processPacket () override;
 

@@ -21,118 +21,76 @@
 #include "Content.h"
 #include "webbino_common.h"
 
-#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
+struct DummyContent: public Content {
+	static const char content[];
 
-#if defined (WEBBINO_ENABLE_SD)
-#include <SD.h>
-#elif defined (WEBBINO_ENABLE_SDFAT)
-#include <SdFat.h>
-
-static SdFat SD;
-#endif
-
-struct SdContent: public Content {
-private:
-	File file;
+	byte pos;
 
 public:
-	SdContent () {
+	DummyContent (): pos (0) {
 	}
 
-	SdContent (const char* filename): Content (filename) {
-		file = SD.open (filename);
+	//~ SdContent (const char* filename): Content (filename) {
+		//~ file = SD.open (filename);
+	//~ }
+
+	//~ SdContent (const SdContent& o): Content (*this) {
+		//~ file = o.file;
+	//~ }
+
+	void reset () {
+		pos = 0;
 	}
 
-	SdContent (const SdContent& o): Content (*this) {
-		file = o.file;
-	}
-
-	SdContent& operator= (SdContent o) {
-		if (file)
-			file.close ();
-
+	DummyContent& operator= (DummyContent o) {
 		Content::operator= (o);		// This must be called explicitly!!!
 
-		//~ mystd::swap (*this, o);
-		file = o.file;
+		pos = o.pos;
 		return *this;
 	}
 
-	~SdContent () {
-		if (file)
-			file.close ();
+	//~ ~SdContent () {
+		//~ if (file)
+			//~ file.close ();
+	//~ }
+
+	const char* getFilename () const override {
+		return "a._wwwf_";		// This hackish extension will have us return a content-type of x-www-form-urlencoded
 	}
 
 	boolean available () override {
-		return file.available ();
+		return pos < strlen (content);
 	}
 
 	byte getNextByte () override {
-		return file.read ();
+		return content[pos++];
 	}
 };
+
+
+const char DummyContent::content[] = "$DUMMY$";
+
 
 /******************************************************************************/
 
 
-class SdStorage: public Storage {
+class DummyStorage: public Storage {
 private:
-	SdContent content;
-
-	void printDirectory (File dir, int numTabs = 0) {
-		while (true) {
-			File entry =  dir.openNextFile();
-			if (!entry) {
-				// no more files
-				break;
-			}
-
-			for (uint8_t i = 0; i < numTabs; i++) {
-				DPRINT ('\t');
-			}
-			DPRINT (entry.name());
-			if (entry.isDirectory()) {
-				DPRINTLN ("/");
-				printDirectory (entry, numTabs + 1);
-			} else {
-				// files have sizes, directories do not
-				DPRINT("\t\t");
-				DPRINTLN (entry.size (), DEC);
-			}
-			entry.close ();
-		}
-	}
+	DummyContent content;
 
 public:
-	boolean begin (int8_t pin) {
-		boolean ret = false;
-
-		DPRINT (F("Initializing SD card..."));
-		if (!SD.begin (pin)) {
-			DPRINTLN (F(" failed"));
-		} else {
-			DPRINTLN (F(" done"));
-			ret = true;
-
-#ifndef WEBBINO_NDEBUG
-		DPRINTLN (F("Pages available on SD card:"));
-		File root = SD.open("/");
-		printDirectory (root);
-#endif
-		}
-
-		return ret;
+	boolean begin () {
+		return true;
 	}
 
 	boolean exists (const char* filename) override {
-		return SD.exists (filename);
+		(void) filename;
+		return true;
 	}
 
 	Content& get (const char* filename) override {
-		content = SdContent (filename);
-
+		(void) filename;
+		content.reset ();
 		return content;
 	}
 };
-
-#endif

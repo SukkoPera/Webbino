@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of Webbino                                          *
  *                                                                         *
- *   Copyright (C) 2012-2019 by SukkoPera                                  *
+ *   Copyright (C) 2012-2021 by SukkoPera                                  *
  *                                                                         *
  *   Webbino is free software: you can redistribute it and/or modify       *
  *   it under the terms of the GNU General Public License as published by  *
@@ -23,17 +23,23 @@
 
 #ifdef WEBBINO_ENABLE_SPIFFS
 
-#ifndef WEBBINO_USE_ESP8266_STANDALONE
-#error "SPIFFS can only be enabled on ESP8266 standalone"
+#if !( defined( WEBBINO_USE_ESP8266_STANDALONE ) || ( defined ( ARDUINO_ARCH_ESP32 ) && defined ( WEBBINO_USE_WIFI ) ) )
+#error "SPIFFS can only be enabled on ESP8266/ESP32 standalone"
 #endif
 
 #include <FS.h>
+#if defined ( ARDUINO_ARCH_ESP32 ) && defined ( WEBBINO_USE_WIFI )
+#include <SPIFFS.h>
+#endif
 
 struct SpiffsContent: public Content {
 private:
 	File file;
 
 public:
+	SpiffsContent () {
+	}
+
 	SpiffsContent (const char* filename): Content (filename) {
 		file = SPIFFS.open (filename, "r");
 	}
@@ -43,12 +49,18 @@ public:
 	}
 
 	SpiffsContent& operator= (SpiffsContent o) {
-		std::swap (*this, o);
+		if (file)
+			file.close ();
+
+		Content::operator= (o);		// This must be called explicitly!!!
+
+		 file = SPIFFS.open (filename, "r");
 		return *this;
 	}
 
 	~SpiffsContent () {
-		file.close ();
+		if (file)
+			file.close ();
 	}
 
 	boolean available () override {
@@ -59,6 +71,7 @@ public:
 		return file.read ();
 	}
 };
+
 
 /******************************************************************************/
 

@@ -21,7 +21,7 @@
 
 // Instantiate the WebServer and page storage
 WebServer webserver;
-FlashStorage flashStorage;
+DummyStorage dummyStorage;
 
 // Instantiate the network interface defined in the Webbino headers
 #if defined (WEBBINO_USE_ENC28J60)
@@ -75,37 +75,25 @@ FlashStorage flashStorage;
 #endif
 
 
-/* Pin to control, make sure this makes sense:
- * - If using an Uno with the Ethernet shield, remember that it is driven
- *   through SPI, which means that pin 13 (i.e. the pin for LED_BUILTIN) is used
- *   by the SPI clock line, so put a led on a different pin.
- * - Use D0 on NodeMCU!
- * - On Teensy 4.1, pin 13 it's automatically chosen
- */
-#ifdef ARDUINO_TEENSY41
-const byte ledPin = 13;
-#else
-const byte ledPin = 7;
-#endif
-
-// Logic level turns the led on: on NodeMCU and with most relays, this should
-// be LOW
-const byte LED_ACTIVE_LEVEL = HIGH;
-
-// Pin state (True -> ON)
-boolean ledState = false;
-
-
 /******************************************************************************
- * DEFINITION OF PAGES                                                        *
+ * DEFINITION OF TAGS                                                         *
  ******************************************************************************/
 
-#include "html.h"
+#define REP_BUFFER_LEN 32
+static char replaceBuffer[REP_BUFFER_LEN];
+PString subBuffer (replaceBuffer, REP_BUFFER_LEN);
 
-const Page page01 PROGMEM = {index_html_name, index_html, index_html_len};
+static PString& evaluate_content (void *data) {
+	(void) data;		// Avoid unused warning
 
-const Page* const pages[] PROGMEM = {
-	&page01,
+	// This has already been filled in by the page function, so return it right away
+	return subBuffer;
+}
+
+EasyReplacementTag (tagDummy, DUMMY, evaluate_content);
+
+EasyReplacementTagArray tags[] PROGMEM = {
+	&tagDummy,
 	NULL
 };
 
@@ -118,62 +106,65 @@ const Page* const pages[] PROGMEM = {
 #error Please define ENABLE_PAGE_FUNCTIONS in webbino_config.h
 #endif
 
-HttpStatusCode ledToggle (HttpRequest& request) {
-	char *param;
-
-	param = request.get_parameter (F("state"));
-	if (strlen (param) > 0) {
-		if (strcmp_P (param, PSTR ("on")) == 0) {
-			ledState = true;
-			digitalWrite (ledPin, LED_ACTIVE_LEVEL);
-		} else {
-			ledState = false;
-			digitalWrite (ledPin, !LED_ACTIVE_LEVEL);
-		}
+void appendRestReply (const char *key, const char *val) {
+	if (subBuffer.length () > 0) {
+		subBuffer.print ('&');
 	}
-	return HTTP_OK;
+	subBuffer.print (key);
+	subBuffer.print ('=');
+	subBuffer.print (val);		// FIXME: Encode
 }
 
-FlashFileFuncAssoc (indexAss, index_html_name, ledToggle);
+
+void pinFunc (HttpRequest& request) {
+	if (request.matchResult.nMatches == 1) {
+		char temp[8];
+		strlcpy (temp, request.uri + request.matchResult.matchPositions[0], request.matchResult.matchLengths[0] + 1);
+		byte pinNo = atoi (temp);
+		Serial.print (F("Working on pin "));
+		Serial.println (pinNo);
+
+		switch (request.method) {
+			case HttpRequest::METHOD_GET:
+				appendRestReply ("state", digitalRead (pinNo) ? "1" : "0");
+				break;
+			case HttpRequest::METHOD_POST: {
+				const char *v = request.getPostValue ("mode");
+				Serial.print ("mode = ");
+				Serial.println (v);
+				if (strcmp_P (v, PSTR("in")) == 0) {
+					pinMode (pinNo, INPUT);
+				} else if (strcmp_P (v, PSTR("in_pu")) == 0) {
+					pinMode (pinNo, INPUT_PULLUP);
+				} else if (strcmp_P (v, PSTR("out")) == 0) {
+					pinMode (pinNo, OUTPUT);
+				}
+
+				v = request.getPostValue ("state");
+				Serial.print ("state = ");
+				Serial.println (v);
+				if (strlen (v) > 0) {
+					int n = atoi (v);
+					digitalWrite (pinNo, n ? 1 : 0);
+				}
+
+				break;
+			} case HttpRequest::METHOD_DELETE:
+				subBuffer.print (F("ICH MUSS ZERSTOEREN!"));
+				break;
+			default:
+				break;
+			}
+	} else {
+		// FIXME: Send 4xx response
+		Serial.println (F("Invalid request"));
+	}
+}
+
+FileFuncAssoc (indexAss, "/rest/pin/*", pinFunc);
 
 FileFuncAssociationArray associations[] PROGMEM = {
 	&indexAss,
-	NULL
-};
-
-
-/******************************************************************************
- * DEFINITION OF TAGS                                                         *
- ******************************************************************************/
-
-#define REP_BUFFER_LEN 32
-char replaceBuffer[REP_BUFFER_LEN];
-PString pBuffer (replaceBuffer, REP_BUFFER_LEN);
-
-PString& evaluate_onoff_checked (void *data) {
-	boolean st = reinterpret_cast<int> (data);
-	if (ledState == st) {
-		pBuffer.print ("checked");
-	}
-
-	return pBuffer;
-}
-
-PString& evaluate_webbino_version (void *data __attribute__ ((unused))) {
-	pBuffer.print (WEBBINO_VERSION);
-
-	return pBuffer;
-}
-
-
-EasyReplacementTag (tagStateOnChecked, ST_ON_CHK, evaluate_onoff_checked, true);
-EasyReplacementTag (tagStateOffChecked, ST_OFF_CHK, evaluate_onoff_checked, false);
-EasyReplacementTag (tagWebbinoVer, WEBBINO_VER, evaluate_webbino_version);
-
-EasyReplacementTagArray tags[] PROGMEM = {
-	&tagStateOnChecked,
-	&tagStateOffChecked,
-	&tagWebbinoVer,
 	NULL
 };
 
@@ -211,27 +202,22 @@ void setup () {
 		Serial.println (F("Failed to get configuration from DHCP"));
 		while (42)
 			;
+	} else {
+		Serial.println (F("DHCP configuration done:"));
+		Serial.print (F("- IP: "));
+		Serial.println (netint.getIP ());
+		Serial.print (F("- Netmask: "));
+		Serial.println (netint.getNetmask ());
+		Serial.print (F("- Default Gateway: "));
+		Serial.println (netint.getGateway ());
+
+		webserver.begin (netint);
+
+		dummyStorage.begin ();
+		webserver.addStorage (dummyStorage);
+		webserver.associateFunctions (associations);
+		webserver.enableReplacementTags (tags);
 	}
-
-
-	Serial.println (F("DHCP configuration done:"));
-	Serial.print (F("- IP: "));
-	Serial.println (netint.getIP ());
-	Serial.print (F("- Netmask: "));
-	Serial.println (netint.getNetmask ());
-	Serial.print (F("- Default Gateway: "));
-	Serial.println (netint.getGateway ());
-
-	webserver.begin (netint);
-	webserver.enableReplacementTags (tags);
-
-	flashStorage.begin (pages);
-	webserver.addStorage (flashStorage);
-	webserver.associateFunctions (associations);
-
-	// Prepare pin
-	digitalWrite (ledPin, !LED_ACTIVE_LEVEL);		// Off
-	pinMode (ledPin, OUTPUT);
 }
 
 void loop () {

@@ -24,55 +24,19 @@ WebServer webserver;
 FlashStorage flashStorage;
 
 // Instantiate the network interface defined in the Webbino headers
-#if defined (WEBBINO_USE_ENC28J60)
-	#include <WebbinoInterfaces/ENC28J60.h>
-	NetworkInterfaceENC28J60 netint;
-
-	#define MAC_ADDRESS 0x00,0x11,0x22,0x33,0x44,0x55
-
-	// Ethernet Slave Select pin
-	const byte ETH_SS_PIN = SS;
-#elif defined (WEBBINO_USE_WIZ5100) || defined (WEBBINO_USE_WIZ5500) || \
-	  defined (WEBBINO_USE_ENC28J60_UIP) || defined (WEBBINO_USE_TEENSY41_NATIVE)
-	#include <WebbinoInterfaces/WIZ5x00.h>
-	NetworkInterfaceWIZ5x00 netint;
-
-	#define MAC_ADDRESS 0x00,0x11,0x22,0x33,0x44,0x55
-
-   // This is ignored for Teensy 4.1
-	const byte ETH_SS_PIN = SS;
-#elif defined (WEBBINO_USE_ESP8266)
-	#include <WebbinoInterfaces/AllWiFi.h>
-
-	#include <SoftwareSerial.h>
-	SoftwareSerial espSerial (6, 7);
-
-	// Wi-Fi parameters
-	#define WIFI_SSID        "ssid"
-	#define WIFI_PASSWORD    "password"
-
-	NetworkInterfaceWiFi netint;
-#elif defined (WEBBINO_USE_WIFI) || defined (WEBBINO_USE_WIFI101) || \
-	  defined (WEBBINO_USE_ESP8266_STANDALONE)
-	#include <WebbinoInterfaces/AllWiFi.h>
-
-	// Wi-Fi parameters
-	#define WIFI_SSID        "ssid"
-	#define WIFI_PASSWORD    "password"
-
-	NetworkInterfaceWiFi netint;
-#elif defined (WEBBINO_USE_FISHINO)
-	#include <WebbinoInterfaces/FishinoIntf.h>
-
-	// Wi-Fi parameters
-	#define WIFI_SSID        "ssid"
-	#define WIFI_PASSWORD    "password"
-
-	FishinoInterface netint;
-#elif defined (WEBBINO_USE_DIGIFI)
-	#include <WebbinoInterfaces/DigiFi.h>
-	NetworkInterfaceDigiFi netint;
+#if !defined (WEBBINO_USE_ESP8266_STANDALONE) && !defined (ARDUINO_ARCH_ESP32)
+#error "Access Point Mode is only supported on ESP8266 and ESP32"
 #endif
+
+#include <WebbinoInterfaces/AllWiFi.h>
+
+/* Wi-Fi parameters: To have an open AP set the password to "" or NULL. If you
+ * want to use a password, it must be between 8 and 63 characters long.
+ */
+#define WIFI_SSID        "Webbino"
+#define WIFI_PASSWORD    ""
+
+NetworkInterfaceWiFi netint;
 
 
 /******************************************************************************
@@ -102,36 +66,15 @@ void setup () {
 
 	Serial.println (F("Webbino " WEBBINO_VERSION));
 
-	Serial.println (F("Trying to get an IP address through DHCP"));
-#if defined (WEBBINO_USE_ENC28J60) || defined (WEBBINO_USE_WIZ5100) || \
-	defined (WEBBINO_USE_WIZ5500) || defined (WEBBINO_USE_ENC28J60_UIP)
-	byte mac[6] = {MAC_ADDRESS};
-	bool ok = netint.begin (mac, ETH_SS_PIN);
-#elif defined (WEBBINO_USE_TEENSY41_NATIVE)
-	byte mac[6] = {MAC_ADDRESS};
-	bool ok = netint.begin (mac);
-#elif defined (WEBBINO_USE_ESP8266)
-	espSerial.begin (9600);
-	bool ok = netint.begin (espSerial, WIFI_SSID, WIFI_PASSWORD);
-#elif defined (WEBBINO_USE_WIFI) || defined (WEBBINO_USE_WIFI101) || \
-	  defined (WEBBINO_USE_ESP8266_STANDALONE) || defined (WEBBINO_USE_FISHINO)
-	bool ok = netint.begin (WIFI_SSID, WIFI_PASSWORD);
-#elif defined (WEBBINO_USE_DIGIFI)
-	bool ok = netint.begin ();
-#endif
-
-	if (!ok) {
-		Serial.println (F("Failed to get configuration from DHCP"));
+	IPAddress ip;
+	Serial.println (F("Trying to enable Access Point Mode..."));
+	if (!netint.beginAP (WIFI_SSID, WIFI_PASSWORD, ip)) {
+		Serial.println (F("Failed :("));
 		while (42)
-			;
+			yield ();
 	} else {
-		Serial.println (F("DHCP configuration done:"));
-		Serial.print (F("- IP: "));
-		Serial.println (netint.getIP ());
-		Serial.print (F("- Netmask: "));
-		Serial.println (netint.getNetmask ());
-		Serial.print (F("- Default Gateway: "));
-		Serial.println (netint.getGateway ());
+		Serial.print (F("Ready, server is at "));
+		Serial.println (ip);
 
 		webserver.begin (netint);
 

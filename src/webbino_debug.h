@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of Webbino                                          *
  *                                                                         *
- *   Copyright (C) 2012-2019 by SukkoPera                                  *
+ *   Copyright (C) 2012-2021 by SukkoPera                                  *
  *                                                                         *
  *   Webbino is free software: you can redistribute it and/or modify       *
  *   it under the terms of the GNU General Public License as published by  *
@@ -32,47 +32,24 @@
 
 #endif
 
+// Flash strings stuff
 // FIXME: This should probably be moved somewhere else
-#ifdef ENABLE_FLASH_STRINGS
 
-#if defined (ARDUINO_ARCH_AVR)
+// STM32 has a avr/pgmspace.h wrapper...
+#if defined (ARDUINO_ARCH_AVR) || defined (ARDUINO_ARCH_STM32F1) || defined (ARDUINO_ARCH_ESP8266)
 #include <avr/pgmspace.h>
+#endif
+
+// ... But it's missing some functions :(
+#ifdef ARDUINO_ARCH_STM32F1
+#define strncpy_P strncpy
+#define strncmp_P strncmp
+#define strncasecmp_P strncasecmp
 #endif
 
 #define PSTR_TO_F(s) reinterpret_cast<const __FlashStringHelper *> (s)
 #define F_TO_PSTR(s) reinterpret_cast<PGM_P> (s)
 #define WebbinoFStr const __FlashStringHelper *
-
-#else
-
-#warning Flash strings disabled
-
-#undef PSTR
-#define PSTR(s) s
-
-#undef F
-#define F(s) s
-
-#define PSTR_TO_F(s) s
-#define F_TO_PSTR(s) s
-
-#define WebbinoFStr const char *
-
-#undef strlen_P
-#define strlen_P strlen
-#undef strcmp_P
-#define strcmp_P strcmp
-#undef strcat_P
-#define strcat_P strcat
-#undef strncpy_P
-#define strncpy_P strncpy
-#undef strncmp_P
-#define strncmp_P strncmp
-
-#undef pgm_read_ptr
-#define pgm_read_ptr(p) (*(p))
-
-#endif
 
 // Use to mark unused function parameters
 #define _UNUSED __attribute__ ((unused))

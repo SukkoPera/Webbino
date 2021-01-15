@@ -1,4 +1,4 @@
-/***************************************************************************
+ /***************************************************************************
  *   This file is part of Webbino                                          *
  *                                                                         *
  *   Copyright (C) 2012-2021 by SukkoPera                                  *
@@ -21,44 +21,42 @@
 #include "Content.h"
 #include "webbino_common.h"
 
-#if defined (WEBBINO_ENABLE_SD) || defined (WEBBINO_ENABLE_SDFAT)
+#ifdef WEBBINO_ENABLE_LITTLEFS
 
-#if defined (WEBBINO_ENABLE_SD)
-#include <SD.h>
-#elif defined (WEBBINO_ENABLE_SDFAT)
-#include <SdFat.h>
-
-static SdFat SD;
+#ifndef WEBBINO_USE_ESP8266_STANDALONE
+#error "LittleFS can only be enabled on ESP8266 standalone"
 #endif
 
-struct SdContent: public Content {
+#include <FS.h>
+#include <LittleFS.h>
+
+struct LittleFSContent: public Content {
 private:
 	File file;
 
 public:
-	SdContent () {
+	LittleFSContent () {
 	}
 
-	SdContent (const char* filename): Content (filename) {
-		file = SD.open (filename);
+	LittleFSContent (const char* filename): Content (filename) {
+		file = LittleFS.open (filename, "r");
 	}
 
-	SdContent (const SdContent& o): Content (*this) {
+	LittleFSContent (const LittleFSContent& o): Content (*this) {
 		file = o.file;
 	}
 
-	SdContent& operator= (SdContent o) {
+	LittleFSContent& operator= (LittleFSContent o) {
 		if (file)
 			file.close ();
 
 		Content::operator= (o);		// This must be called explicitly!!!
 
-		//~ mystd::swap (*this, o);
-		file = o.file;
+		file = LittleFS.open (filename, "r");
 		return *this;
 	}
 
-	~SdContent () {
+	~LittleFSContent () {
 		if (file)
 			file.close ();
 	}
@@ -72,64 +70,34 @@ public:
 	}
 };
 
+
 /******************************************************************************/
 
-
-class SdStorage: public Storage {
+class LittleFSStorage: public Storage {
 private:
-	SdContent content;
-
-	void printDirectory (File dir, int numTabs = 0) {
-		while (true) {
-			File entry =  dir.openNextFile();
-			if (!entry) {
-				// no more files
-				break;
-			}
-
-			for (uint8_t i = 0; i < numTabs; i++) {
-				DPRINT ('\t');
-			}
-			DPRINT (entry.name());
-			if (entry.isDirectory()) {
-				DPRINTLN ("/");
-				printDirectory (entry, numTabs + 1);
-			} else {
-				// files have sizes, directories do not
-				DPRINT("\t\t");
-				DPRINTLN (entry.size (), DEC);
-			}
-			entry.close ();
-		}
-	}
+	LittleFSContent content;
 
 public:
-	boolean begin (int8_t pin) {
-		boolean ret = false;
-
-		DPRINT (F("Initializing SD card..."));
-		if (!SD.begin (pin)) {
-			DPRINTLN (F(" failed"));
-		} else {
-			DPRINTLN (F(" done"));
-			ret = true;
+	void begin () {
+		LittleFS.begin ();
 
 #ifndef WEBBINO_NDEBUG
-		DPRINTLN (F("Pages available on SD card:"));
-		File root = SD.open("/");
-		printDirectory (root);
-#endif
+		DPRINTLN (F("Pages available in LittleFS:"));
+		Dir dir = LittleFS.openDir ("/");
+		for (byte i = 0; dir.next (); i++) {
+			DPRINT (i);
+			DPRINT (F(". "));
+			DPRINTLN (dir.fileName());
 		}
-
-		return ret;
+#endif
 	}
 
 	boolean exists (const char* filename) override {
-		return SD.exists (filename);
+		return LittleFS.exists (filename);
 	}
 
 	Content& get (const char* filename) override {
-		content = SdContent (filename);
+		content = LittleFSContent (filename);
 
 		return content;
 	}

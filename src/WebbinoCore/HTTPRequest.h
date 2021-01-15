@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of Webbino                                          *
  *                                                                         *
- *   Copyright (C) 2012-2019 by SukkoPera                                  *
+ *   Copyright (C) 2012-2021 by SukkoPera                                  *
  *                                                                         *
  *   Webbino is free software: you can redistribute it and/or modify       *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,24 +24,75 @@
 #include <webbino_debug.h>
 
 
-class HTTPRequestParser {
-private:
-	char buffer[BUF_LEN];
-
+class HttpRequest {
 public:
-	HTTPRequestParser ();
+#ifdef ENABLE_REST
+	static const byte MAX_MATCHES = 4;
 
-	char url[MAX_URL_LEN];
+	struct MatchResult {
+		byte matchPositions[MAX_MATCHES];
+		byte matchLengths[MAX_MATCHES];
+		byte nMatches;
+	};
 
-	void parse (char *request);
+	MatchResult matchResult;
+#endif
+
+#ifdef ENABLE_ALL_METHODS
+	enum HttpMethod {
+		METHOD_GET,
+		METHOD_PUT,
+		METHOD_POST,
+		METHOD_DELETE,
+		METHOD_UNKNOWN		// Keep at end, not supported ATM
+	};
+
+	HttpMethod method;
+#endif
+
+#ifdef ENABLE_HTTPAUTH
+	const char *username;
+	const char *password;
+#endif
+
+	HttpRequest ();
+
+	char uri[MAX_URL_LEN];
+
+	boolean parse (const char *request);
 
 	char *get_basename ();
 
 	char *get_parameter (const char param[]);
 
-#ifdef ENABLE_FLASH_STRINGS
 	char *get_parameter (WebbinoFStr param);
+
+#ifdef ENABLE_REST
+	boolean matchAssociation (WebbinoFStr assocPath);
 #endif
+
+#ifdef ENABLE_ALL_METHODS
+	char *getPostValue (const char param[]);
+#endif
+
+private:
+	char buffer[BUF_LEN];
+
+	const char *request;
+
+#ifdef ENABLE_HTTPAUTH
+	char userpassBuf [MAX_USERPASS_LEN + 2];	// Add 2 for separator and terminator
+#endif
+
+	char *getFormParameter (const char str[], const char param[]);
+
+	static char *cpyndec (char *dst, const char *src, const size_t len);
+
+#ifdef ENABLE_REST
+	static boolean parametricMatch (const char *str, WebbinoFStr expr, MatchResult& result);
+#endif
+
+	char *getBodyStart ();
 };
 
 #endif

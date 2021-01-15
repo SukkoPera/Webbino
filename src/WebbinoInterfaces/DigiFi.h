@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of Webbino                                          *
  *                                                                         *
- *   Copyright (C) 2012-2019 by SukkoPera                                  *
+ *   Copyright (C) 2012-2021 by SukkoPera                                  *
  *                                                                         *
  *   Webbino is free software: you can redistribute it and/or modify       *
  *   it under the terms of the GNU General Public License as published by  *
@@ -34,12 +34,16 @@
  *
  * It uses the USR-WIFI232-G wifi chip, which has a number of oddities. The one
  * that strikes us most is the IMPOSSIBILITY to close a TCP connection when in
- * server mode, so we can't tell tell the client this way that data is over.
+ * server mode, so we can't tell the client this way that data is over.
  * So we must use a different way. The HTTP protocol either allows us to send
  * the content length in advance, using the Content-Length header, or to send
  * chunks of data using what is known as "Chunked transfer encoding". This class
  * currently implements the former, i.e.: it caches the whole data in memory,
  * calculates the content length and adds the relevant header.
+ *
+ * This means we put a cap on the maximum size of a single piece of content we
+ * might send to the client, but since the Arduino Due has quite some RAM (96k),
+ * we can afford a decent buffer. Feel free to tune it to your needs.
  *
  * Note that this wifi chip must be configured through its own web interface,
  * which is available on port 80. This means that port 80 cannot be used for
@@ -57,7 +61,7 @@
 class WebClientDigiFi: public WebClient {
 private:
 	// Size of the buffer that holds the content. Increase for bigger pages.
-	static const unsigned int BUFFER_SIZE = 2048;
+	static const unsigned int BUFFER_SIZE = 16384;
 
 	DigiFi& wifi;
 
@@ -80,13 +84,15 @@ public:
 
 class NetworkInterfaceDigiFi: public NetworkInterface {
 private:
-	static const unsigned int REQUEST_TIMEOUT = 15;		// Seconds
-
 	DigiFi wifi;
 
 	byte macAddress[6];
 	byte ethernetBuffer[MAX_URL_LEN + 16];			// MAX_URL_LEN + X is enough, since we only store the "GET <url> HTTP/1.x" request line
 	unsigned int ethernetBufferSize;
+
+#ifdef CLIENT_TIMEOUT
+	unsigned long lastPacketReceived = 0;
+#endif
 
 	WebClientDigiFi webClient;
 
@@ -106,6 +112,8 @@ public:
 	IPAddress getNetmask () override;
 
 	IPAddress getGateway () override;
+
+	IPAddress getDns () override;
 };
 
 #endif

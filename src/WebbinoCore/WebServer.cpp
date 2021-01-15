@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of Webbino                                          *
  *                                                                         *
- *   Copyright (C) 2012-2019 by SukkoPera                                  *
+ *   Copyright (C) 2012-2021 by SukkoPera                                  *
  *                                                                         *
  *   Webbino is free software: you can redistribute it and/or modify       *
  *   it under the terms of the GNU General Public License as published by  *
@@ -26,17 +26,63 @@
 
 
 
-#define HEADER_START "HTTP/1.0 "
-#define REDIRECT_HEADER "301 Moved Permanently\r\nLocation: "
-#define OK_HEADER "200 OK\r\n"		// \r\nPragma: no-cache
+#define RESPONSE_START "HTTP/1.0 "
+#define REDIRECT_HEADER "Location: "
+//~ #define NOCACHE_HEADER "Pragma: no-cache
 #define CONT_TYPE_HEADER "Content-Type: "
-#define NOT_FOUND_HEADER "404 Not Found\r\nContent-Type: text/html"
-#define HEADER_END "\r\n\r\n"
+#define HEADER_END "\r\n"
 
+#ifdef ENABLE_HTTPAUTH
+#define AUTH_HEADER "WWW-Authenticate: Basic realm="
+#endif
+
+
+// FIXME: Store in PROGMEM
+const char *HttpStatusMessages[] = {
+	"OK",
+	"Created",
+	"No Content",
+	"Moved Permanently",
+	"Bad Request",
+	"Unauthorized",
+	"Forbidden",
+	"Not Found"
+};
+
+const char *responseCodeToMessage (HttpStatusCode code) {
+	const char *msg = "N/A";
+
+	static const HttpStatusCode map[] = {
+		HTTP_OK,
+		HTTP_OK_CREATED,
+		HTTP_OK_NO_CONTENT,
+		HTTP_MOVED_PERMANENTLY,
+		HTTP_BAD_REQUEST,
+		HTTP_UNAUTHORIZED,
+		HTTP_FORBIDDEN,
+		HTTP_NOT_FOUND
+	};
+
+	for (byte i = 0; i < sizeof (map) / sizeof (HttpStatusCode); ++i) {
+		if (map[i] == code) {
+			msg = HttpStatusMessages[i];
+			break;
+		}
+	}
+
+	return msg;
+}
+
+#define replyIsSuccessful(x) ((x) / 100) == 2)
 
 boolean WebServer::begin (NetworkInterface& _netint) {
 	nStorage = 0;
 	netint = &_netint;
+
+#ifdef ENABLE_HTTPAUTH
+	realm = NULL;
+	authorizeFunc = NULL;
+#endif
 
 #ifndef WEBBINO_NDEBUG
 	DPRINTLN (F("Available MIME Types:"));
@@ -106,7 +152,7 @@ boolean WebServer::addStorage (Storage& storage) {
 	return ret;
 }
 
-PGM_P WebServer::getContentType (const char* filename) {
+const MimeType& WebServer::getContentType (const char* filename) {
 	const MimeType* mt = NULL;
 
 #ifndef WEBBINO_NDEBUG
@@ -134,82 +180,163 @@ PGM_P WebServer::getContentType (const char* filename) {
 	}
 #endif
 
-	DPRINT (F("Content type is "));
-	DPRINTLN (PSTR_TO_F (mt ? mt -> getType () : FALLBACK_MIMETYPE));
-
-	return mt ? mt -> getType () : FALLBACK_MIMETYPE;
+	return mt ? *mt : FALLBACK_MIMETYPE;
 }
 
 void WebServer::handleClient (WebClient& client) {
-	unsigned int l = strlen (client.request.url);
-	if (l == 0 || client.request.url[l - 1] == '/') {
+	unsigned int l = strlen (client.request.uri);
+	if (l == 0 || client.request.uri[l - 1] == '/') {
 		// Request for "/", redirect
 		DPRINT (F("Redirecting to "));
-		DPRINT (client.request.url);
+		DPRINT (client.request.uri);
 		DPRINTLN (F(REDIRECT_ROOT_PAGE));
 
-		client.print (F(HEADER_START REDIRECT_HEADER));
+		client.print (F(RESPONSE_START));
+		client.print (HTTP_MOVED_PERMANENTLY);
+		client.print (' ');
+		client.print (responseCodeToMessage (HTTP_MOVED_PERMANENTLY));
+		client.print (F(HEADER_END));
+
+		client.print (F(REDIRECT_HEADER));
 		if (l == 0)
-			client.print ((byte) '/');
+			client.print ('/');
 		else
-			client.print (client.request.url);
-		client.print (F(REDIRECT_ROOT_PAGE HEADER_END));
+			client.print (client.request.uri);
+		client.print (F(REDIRECT_ROOT_PAGE HEADER_END HEADER_END));
 	} else {
-		const char *pagename = client.request.get_basename ();
+		boolean authOk = false;
 
-		byte i;
-		for (i = 0; i < nStorage; ++i) {
-			Storage& stor = *storages[i];
-
-			if (stor.exists (pagename)) {
-				DPRINT (F("Page found on storage "));
-				DPRINTLN (i);
-
-				/* Get the content NOW: pagename is stored in buffer, and the
-				 * PageFunction, if any, might call request.get_parameter()
-				 * which would overwrite the buffer and thus pagename. Not
-				 * pretty, but it works.
-				 */
-				Content& content = stor.get (pagename);
-
-#ifdef ENABLE_PAGE_FUNCTIONS
-				// Look up page function, if available
-				if (associations != nullptr) {
-					const FileFuncAssociation* ass;
-
-					for (byte i = 0; (ass = reinterpret_cast<const FileFuncAssociation*> (pgm_read_ptr (&associations[i]))); i++) {
-						if (strcmp_P (pagename, ass -> getPath ()) == 0) {
-							DPRINTLN (F("Page has an associated function"));
-							PageFunction func = ass -> getFunction ();
-							func (client.request);
-							break;
-						}
-					}
-				}
+#ifdef ENABLE_HTTPAUTH
+		if (realm != NULL) {
+			// Auth required
+			DPRINTLN (F("Auth required"));
+			if (client.request.username == NULL || client.request.password == NULL) {
+				// Auth data not provided
+				DPRINTLN (F("Client did not provide auth data"));
+			} else if (authorizeFunc != NULL) {
+				// Browser sent username/passwd, check them
+				DPRINTLN (F("Calling user auth function"));
+				authOk = authorizeFunc (client.request.username, client.request.password);
+			} else {
+				// Browser sent username/password but user did not set an auth func
+				DPRINTLN (F("Auth requested but no authorization function set"));
+			}
+		} else {
+			authOk = true;
+		}
+#else
+		// The compiler will optimize out this variable/check
+		authOk = true;
 #endif
 
-				/* content.getFilename() points to the buffer returned by
-				 * client.request.get_basename (), which might get modified if
-				 * the associated function called get_parameter(), thus let's
-				 * restore it so that it keeps pointing to what is should.
-				 *
-				 * I guess this is crap and should be a FIXME...
-				 */
-				client.request.get_basename ();
+		if (authOk) {
+			const char *pagename = client.request.get_basename ();
 
-				sendContent (client, content);
-				stor.release (content);
-				break;
+			byte i;
+			for (i = 0; i < nStorage; ++i) {
+				Storage& stor = *storages[i];
+
+				if (stor.exists (pagename)) {
+					HttpStatusCode responseCode = HTTP_OK;
+
+					DPRINT (F("Page found on storage "));
+					DPRINTLN (i);
+
+					/* Get the content NOW: pagename is stored in buffer, and the
+					 * PageFunction, if any, might call request.get_parameter()
+					 * which would overwrite the buffer and thus pagename. Not
+					 * pretty, but it works.
+					 */
+					Content& content = stor.get (pagename);
+
+#ifdef ENABLE_PAGE_FUNCTIONS
+					// Look up page function, if available
+					if (associations != nullptr) {
+						const FileFuncAssociation* ass;
+
+						for (byte i = 0; (ass = reinterpret_cast<const FileFuncAssociation*> (pgm_read_ptr (&associations[i]))); i++) {
+#ifdef ENABLE_REST
+							if (client.request.matchAssociation (PSTR_TO_F (ass -> getPath ()))) {
+#else
+							if (strcmp_P (pagename, ass -> getPath ()) == 0) {
+#endif
+								// Found!
+								DPRINTLN (F("Page has an associated function"));
+								PageFunction func = ass -> getFunction ();
+								responseCode = func (client.request);		// The page function can alter the response code
+								break;
+							}
+						}
+					}
+#endif
+
+					/* content.getFilename() points to the buffer returned by
+					 * client.request.get_basename (), which might get modified if
+					 * the associated function called get_parameter(), thus let's
+					 * restore it so that it keeps pointing to what is should.
+					 *
+					 * I guess this is crap and should be a FIXME...
+					 */
+					client.request.get_basename ();
+
+					const MimeType& contType = getContentType (content.getFilename ());
+					DPRINT (F("Content type is "));
+					DPRINTLN (contType.getType ());
+
+					// Send headers
+					client.print (F(RESPONSE_START));
+					client.print (responseCode);
+					client.print (' ');
+					client.print (responseCodeToMessage (responseCode));
+					client.print (F(HEADER_END));
+
+					if (replyIsSuccessful (responseCode) {
+						client.print (F(CONT_TYPE_HEADER));
+						client.print (PSTR_TO_F (contType.getType ()));
+						client.print (F(HEADER_END));
+						client.print (F(HEADER_END));
+
+						sendContent (client, content, contType);
+					} else {
+						DPRINTLN (F("Not sending output since reply indicates error"));
+					}
+
+					stor.release (content);
+
+					// Stop looping on storages
+					break;
+				}
 			}
-		}
 
-		if (i >= nStorage) {
-			// Page not found
-			client.print (F(HEADER_START NOT_FOUND_HEADER HEADER_END));
+			if (i >= nStorage) {
+				// Page not found
+				client.print (F(RESPONSE_START));
+				client.print (HTTP_NOT_FOUND);
+				client.print (' ');
+				client.print (responseCodeToMessage (HTTP_NOT_FOUND));
+				client.print (F(HEADER_END));
 
-			client.print (F("<html><body><h3>No such page: \""));
-			client.print (pagename);
-			client.print (F("\"</h3></body></html>"));
+				client.print (F(HEADER_END));
+
+				client.print (F("<html><body><h3>No such page: \""));
+				client.print (pagename);
+				client.print (F("\"</h3></body></html>"));
+			}
+		} else {
+#ifdef ENABLE_HTTPAUTH
+			// Auth failed (or no auth data provided)
+			client.print (F(RESPONSE_START));
+			client.print (HTTP_UNAUTHORIZED);
+			client.print (' ');
+			client.print (responseCodeToMessage (HTTP_UNAUTHORIZED));
+			client.print (F(HEADER_END));
+
+			client.print (F(AUTH_HEADER));
+			client.print (realm);
+			client.print (F(HEADER_END));
+
+			client.print (F(HEADER_END));
+#endif
 		}
 	}
 
@@ -217,14 +344,6 @@ void WebServer::handleClient (WebClient& client) {
 }
 
 #ifdef ENABLE_TAGS
-boolean WebServer::shallReplace (PGM_P contType) {
-	// Well, we must compare two strings in program space ^___^
-	char tmp[4];
-	strncpy_P (tmp, contType, 4);
-	//~ tmp[4] = '\0';
-	return strncmp_P (tmp, PSTR("text"), 4) == 0;
-}
-
 PString* WebServer::findSubstitutionTag (const char *tag) const {
 	const ReplacementTag* sub;
 	PString* ret = nullptr;
@@ -239,23 +358,14 @@ PString* WebServer::findSubstitutionTag (const char *tag) const {
 	return ret;
 }
 
-char *WebServer::findSubstitutionTagGetParameter (HTTPRequestParser& request, const char *tag) {
+char *WebServer::findSubstitutionTagGetParameter (HttpRequest& request, const char *tag) {
 	return request.get_parameter (tag);
 }
 #endif
 
 // Read the page, perform tag substitutions and send it over
 // FIXME: Handle unterminated tags
-void WebServer::sendContent (WebClient& client, Content& content) {
-	const byte tagChar = static_cast<byte> (TAG_CHAR);	// Make sure this is a byte and not a char
-
-	PGM_P contType = getContentType (content.getFilename ());
-
-	// Send headers
-	client.print (F(HEADER_START OK_HEADER CONT_TYPE_HEADER));
-	client.print (PSTR_TO_F (contType));
-	client.print (F(HEADER_END));
-
+void WebServer::sendContent (WebClient& client, Content& content, const MimeType& contType) {
 #ifdef ENABLE_TAGS
 	char tag[MAX_TAG_LEN];
 	int8_t tagLen = -1;			// If >= 0 we are inside a tag
@@ -264,10 +374,10 @@ void WebServer::sendContent (WebClient& client, Content& content) {
 		byte c = content.getNextByte ();
 
 #ifdef ENABLE_TAGS
-		if (shallReplace (contType)) {		// We only want to do replacements on "text" MIME Types
+		if (contType.supportsReplacements) {		// We do not want to do replacements on binary files...
 			if (tagLen >= 0) {
 				// A tag is in progress
-				if (c == tagChar) {
+				if (c == TAG_CHAR) {
 					// End of tag
 					DPRINT (F("Processing replacement tag: \""));
 					DPRINT (tag);
@@ -307,9 +417,9 @@ void WebServer::sendContent (WebClient& client, Content& content) {
 						// Tag not found, emit it
 						DPRINTLN (F("Tag not found"));
 
-						client.write (tagChar);
+						client.write (TAG_CHAR);
 						client.print (tag);
-						client.write (tagChar);
+						client.write (TAG_CHAR);
 					}
 
 					// Prepare for next tag
@@ -323,7 +433,7 @@ void WebServer::sendContent (WebClient& client, Content& content) {
 					++tagLen;
 				}
 			} else {
-				if (c == tagChar) {
+				if (c == TAG_CHAR) {
 					// (Possible) New tag
 					tag[0] = '\0';
 					tagLen = 0;
@@ -345,7 +455,7 @@ boolean WebServer::loop () {
 	if (client != NULL) {
 		// Got a client with a request, process it
 		DPRINT (F("Request for \""));
-		DPRINT (client -> request.url);
+		DPRINT (client -> request.uri);
 		DPRINTLN (F("\""));
 
 		handleClient (*client);
@@ -353,3 +463,11 @@ boolean WebServer::loop () {
 
 	return client != NULL;
 }
+
+#ifdef ENABLE_HTTPAUTH
+void WebServer::enableAuth (const char *_realm, AuthorizeFunc _authFunc) {
+	realm = _realm;
+
+	authorizeFunc = _authFunc;
+}
+#endif

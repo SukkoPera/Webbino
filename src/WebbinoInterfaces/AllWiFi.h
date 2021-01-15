@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of Webbino                                          *
  *                                                                         *
- *   Copyright (C) 2012-2019 by SukkoPera                                  *
+ *   Copyright (C) 2012-2021 by SukkoPera                                  *
  *                                                                         *
  *   Webbino is free software: you can redistribute it and/or modify       *
  *   it under the terms of the GNU General Public License as published by  *
@@ -77,6 +77,10 @@ private:
 	byte ethernetBuffer[MAX_URL_LEN + 16];			// MAX_URL_LEN + X is enough, since we only store the "GET <url> HTTP/1.x" request line
 	unsigned int ethernetBufferSize;
 
+#ifdef CLIENT_TIMEOUT
+	unsigned long lastPacketReceived = 0;
+#endif
+
 	WebClientWifi webClient;
 
 public:
@@ -85,8 +89,14 @@ public:
 #if defined (WEBBINO_USE_WIFI) || defined (WEBBINO_USE_WIFI101) || \
       defined (WEBBINO_USE_ESP8266_STANDALONE)
 	boolean begin (const char *_ssid, const char *_password);
+
+	boolean begin (const char *_ssid, const char *_password, IPAddress ip, IPAddress mask, IPAddress gw, IPAddress dns);
 #elif defined (WEBBINO_USE_ESP8266)
 	boolean begin (Stream& _serial, const char *_ssid, const char *_password);
+#endif
+
+#if defined (WEBBINO_USE_ESP8266_STANDALONE) || defined (ARDUINO_ARCH_ESP32)
+	boolean beginAP (const char *_ssid, const char *_password, IPAddress& address);
 #endif
 
 	WebClient* processPacket () override;
@@ -100,6 +110,8 @@ public:
 	IPAddress getNetmask () override;
 
 	IPAddress getGateway () override;
+
+	IPAddress getDns () override;
 };
 
 #endif

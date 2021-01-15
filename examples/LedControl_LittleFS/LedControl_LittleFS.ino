@@ -21,7 +21,7 @@
 
 // Instantiate the WebServer and page storage
 WebServer webserver;
-FlashStorage flashStorage;
+LittleFSStorage littlefsStorage;
 
 // Instantiate the network interface defined in the Webbino headers
 #if defined (WEBBINO_USE_ENC28J60)
@@ -85,29 +85,15 @@ FlashStorage flashStorage;
 #ifdef ARDUINO_TEENSY41
 const byte ledPin = 13;
 #else
-const byte ledPin = 7;
+const byte ledPin = D0;
 #endif
 
 // Logic level turns the led on: on NodeMCU and with most relays, this should
 // be LOW
-const byte LED_ACTIVE_LEVEL = HIGH;
+const byte LED_ACTIVE_LEVEL = LOW;
 
 // Pin state (True -> ON)
 boolean ledState = false;
-
-
-/******************************************************************************
- * DEFINITION OF PAGES                                                        *
- ******************************************************************************/
-
-#include "html.h"
-
-const Page page01 PROGMEM = {index_html_name, index_html, index_html_len};
-
-const Page* const pages[] PROGMEM = {
-	&page01,
-	NULL
-};
 
 
 /******************************************************************************
@@ -134,11 +120,11 @@ HttpStatusCode ledToggle (HttpRequest& request) {
 	return HTTP_OK;
 }
 
-FlashFileFuncAssoc (indexAss, index_html_name, ledToggle);
+FileFuncAssoc (indexAss, "/index.html", ledToggle);
 
 FileFuncAssociationArray associations[] PROGMEM = {
-	&indexAss,
-	NULL
+    &indexAss,
+    NULL
 };
 
 
@@ -225,8 +211,8 @@ void setup () {
 	webserver.begin (netint);
 	webserver.enableReplacementTags (tags);
 
-	flashStorage.begin (pages);
-	webserver.addStorage (flashStorage);
+	littlefsStorage.begin ();
+	webserver.addStorage (littlefsStorage);
 	webserver.associateFunctions (associations);
 
 	// Prepare pin

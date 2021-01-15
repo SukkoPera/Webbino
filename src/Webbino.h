@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of Webbino                                          *
  *                                                                         *
- *   Copyright (C) 2012-2019 by SukkoPera                                  *
+ *   Copyright (C) 2012-2021 by SukkoPera                                  *
  *                                                                         *
  *   Webbino is free software: you can redistribute it and/or modify       *
  *   it under the terms of the GNU General Public License as published by  *
@@ -23,3 +23,5 @@
 #include "WebbinoCore/FlashStorage.h"
 #include "WebbinoCore/SdStorage.h"
 #include "WebbinoCore/SpiffsStorage.h"
+#include "WebbinoCore/LittleFSStorage.h"
+#include "WebbinoCore/DummyStorage.h"
