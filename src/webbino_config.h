@@ -74,7 +74,7 @@
  *   future.
  */
 #if defined( WEBBINO_USE_ESP8266_STANDALONE ) || ( defined ( ARDUINO_ARCH_ESP32 ) && defined ( WEBBINO_USE_WIFI ) )
-//~ #define WEBBINO_ENABLE_LITTLEFS
+#define WEBBINO_ENABLE_LITTLEFS
 //~ #define WEBBINO_ENABLE_SPIFFS
 #endif
 #if defined( WEBBINO_ENABLE_LITTLEFS ) && defined( WEBBINO_ENABLE_SPIFFS )
