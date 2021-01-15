@@ -13,7 +13,8 @@ features which were not present in other webservers that were available at the t
 - HTML pages and other data can be embedded in the code. This avoids the need of an SD card for simple sites.
 - If you prefer, HTML pages can also be stored on an SD card (long file names are supported!)
 - Tags like `$WHATEVER$` in HTML pages can be replaced at page request time, allowing the delivery of dynamic contents.
-- Arbitrary functions can be associated to a page, to perform any needed actions.
+- Arbitrary functions can be associated to a page, to perform any needed actions: turn on LEDs, relays, save data to EEPROM, etc.
+- Supports HTTP Basic Authentication.
 
 To learn how to use the library, I strongly recommend to have a look at the vast number of examples that are included with it.
 
