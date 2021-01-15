@@ -78,7 +78,7 @@
 //~ #define WEBBINO_ENABLE_SPIFFS
 #endif
 #if defined (WEBBINO_ENABLE_LITTLEFS) && defined (WEBBINO_ENABLE_SPIFFS)
-#error "You can't enable both LITTLEFS and SPIFFS"
+#error "You can't enable both LITTLEFS and SPIFFS at the same time"
 #endif
 
 /*   Name of the index page, i.e. the page requests for / get redirected to.

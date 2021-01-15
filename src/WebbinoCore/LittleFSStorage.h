@@ -23,12 +23,16 @@
 
 #ifdef WEBBINO_ENABLE_LITTLEFS
 
-#ifndef WEBBINO_USE_ESP8266_STANDALONE
+#include <FS.h>
+
+#ifdef ARDUINO_ARCH_ESP32
+#include <LITTLEFS.h>	// https://github.com/lorol/LITTLEFS
+#define LittleFS LITTLEFS
+#elif defined (WEBBINO_USE_ESP8266_STANDALONE)
+#include <LittleFS.h>
+#else
 #error "LittleFS can only be enabled on ESP8266 standalone"
 #endif
-
-#include <FS.h>
-#include <LittleFS.h>
 
 struct LittleFSContent: public Content {
 private:
