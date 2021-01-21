@@ -38,10 +38,14 @@ struct Page {
 	}
 
 	unsigned int getLength () const {
-		/* FIXME This gets truncated to 16 bits on platforms with wider ints,
-		 * see #5
-		 */
+		// I'm not a fan of this, but well... (See #5)
+#if __SIZEOF_INT__ == 2
 		return pgm_read_word (&(this -> length));
+#elif __SIZEOF_INT__ == 4
+		return pgm_read_dword (&(this -> length));
+#else
+		#error "Mmmmh... Compiling on a weird architecture?"
+#endif
 	}
 };
 
