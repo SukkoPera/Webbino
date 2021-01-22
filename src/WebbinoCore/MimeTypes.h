@@ -58,7 +58,7 @@ struct MimeType {
 MimeTypeEntry (mt_htm, htm, text, html, true);
 MimeTypeEntry (mt_html, html, text, html, true);
 MimeTypeEntry (mt_css, css, text, css, true);
-MimeTypeEntry (mt_js, js, application, javascript, true);
+MimeTypeEntry (mt_js, js, application, javascript, false);
 MimeTypeEntry (mt_txt, txt, text, plain, true);
 MimeTypeEntry (mt_png, png, image, png, false);
 MimeTypeEntry (mt_gif, gif, image, gif, false);
