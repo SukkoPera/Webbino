@@ -1,5 +1,7 @@
 # Webbino
 
+[![arduino/arduino-lint-action](https://github.com/SukkoPera/Webbino/actions/workflows/main.yml/badge.svg)](https://github.com/SukkoPera/Webbino/actions/workflows/main.yml)
+
 Webbino is a webserver for Arduino.  I originally wrote it for my [SmartStrip project](https://github.com/SukkoPera/SmartStrip), which required several unique
 features which were not present in other webservers that were available at the time:
 - Compatible with many network interfaces:
