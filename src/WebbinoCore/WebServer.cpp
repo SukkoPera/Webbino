@@ -30,6 +30,7 @@
 #define REDIRECT_HEADER "Location: "
 //~ #define NOCACHE_HEADER "Pragma: no-cache
 #define CONT_TYPE_HEADER "Content-Type: "
+#define ACCESS_CONTROL_ALLOW_ORIGIN "Access-Control-Allow-Origin: *"
 #define HEADER_END "\r\n"
 
 #ifdef ENABLE_HTTPAUTH
@@ -294,6 +295,12 @@ void WebServer::handleClient (WebClient& client) {
 						client.print (F(CONT_TYPE_HEADER));
 						client.print (PSTR_TO_F (contType.getType ()));
 						client.print (F(HEADER_END));
+						
+						if(ALLOW_CROSS_ORIGIN){
+							client.print (F(ACCESS_CONTROL_ALLOW_ORIGIN));
+							client.print (F(HEADER_END));
+						}
+						
 						client.print (F(HEADER_END));
 
 						sendContent (client, content, contType);
