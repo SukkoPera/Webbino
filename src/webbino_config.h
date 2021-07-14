@@ -184,6 +184,11 @@ const byte TAG_CHAR = static_cast<byte> ('$');
  */
 #define CLIENT_TIMEOUT 2500
 
+/*
+ * Set the Access-Control-Allow-Origin response header to wildcard (allow cross origin).
+ * Set to 1 t enable.
+ */
+#define ALLOW_CROSS_ORIGIN 0
 
 /* FIFTH: choose if you want to see on the serial terminal the Debug messages
  * --------------------------------------------------------------------------
