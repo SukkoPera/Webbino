@@ -36,4 +36,4 @@ You should have received a copy of the GNU General Public License along with Web
 Please use the [official github page](https://github.com/SukkoPera/Webbino) to report issues, suggestions and such.
 
 ## Thanks
-Thanks to gpb01 for Teensy 4.1 support and other contributions.
+Thanks to gpb01 for [Teensy 4.1](https://www.pjrc.com/store/teensy41.html) support and other contributions.
