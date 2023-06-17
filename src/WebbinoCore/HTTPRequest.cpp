@@ -173,10 +173,9 @@ char *HttpRequest::get_basename () {
 #ifdef ENABLE_REST
 
 #define isHexDigit(c) (((c) >= '0' && (c) <= '9') || (tolower (c) >= 'a' && tolower (c) <= 'f'))
-#define hex2int(c) ((c) <= '9' ? ((c) - '0') : ((c) - 'a' + 10))
+#define hex2int(c) ((c) <= '9' ? ((c) - '0') : (tolower (c) - 'a' + 10))
 
-/* Copy up to len characters from src to dst decoding space-encoded characters
- * and replacing '+' with spaces
+/* Copy up to len characters from src to dst decoding the x-www-form-urlencoded format
  */
 char *HttpRequest::cpyndec (char *dst, const char *src, const size_t len) {
 	size_t i = 0, j = 0;
