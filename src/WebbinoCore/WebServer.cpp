@@ -74,7 +74,7 @@ const char *responseCodeToMessage (HttpStatusCode code) {
 	return msg;
 }
 
-#define replyIsSuccessful(x) ((x) / 100) == 2)
+#define replyIsSuccessful(x) (((x) / 100) == 2)
 
 boolean WebServer::begin (NetworkInterface& _netint) {
 	nStorage = 0;
@@ -291,12 +291,12 @@ void WebServer::handleClient (WebClient& client) {
 					client.print (responseCodeToMessage (responseCode));
 					client.print (F(HEADER_END));
 
-					if (replyIsSuccessful (responseCode) {
+					if (replyIsSuccessful (responseCode)) {
 						client.print (F(CONT_TYPE_HEADER));
 						client.print (PSTR_TO_F (contType.getType ()));
 						client.print (F(HEADER_END));
 						
-						if(ALLOW_CROSS_ORIGIN){
+						if (ALLOW_CROSS_ORIGIN) {
 							client.print (F(ACCESS_CONTROL_ALLOW_ORIGIN));
 							client.print (F(HEADER_END));
 						}
